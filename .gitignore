@@ -1,0 +1,47 @@
+# ============================================================
+# Dieses Repo (privat auf GitHub) enthaelt NUR Code/Infrastruktur,
+# die fuer den Betrieb der Website/Datenbank noetig ist.
+# Alle internen Planungsdokumente, Analysen, Rohmaterial etc.
+# bleiben bewusst ausserhalb und rein lokal.
+# Entscheidung vom 2026-09-12, siehe Chat/SETUP-BACKEND.md.
+# ============================================================
+
+# Standardmaessig: alles im Projektordner ignorieren...
+/*
+
+# ...ausser den explizit freigegebenen Code-/Infra-Ordnern:
+!/supabase/
+!/scripts/
+!/.github/
+!/.gitignore
+!/README.md
+
+# --- Auch innerhalb der freigegebenen Ordner ausschliessen: ---
+
+# Betriebssystem- und Editorreste
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.tmp
+*.log
+
+# Lokale Umgebungen und Zugangsdaten
+.env
+.env.*
+!.env.example
+
+# Python-Zwischendateien und Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Abhaengigkeiten und Build-Ausgaben
+node_modules/
+dist/
+build/
+
+# Supabase-CLI lokaler Cache (Projekt-Ref, Pooler-URL etc.) - nicht versionieren
+/supabase/.temp/

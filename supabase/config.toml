@@ -1,0 +1,10 @@
+# Supabase CLI project config for Gellhorn Time Attack (RS-0011 / DEC-0045).
+# Requires the Supabase CLI locally for `supabase start` / `supabase db push`
+# / `supabase functions deploy`. project_id is filled in once a real
+# Supabase project exists (see SETUP-BACKEND.md) via `supabase link`.
+
+[functions.submit-lap]
+verify_jwt = true
+
+[functions.moderate-submission]
+verify_jwt = true
