@@ -1,0 +1,143 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Leaderboard from '../../../components/Leaderboard.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Gellhorn International Raceway — GTA 6 Time Attack"
+  description="Race Gellhorn International Raceway in GTA 6. Submit your lap, check the full leaderboard, and see the current standard for a valid run."
+  active="leaderboard"
+>
+  <section class="hero">
+    <picture>
+      <source type="image/webp" srcset={`${base}images/gellhorn-raceway-640.webp 640w, ${base}images/gellhorn-raceway-1080.webp 1080w, ${base}images/gellhorn-raceway-1672.webp 1672w`} sizes="100vw" />
+      <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="Gellhorn International Raceway circuit in GTA 6" width="1672" height="941" loading="eager" fetchpriority="high" />
+    </picture>
+    <div class="hero-veil" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">GTA VI Time Attack</p>
+        <h1 class="display hero-title"><span class="title-line1">Gellhorn</span><span class="title-line2">International Raceway</span></h1>
+        <p class="hero-lede">The home of GTA 6 Time Attack. Set the fastest lap, submit your proof, and see where you rank.</p>
+        <div class="hero-actions">
+          <a class="btn btn-red" href={`${base}time-attack/submit/`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+            Submit a Lap
+          </a>
+          <a class="btn btn-outline" href={`${base}time-attack/rules/`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+            View Rules
+          </a>
+        </div>
+      </div>
+      <aside class="panel record-panel">
+        <p class="record-label">Verified Track Record</p>
+        <p class="display record-value">Opens at<br/>Launch</p>
+        <p class="record-note">Available once the game launches.</p>
+      </aside>
+    </div>
+  </section>
+
+  <Leaderboard />
+
+  <nav class="jump-nav" aria-label="Track sections">
+    <div class="wrap jump-row">
+      <a href="#overview">Overview</a>
+      <a href="#standard">Standard</a>
+      <a href="#guide">Track Guide</a>
+    </div>
+  </nav>
+
+  <section id="overview" class="story story-photo">
+    <div class="story-photo-media" aria-hidden="true">
+      <img src={`${base}images/gellhorn-raceway-1080.webp`} alt="" loading="eager" />
+      <div class="story-photo-veil"></div>
+    </div>
+    <div class="wrap story-grid">
+      <div>
+        <p class="eyebrow">Overview</p>
+        <h2 class="display story-title">About Gellhorn<br/>International Raceway</h2>
+      </div>
+      <div class="story-copy">
+        <p>Gellhorn International Raceway is the circuit at the center of GTA 6 Time Attack, our first lap-time competition for Grand Theft Auto VI. Every accepted lap follows one shared, versioned standard, so times stay comparable across drivers and vehicles.</p>
+        <p>The track appears in Rockstar's official gameplay footage, including a full racing HUD with lap counter, timer, and position tracker. The exact layout, length, and direction shown in unofficial leaked maps are not yet confirmed by Rockstar Games — we'll update this page with verified details once the game is out.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="standard" class="story story-alt">
+    <div class="wrap story-grid">
+      <div>
+        <p class="eyebrow">Standard</p>
+        <h2 class="display story-title">The Gellhorn<br/>Standard</h2>
+      </div>
+      <div class="story-copy">
+        <p>Every lap on this leaderboard is measured against the current Gellhorn Standard — a versioned set of rules covering accepted conditions, allowed assists, and proof requirements. The standard stays in draft until we've tested it against real gameplay, then locks in with a short provisional window after launch.</p>
+        <a class="link-arrow" href={`${base}time-attack/rules/`}>Read the full rules →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="guide" class="story">
+    <div class="wrap story-grid">
+      <div>
+        <p class="eyebrow">After hands-on testing</p>
+        <h2 class="display story-title">Track Guide</h2>
+        <span class="badge">Coming after testing</span>
+      </div>
+      <div class="story-copy guide-copy">
+        <p>A full section-by-section guide — braking points, racing lines, common mistakes — goes up after we've tested Gellhorn ourselves. Coming after launch.</p>
+        <img class="guide-image" src={`${base}images/gellhorn-raceway-640.webp`} alt="Gellhorn International Raceway" loading="eager" width="640" height="360" />
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero { position: relative; overflow: hidden; }
+  .hero picture, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .hero-veil { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(20,20,26,.97) 8%, rgba(20,20,26,.55) 55%, rgba(20,20,26,.8)); }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: clamp(1.5rem, 4vw, 3rem); min-height: clamp(14rem, 28vh, 18rem); padding-block: clamp(1.5rem, 2.5vw, 2rem); }
+  .hero-title { margin: .4rem 0 .7rem; }
+  .title-line1 { display: block; font-size: clamp(2.5rem, 5.2vw, 4.2rem); }
+  .title-line2 { display: block; font-size: clamp(1.1rem, 2vw, 1.6rem); color: var(--gh-text); margin-top: .15rem; }
+  .hero-lede { max-width: 38ch; color: var(--gh-muted); font-size: .92rem; margin: 0 0 1.1rem; }
+  .hero-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+  .hero-actions .btn { gap: .5rem; }
+  .record-panel { justify-self: end; max-width: 13rem; padding: 1rem 1.1rem; background: rgba(255,215,76,.1); border: 1px solid var(--gh-yellow); }
+  .record-label { margin: 0; color: var(--gh-muted); font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+  .record-value { margin: .4rem 0; color: var(--gh-yellow); font-size: 1.25rem; line-height: 1; }
+  .record-note { margin: 0; color: var(--gh-muted); font-size: .7rem; }
+
+  .jump-nav { position: sticky; top: var(--gh-header-h); z-index: 30; background: rgba(20,20,26,.95); backdrop-filter: blur(10px); border-block: 1px solid var(--gh-line); }
+  .jump-row { display: flex; justify-content: center; gap: 1.75rem; overflow-x: auto; }
+  .jump-row a { padding-block: .8rem; color: var(--gh-muted); font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+  .jump-row a:hover { color: var(--gh-text); }
+
+  .story { padding-block: var(--gh-gap-section); position: relative; }
+  .story-alt { background: var(--gh-surface-soft); }
+  .story-photo { overflow: hidden; }
+  .story-photo-media { position: absolute; inset: 0; }
+  .story-photo-media img { width: 100%; height: 100%; object-fit: cover; opacity: .16; }
+  .story-photo-veil { position: absolute; inset: 0; background: linear-gradient(180deg, var(--gh-bg) 0%, rgba(20,20,26,.82) 45%, var(--gh-bg) 100%); }
+  .story-photo .story-grid { position: relative; }
+  .story-grid { display: grid; grid-template-columns: minmax(16rem,.7fr) minmax(20rem,1.3fr); gap: clamp(2.5rem, 7vw, 7rem); }
+  .story-title { font-size: clamp(1.8rem, 3vw, 2.5rem); margin: .5rem 0 0; }
+  .story-copy { max-width: 62ch; color: var(--gh-muted); font-size: 1.02rem; }
+  .story-copy p { margin: 0 0 1.1rem; }
+  .story-copy p:first-child { color: var(--gh-text); }
+  .story-copy p:last-child { margin-bottom: 0; }
+  .link-arrow { display: inline-block; margin-top: .3rem; color: var(--gh-yellow); font-weight: 700; font-size: .88rem; text-decoration: none; }
+  .badge { display: inline-block; margin-top: 1rem; padding: .35rem .75rem; border-radius: 999px; border: 1px solid var(--gh-line); color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+
+  .guide-copy { display: flex; flex-wrap: wrap; align-items: center; gap: 1.5rem; max-width: none; }
+  .guide-copy p { flex: 1 1 22rem; margin: 0; }
+  .guide-image { flex: none; width: 14rem; height: 8.75rem; object-fit: cover; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .record-panel { justify-self: start; max-width: 16rem; }
+    .story-grid { grid-template-columns: 1fr; }
+    .guide-image { width: 100%; height: 11rem; }
+  }
+</style>

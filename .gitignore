@@ -15,6 +15,7 @@
 !/.github/
 !/.gitignore
 !/README.md
+!/site/
 
 # --- Auch innerhalb der freigegebenen Ordner ausschliessen: ---
 
@@ -42,6 +43,7 @@ htmlcov/
 node_modules/
 dist/
 build/
+.astro/
 
 # Supabase-CLI lokaler Cache (Projekt-Ref, Pooler-URL etc.) - nicht versionieren
 /supabase/.temp/

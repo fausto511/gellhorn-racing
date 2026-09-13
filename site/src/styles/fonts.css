@@ -1,0 +1,56 @@
+/* Font-face declarations moved out of Base.astro's inline <style> block so
+   Vite processes the url() references (relative paths into src/assets/) and
+   automatically applies the correct base path at build time. Absolute
+   "/fonts/..." paths in an inline <style> are NOT base-prefixed by Astro —
+   that was the bug this file fixes (GitHub Pages project-page deploy under
+   /gellhorn-racing/ needs base-aware URLs everywhere, not just in page
+   templates). */
+
+@font-face {
+  font-family: 'Gellhorn Display';
+  src: url('../assets/fonts/roboto-condensed-italic-latin.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 800 900;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F;
+}
+@font-face {
+  font-family: 'Gellhorn Display';
+  src: url('../assets/fonts/roboto-condensed-italic-latin-ext.woff2') format('woff2');
+  font-style: italic;
+  font-weight: 800 900;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0300-036F;
+}
+@font-face {
+  font-family: 'Gellhorn Text';
+  src: url('../assets/fonts/roboto-regular-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F;
+}
+@font-face {
+  font-family: 'Gellhorn Text';
+  src: url('../assets/fonts/roboto-regular-latin-ext.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0300-036F;
+}
+@font-face {
+  font-family: 'Gellhorn Text';
+  src: url('../assets/fonts/roboto-bold-latin.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+2000-206F;
+}
+@font-face {
+  font-family: 'Gellhorn Text';
+  src: url('../assets/fonts/roboto-bold-latin-ext.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  unicode-range: U+0100-024F, U+0300-036F;
+}

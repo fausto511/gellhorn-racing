@@ -1,0 +1,29 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+<footer class="site-foot">
+  <div class="wrap site-foot-row">
+    <div>
+      <p class="foot-brand">Gellhorn Time Attack</p>
+      <p class="foot-note">Independent GTA VI community project. Not affiliated with Rockstar Games or Take-Two Interactive.</p>
+    </div>
+    <nav aria-label="Footer">
+      <a href={`${base}tracks/gellhorn-international-raceway/#leaderboard`}>Leaderboard</a>
+      <a href={`${base}time-attack/how-it-works/`}>How It Works</a>
+      <a href={`${base}time-attack/rules/`}>Rules</a>
+      <a href={`${base}about/`}>About</a>
+      <a href={`${base}privacy/`}>Privacy</a>
+      <a href={`${base}legal/`}>Legal</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .site-foot { margin-top: var(--gh-gap-section); border-top: 1px solid var(--gh-line); padding-block: 2.5rem; }
+  .site-foot-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; }
+  .foot-brand { margin: 0 0 .35rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1rem; }
+  .foot-note { margin: 0; max-width: 34ch; color: var(--gh-muted); font-size: .8rem; }
+  nav { display: flex; flex-wrap: wrap; gap: 1.25rem; align-content: flex-start; }
+  nav a { color: var(--gh-muted); text-decoration: none; font-size: .8rem; font-weight: 600; }
+  nav a:hover { color: var(--gh-text); }
+</style>

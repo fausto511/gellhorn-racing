@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Gellhorn Time Attack — a GTA 6 racing community project"
+  description="A community time attack for Grand Theft Auto VI, starting with Gellhorn International Raceway."
+>
+  <section class="landing">
+    <picture>
+      <source type="image/webp" srcset={`${base}images/gellhorn-raceway-640.webp 640w, ${base}images/gellhorn-raceway-1080.webp 1080w, ${base}images/gellhorn-raceway-1672.webp 1672w`} sizes="100vw" />
+      <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="" width="1672" height="941" loading="eager" />
+    </picture>
+    <div class="landing-veil" aria-hidden="true"></div>
+    <div class="wrap landing-copy">
+      <p class="eyebrow">GTA VI community project</p>
+      <h1 class="display landing-title">Gellhorn<span> Time Attack</span></h1>
+      <p class="landing-lede">A lap-time competition for Grand Theft Auto VI. One shared standard, one leaderboard — starting with Gellhorn International Raceway.</p>
+      <a class="btn btn-primary" href={`${base}tracks/gellhorn-international-raceway/`}>Explore Gellhorn International Raceway</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .landing { position: relative; overflow: hidden; min-height: calc(100vh - 4.5rem); display: flex; align-items: center; }
+  .landing picture, .landing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .landing-veil { position: absolute; inset: 0; background: linear-gradient(120deg, rgba(20,20,26,.97) 20%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.85)); }
+  .landing-copy { position: relative; max-width: 42rem; padding-block: 5rem; }
+  .landing-title { font-size: clamp(2.6rem, 6vw, 4.6rem); margin: .7rem 0 1.2rem; }
+  .landing-title span { color: var(--gh-red); display: block; }
+  .landing-lede { color: var(--gh-muted); font-size: 1.1rem; max-width: 38ch; margin: 0 0 2rem; }
+</style>

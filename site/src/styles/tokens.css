@@ -1,0 +1,120 @@
+/*
+  Gellhorn Time Attack — design tokens.
+  Values are the confirmed palette from Gellhorn-Designsystem.md.
+  Do not introduce new colors here without user sign-off.
+*/
+:root {
+  /* surfaces */
+  --gh-bg: #14141a;
+  --gh-surface: #242430;
+  --gh-surface-soft: rgba(36, 36, 48, 0.55);
+  --gh-line: rgba(160, 160, 198, 0.16);
+
+  /* text */
+  --gh-text: #fcfaf7;
+  --gh-muted: #a0a0c6;
+
+  /* accents */
+  --gh-red: #ed253d;
+  --gh-yellow: #ffd74c;
+
+  /* type */
+  --gh-font-display: 'Gellhorn Display', 'Arial Narrow', sans-serif;
+  --gh-font-body: 'Gellhorn Text', -apple-system, 'Segoe UI', sans-serif;
+
+  /* rhythm — 8px card radius per design system; section gaps 64-96px desktop */
+  --gh-radius: 8px;
+  --gh-radius-lg: 14px;
+  --gh-gap-section: clamp(3.5rem, 7vw, 6rem);
+  --gh-gap-card: 1.5rem;
+  --gh-pad-card: clamp(1.4rem, 2.4vw, 2rem);
+  --gh-max: 74rem;
+  --gh-header-h: 3.5rem;
+}
+
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--gh-bg);
+  color: var(--gh-text);
+  font-family: var(--gh-font-body);
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+a { color: inherit; }
+
+.wrap {
+  max-width: var(--gh-max);
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.panel {
+  background: var(--gh-surface);
+  border-radius: var(--gh-radius);
+  border: 1px solid var(--gh-line);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gh-yellow);
+}
+.eyebrow::before {
+  content: '';
+  width: 1.5rem;
+  height: 2px;
+  background: var(--gh-red);
+}
+
+.display {
+  font-family: var(--gh-font-display);
+  font-style: italic;
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.94;
+  letter-spacing: 0.005em;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--gh-radius);
+  padding: 0.85rem 1.5rem;
+  font-family: var(--gh-font-display);
+  font-style: italic;
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.btn-primary { background: var(--gh-yellow); color: #1a1206; }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-red { background: var(--gh-red); color: var(--gh-text); }
+.btn-red:hover { filter: brightness(1.08); }
+.btn-outline { background: transparent; border-color: var(--gh-line); color: var(--gh-text); }
+.btn-outline:hover, .outline-hover:hover { background: rgba(252,250,247,.08); border-color: var(--gh-muted); }
+
+.status-ok, .status-pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.status-ok { color: var(--gh-yellow); }
+.status-pending { color: var(--gh-muted); }
+.status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; }
+.status-ok .status-dot { background: var(--gh-yellow); }
+.status-pending .status-dot { border: 1.5px solid var(--gh-muted); }

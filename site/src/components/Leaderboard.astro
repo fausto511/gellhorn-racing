@@ -1,0 +1,149 @@
+---
+import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/leaderboard';
+---
+<section id="leaderboard" class="lb">
+  <div class="wrap">
+    <div class="lb-head">
+      <div>
+        <span class="sample-flag">Sample data — no real community records yet</span>
+        <h2 class="display lb-title">Leaderboard</h2>
+        <p class="lb-meta">Gellhorn International Raceway · PS5 · Current Standard · {leaderboardStats.drivers} drivers · {leaderboardStats.acceptedLaps} accepted laps</p>
+      </div>
+      <div class="lb-tabs" role="tablist" aria-label="Leaderboard view">
+        <button type="button" class="lb-tab is-active" role="tab" aria-selected="true">Overall</button>
+        <button type="button" class="lb-tab" role="tab" aria-selected="false">Vehicle Records</button>
+      </div>
+    </div>
+
+    <div class="lb-controls">
+      <label class="lb-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="Search driver" aria-label="Search driver" />
+      </label>
+      <label class="lb-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" placeholder="Search vehicle" aria-label="Search vehicle" />
+      </label>
+      <div class="lb-toggle" role="group" aria-label="Time filter">
+        <button type="button" class="is-active">All Times</button>
+        <button type="button">Verified Only</button>
+      </div>
+    </div>
+
+    <div class="panel lb-table-wrap">
+      <table class="lb-table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Driver</th>
+            <th scope="col">Vehicle</th>
+            <th scope="col">Track Entries</th>
+            <th scope="col">Lap Time</th>
+            <th scope="col">Status</th>
+            <th scope="col">Video</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sampleLaps.map((row) => (
+            <tr class:list={{ 'is-top3': row.rank <= 3 }}>
+              <td class="lb-rank">{row.rank}</td>
+              <td class="lb-driver">{row.driver}</td>
+              <td>
+                <span class="lb-vehicle">
+                  {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
+                  <span class="lb-make">{row.make}</span> {row.model}
+                </span>
+              </td>
+              <td class="lb-num">{row.entries}</td>
+              <td class="lb-time">
+                {row.time}
+                {row.gapMs !== null && <span class="lb-gap">+{(row.gapMs / 1000).toFixed(3)}</span>}
+              </td>
+              <td>
+                {row.videoVerified
+                  ? <span class="status-ok"><span class="check-circle"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span> Video verified</span>
+                  : <span class="status-pending"><span class="status-dot" /> Not video verified</span>}
+              </td>
+              <td class="lb-video">{row.videoVerified ? <a class="watch-btn outline-hover" href="#" aria-label={`Watch ${row.driver}'s lap`}>Watch</a> : '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="panel needed">
+      <div class="needed-head">
+        <div class="needed-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
+          <h3>Vehicles Needed</h3>
+        </div>
+        <p>These vehicles don't have a verified record yet on Gellhorn. Be the first.</p>
+      </div>
+      <ul>
+        {vehiclesNeeded.map((v) => (
+          <li>
+            {makeLogo(v.make) && <span class="logo-chip logo-chip-lg"><img src={makeLogo(v.make)} alt={`${v.make} logo`} width="30" height="30" loading="lazy" /></span>}
+            <span class="needed-text"><strong>{v.make} {v.model}</strong><span>No verified record</span></span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lb { padding-block: var(--gh-gap-section); }
+  .lb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .sample-flag { display: inline-block; margin-bottom: .7rem; padding: .3rem .65rem; border-radius: 999px; background: rgba(237,37,61,.14); color: var(--gh-red); font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .lb-title { font-size: clamp(1.9rem, 3vw, 2.6rem); margin: 0; }
+  .lb-meta { margin: .5rem 0 0; color: var(--gh-muted); font-size: .85rem; }
+  .lb-tabs { display: flex; gap: .5rem; }
+  .lb-tab { padding: .55rem 1.1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .82rem; cursor: pointer; }
+  .lb-tab.is-active { border-color: var(--gh-yellow); color: var(--gh-yellow); }
+
+  .lb-controls { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 1.25rem; }
+  .lb-search { display: flex; align-items: center; gap: .55rem; flex: 1 1 14rem; padding: .65rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); color: var(--gh-muted); }
+  .lb-search input { flex: 1; background: none; border: none; color: var(--gh-text); font-size: .85rem; outline: none; }
+  .lb-toggle { display: inline-flex; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); overflow: hidden; }
+  .lb-toggle button { padding: .65rem 1.1rem; border: none; background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .78rem; cursor: pointer; }
+  .lb-toggle button.is-active { background: var(--gh-yellow); color: #1a1206; }
+
+  .lb-table-wrap { padding: 0; overflow-x: auto; }
+  .lb-table { width: 100%; border-collapse: collapse; min-width: 46rem; }
+  .lb-table th { text-align: left; padding: .9rem 1.1rem; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--gh-line); }
+  .lb-table td { padding: .85rem 1.1rem; font-size: .88rem; border-bottom: 1px solid var(--gh-line); }
+  .lb-table tbody tr:last-child td { border-bottom: none; }
+  .lb-table tr.is-top3 { background: rgba(255,215,76,.05); }
+  .lb-rank { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; color: var(--gh-muted); }
+  .is-top3 .lb-rank { color: var(--gh-yellow); }
+  .lb-driver { font-weight: 700; }
+  .lb-vehicle { display: inline-flex; align-items: center; gap: .5rem; }
+  .lb-make { color: var(--gh-muted); font-size: .78rem; }
+  .lb-num { color: var(--gh-muted); }
+  .lb-time { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .lb-gap { display: block; color: var(--gh-muted); font-size: .72rem; font-weight: 400; }
+  .status-ok { color: var(--gh-yellow); }
+  .check-circle { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: var(--gh-yellow); color: #1a1206; }
+  .watch-btn { display: inline-flex; align-items: center; padding: .35rem .8rem; border-radius: var(--gh-radius); background: transparent; border: 1px solid var(--gh-line); color: var(--gh-text); font-size: .76rem; font-weight: 700; text-decoration: none; }
+
+  .logo-chip { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--gh-text); padding: 4px; }
+  .logo-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .logo-chip-lg { width: 40px; height: 40px; padding: 5px; }
+
+  .needed { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; margin-top: 1.25rem; padding: var(--gh-pad-card); }
+  .needed-title { display: flex; align-items: center; gap: .5rem; }
+  .needed-title svg { color: var(--gh-yellow); flex: none; }
+  .needed-head h3 { margin: 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
+  .needed-head p { margin: .3rem 0 0; max-width: 30ch; color: var(--gh-muted); font-size: .82rem; }
+  .needed ul { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 0; padding: 0; flex: 1; justify-content: flex-end; }
+  .needed li { display: flex; align-items: center; gap: .6rem; padding: .7rem .95rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); min-width: 13rem; }
+  .needed-text { display: flex; flex-direction: column; gap: .2rem; }
+  .needed-text strong { font-size: .82rem; }
+  .needed-text span { color: var(--gh-muted); font-size: .7rem; }
+
+  @media (max-width: 700px) {
+    .lb-head { align-items: flex-start; }
+    .needed { justify-content: flex-start; }
+    .needed ul { justify-content: flex-start; }
+  }
+</style>
