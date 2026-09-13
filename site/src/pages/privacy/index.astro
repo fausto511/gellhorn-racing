@@ -27,7 +27,7 @@ import Base from '../../layouts/Base.astro';
       <p>Diese Website verarbeitet personenbezogene Daten in folgenden Bereichen: Anmeldung und Kontoverwaltung (Discord-OAuth-Login), Einreichung und Verifizierung von Rundenzeiten (Screenshots/Belege als private Originale, öffentliche Bestzeiten als Ergebnis), Moderation und Missbrauchsprävention sowie die technische Bereitstellung der Seite (Hosting, Server-Logs).</p>
 
       <h2>3. Discord-Anmeldung (OAuth)</h2>
-      <p>Für die Anmeldung nutzen wir Discord als externen Anmeldedienst (OAuth 2.0). Dabei werden von Discord Basisdaten deines Discord-Kontos übermittelt (voraussichtlich Discord-Nutzer-ID, Benutzername und Avatar entsprechend dem Standard-Scope „identify"). Der exakte Umfang der angefragten Berechtigungen ist noch nicht abschließend dokumentiert und wird hier ergänzt, sobald er bestätigt ist. Es werden keine Discord-Zugangsdaten (Passwort) von uns gespeichert oder eingesehen.</p>
+      <p>Für die Anmeldung nutzen wir Discord als externen Anmeldedienst (OAuth 2.0). Dabei fragen wir ausschließlich den kleinstmöglichen Discord-Scope <code>identify</code> an (keine E-Mail-Adresse, keine Server-/Gilden-Daten). Von Discord übermittelt werden entsprechend nur die Discord-Nutzer-ID, der Benutzername und der Avatar. Es werden keine Discord-Zugangsdaten (Passwort) von uns gespeichert oder eingesehen.</p>
       <p>Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Erfüllung des Nutzungsverhältnisses). Verantwortlicher für die Verarbeitung auf Discord-Seite ist Discord Inc. Die Datenschutzerklärung von Discord ist unter discord.com/privacy einsehbar.</p>
 
       <h2>4. Einreichungen, Screenshots und Verifizierung</h2>
