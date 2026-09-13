@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base
+  title="Impressum — Gellhorn Time Attack"
+  description="Impressum gemäß § 5 DDG."
+>
+  <section class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Legal</p>
+      <h1 class="display page-title">Impressum</h1>
+    </div>
+  </section>
+
+  <section class="prose">
+    <div class="wrap prose-body">
+      <h2>Angaben gemäß § 5 DDG</h2>
+      <p>
+        Alexander Jaeger<br />
+        Wolfenbütteler Str. 17<br />
+        30519 Hannover<br />
+        Deutschland
+      </p>
+
+      <h2>Kontakt</h2>
+      <p>E-Mail: <a href="mailto:fausto89@web.de">fausto89@web.de</a></p>
+
+      <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
+      <p>Alexander Jaeger, Anschrift wie oben.</p>
+
+      <h2>Haftung für Inhalte</h2>
+      <p>Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
+      <p>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+
+      <h2>Haftung für Links</h2>
+      <p>Unser Angebot enthält Links zu externen Websites Dritter (z. B. Discord, verlinkte Community-Server), auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+
+      <h2>Urheberrecht</h2>
+      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter (z. B. eingereichte Screenshots) sind als solche gekennzeichnet.</p>
+
+      <h2>Verhältnis zu Rockstar Games / Take-Two Interactive</h2>
+      <p>Diese Website ist ein privates, nicht-kommerzielles Fanprojekt und steht in keiner Verbindung zu Rockstar Games, Take-Two Interactive Software oder verbundenen Unternehmen. Spielbezeichnungen, Marken, Screenshots und sonstige Spielinhalte bleiben Eigentum der jeweiligen Rechteinhaber und werden im Rahmen des Fanprojekt-Kontexts verwendet.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
+  .page-title { margin: .6rem 0 0; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
+
+  .prose { padding-bottom: var(--gh-gap-section); }
+  .prose-body { max-width: 62ch; }
+  .prose-body h2 { font-size: 1.05rem; margin: 2rem 0 .6rem; }
+  .prose-body h2:first-child { margin-top: 0; }
+  .prose-body p { margin: 0 0 1rem; color: var(--gh-muted); font-size: .94rem; line-height: 1.7; }
+  .prose-body a { color: var(--gh-yellow); }
+</style>

@@ -1,0 +1,63 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="About — Gellhorn Time Attack"
+  description="What Gellhorn Time Attack is, what it does and doesn't do, and who runs it."
+>
+  <section class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">About</p>
+      <h1 class="display page-title">About Gellhorn Time Attack</h1>
+      <p class="page-lede">Set a lap. Prove it. See where you and your car stand.</p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <div class="wrap prose-body">
+      <h2>What this is</h2>
+      <p>Gellhorn Time Attack is a public, proof-based lap-time competition for GTA VI, built around a single track: Gellhorn International Raceway. You submit a lap, and the site answers a few concrete questions for you: what your best comparable run is, where you stand overall and with that specific car, how far you are from the record and from your next realistic target, and — just as important — how solid the time you're looking at actually is and which rule version it was set under.</p>
+
+      <h2>What this isn't (yet)</h2>
+      <p>This site doesn't try to be everything. It doesn't rank vehicles independently of the driver — that's a separate, harder question that needs multiple drivers and paired testing, and belongs to a different project (Gellhorn Labs) if it happens at all. It's also not a GTA news site, a full vehicle encyclopedia, a track catalogue, a social feed, or a video host. It's one thing: a fair, checkable leaderboard for one track.</p>
+
+      <h2>Built ahead of launch</h2>
+      <p>GTA VI hasn't come out yet. Everything here — the submission flow, the verification tiers, the rules — is built and ready for release day, but the actual Gellhorn Standard stays in draft until it's been tested against real gameplay. Nothing on this site should be read as a final ruling on how GTA VI works until that testing has happened.</p>
+
+      <h2>Who's behind it</h2>
+      <p>Gellhorn Time Attack is an independent project run by Alexander Jaeger. It has no connection to Rockstar Games or Take-Two Interactive — it's a fan-made community project, not an official one.</p>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="wrap cta-row">
+      <div>
+        <h2 class="display cta-title">Get involved</h2>
+        <p class="cta-copy">Join the Discord to follow progress, or read the rules to see how submissions work.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-outline" href={`${base}time-attack/rules/`}>Read the Rules</a>
+        <a class="btn btn-red" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Join Discord</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
+  .page-title { margin: .6rem 0 .9rem; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
+  .page-lede { max-width: 46ch; color: var(--gh-muted); font-size: 1.02rem; }
+
+  .prose { padding-bottom: var(--gh-gap-section); }
+  .prose-body { max-width: 62ch; }
+  .prose-body h2 { font-size: 1.15rem; margin: 2.2rem 0 .7rem; }
+  .prose-body h2:first-child { margin-top: 0; }
+  .prose-body p { margin: 0 0 1rem; color: var(--gh-muted); font-size: .96rem; line-height: 1.7; }
+
+  .cta-band { padding-block: var(--gh-gap-section); border-top: 1px solid var(--gh-line); background: var(--gh-surface-soft); }
+  .cta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem; }
+  .cta-title { margin: 0 0 .5rem; font-size: clamp(1.5rem, 2.6vw, 2rem); }
+  .cta-copy { margin: 0; max-width: 42ch; color: var(--gh-muted); font-size: .95rem; }
+  .cta-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+</style>
