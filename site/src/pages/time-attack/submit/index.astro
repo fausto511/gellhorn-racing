@@ -284,7 +284,11 @@ const PLATFORMS = [
 
       const res = await fetch(SUBMIT_LAP_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({
           track_id: 'gellhorn-international-raceway',
           vehicle_id: vehicleId,
