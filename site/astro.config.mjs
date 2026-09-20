@@ -21,6 +21,11 @@ export default defineConfig({
     // NB: astro's `redirects` does NOT auto-prefix the target with `base` —
     // muss hier explizit passieren, sonst 404 die Weiterleitung sobald unter
     // einem Unterpfad deployed.
-    '/time-attack/': `${base}/tracks/gellhorn-international-raceway/`,
+    '/time-attack/': `${base}/time-attack/gellhorn-international-raceway/`,
+    // DEC-0056 (18.09.2026): Gellhorn-Seite lief frueher unter /tracks/,
+    // ist jetzt unter /time-attack/ verschoben (kein Redesign, nur Umzug).
+    // Alter Pfad bleibt dauerhaft als Redirect bestehen (SEO/Bookmarks/
+    // Discord-Links), damit nichts ins Leere zeigt.
+    '/tracks/gellhorn-international-raceway/': `${base}/time-attack/gellhorn-international-raceway/`,
   },
 });
