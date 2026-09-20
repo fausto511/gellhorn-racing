@@ -7,7 +7,7 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description: string;
-  section?: 'time-attack' | 'garage' | null;
+  section?: 'time-attack' | 'garage' | 'account' | null;
 }
 const { title, description, section = null } = Astro.props;
 const base = import.meta.env.BASE_URL;

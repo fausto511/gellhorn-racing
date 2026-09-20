@@ -3,7 +3,8 @@ import Base from '../../layouts/Base.astro';
 ---
 <Base
   title="My Account — Gellhorn Time Attack"
-  description="Your private driver area: vehicle records, latest submission and account settings."
+  description="Your private driver area: vehicle records, submissions and account settings."
+  section="account"
 >
   <section class="wrap account-wrap">
     <p class="eyebrow">Private Driver Area</p>
@@ -29,23 +30,8 @@ import Base from '../../layouts/Base.astro';
     </div>
 
     <div id="account-content" hidden>
-      <h2 class="section-heading">Driver Overview</h2>
-      <p class="section-lede">Your private racing activity in one place.</p>
-
-      <div class="overview-grid">
-        <div class="panel stat-card">
-          <span class="stat-label stat-label-teal">Vehicle Records</span>
-          <strong id="stat-vehicle-count" class="stat-value">—</strong>
-          <p class="stat-note">Each vehicle has its own personal best and leaderboard rank.</p>
-        </div>
-        <div class="panel stat-card">
-          <span class="stat-label stat-label-yellow">Latest Submission</span>
-          <strong id="stat-latest-time" class="stat-value">—</strong>
-          <p class="stat-note" id="stat-latest-note">No submissions yet.</p>
-        </div>
-      </div>
-
-      <h2 class="section-heading">My Vehicle Records</h2>
+      <h2 class="section-heading">My Records</h2>
+      <p class="section-lede">Your personal best per vehicle. Rank only shows once that lap is actually published.</p>
       <div class="panel table-wrap">
         <table class="records-table">
           <thead>
@@ -60,6 +46,26 @@ import Base from '../../layouts/Base.astro';
         </table>
         <p id="records-empty" class="empty-note" hidden>
           No vehicle records yet. <a href="../time-attack/submit/">Submit your first lap</a>.
+        </p>
+      </div>
+
+      <h2 class="section-heading">My Submissions</h2>
+      <p class="section-lede">Every lap you've submitted, including ones still in review.</p>
+      <div class="panel table-wrap">
+        <table class="records-table">
+          <thead>
+            <tr>
+              <th scope="col">Vehicle</th>
+              <th scope="col">Track</th>
+              <th scope="col">Lap Time</th>
+              <th scope="col">Status</th>
+              <th scope="col">Submitted</th>
+            </tr>
+          </thead>
+          <tbody id="submissions-tbody"></tbody>
+        </table>
+        <p id="submissions-empty" class="empty-note" hidden>
+          No submissions yet. <a href="../time-attack/submit/">Submit your first lap</a>.
         </p>
       </div>
 
@@ -95,25 +101,21 @@ import Base from '../../layouts/Base.astro';
   .section-heading:first-of-type { margin-top: 0; }
   .section-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; }
 
-  .overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: var(--gh-gap-card); }
-  .stat-card { padding: var(--gh-pad-card); }
-  .stat-label { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .5rem; }
-  .stat-label-teal { color: #4fd1c5; }
-  .stat-label-yellow { color: var(--gh-yellow); }
-  .stat-value { display: block; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.7rem; margin-bottom: .35rem; }
-  .stat-note { margin: 0; color: var(--gh-muted); font-size: .82rem; }
-
   .table-wrap { padding: var(--gh-pad-card); overflow-x: auto; }
   .records-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-  .records-table th { text-align: left; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); font-weight: 700; padding-bottom: .7rem; border-bottom: 1px solid var(--gh-line); }
-  .records-table td { padding: .7rem 0; border-bottom: 1px solid var(--gh-line); }
+  .records-table th { text-align: left; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); font-weight: 700; padding-bottom: .7rem; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
+  .records-table td { padding: .7rem 1rem .7rem 0; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
   .records-table tr:last-child td { border-bottom: none; }
-  .rank-cell { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; }
-  .status-pill { display: inline-block; padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-  .status-pending { background: rgba(255,215,76,.14); color: var(--gh-yellow); }
-  .status-live { background: rgba(79,209,197,.14); color: #4fd1c5; }
-  .status-rejected { background: rgba(237,37,61,.14); color: var(--gh-red); }
-  .status-muted { background: var(--gh-surface-soft); color: var(--gh-muted); }
+  /* :global() below: these classes are only ever added at runtime via
+     innerHTML in the <script> block (record rows are rendered from live
+     Supabase data), so Astro's scoped-CSS attribute is never attached to
+     them -- without :global() these rules would be dead code. */
+  :global(.rank-cell) { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; }
+  :global(.status-pill) { display: inline-block; padding: .2rem .55rem; border-radius: 999px; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  :global(.status-pending) { background: rgba(255,215,76,.14); color: var(--gh-yellow); }
+  :global(.status-live) { background: rgba(79,209,197,.14); color: #4fd1c5; }
+  :global(.status-rejected) { background: rgba(237,37,61,.14); color: var(--gh-red); }
+  :global(.status-muted) { background: var(--gh-surface-soft); color: var(--gh-muted); }
   .empty-note { margin: 0; color: var(--gh-muted); font-size: .85rem; }
   .empty-note a { color: var(--gh-text); text-decoration: underline; }
 
@@ -144,11 +146,10 @@ import Base from '../../layouts/Base.astro';
   const authUserLabelEl = document.getElementById('auth-user-label');
   const contentEl = document.getElementById('account-content');
 
-  const statVehicleCountEl = document.getElementById('stat-vehicle-count');
-  const statLatestTimeEl = document.getElementById('stat-latest-time');
-  const statLatestNoteEl = document.getElementById('stat-latest-note');
   const recordsTbodyEl = document.getElementById('records-tbody');
   const recordsEmptyEl = document.getElementById('records-empty');
+  const submissionsTbodyEl = document.getElementById('submissions-tbody');
+  const submissionsEmptyEl = document.getElementById('submissions-empty');
   const displayNameInputEl = document.getElementById('display-name-input');
   const saveNameBtnEl = document.getElementById('save-name-btn');
   const settingsMsgEl = document.getElementById('settings-msg');
@@ -178,6 +179,12 @@ import Base from '../../layouts/Base.astro';
     const seconds = Math.floor((ms % 60000) / 1000);
     const millis = ms % 1000;
     return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
   }
 
   function vehicleLabel(v) {
@@ -230,51 +237,52 @@ import Base from '../../layouts/Base.astro';
       .maybeSingle();
 
     if (driverErr || !driverRow) {
-      statLatestNoteEl.textContent = 'Could not load your driver profile yet. Try reloading.';
+      recordsEmptyEl.hidden = false;
+      recordsEmptyEl.textContent = 'Could not load your driver profile yet. Try reloading.';
       return;
     }
     currentDriverRow = driverRow;
     displayNameInputEl.value = driverRow.display_name;
 
-    const { data: runs, error: runsErr } = await sb
+    // My Submissions: every run of this driver, any status, most recent
+    // first -- this is the activity log, unlike My Records below.
+    const { data: allRuns, error: allRunsErr } = await sb
       .from('runs')
       .select('run_id, vehicle_id, track_id, lap_time_ms, review_status, publication_status, submitted_at, created_at, vehicles(make, model), tracks(name)')
       .eq('driver_id', driverRow.driver_id)
-      .not('review_status', 'in', '(rejected,invalidated)')
-      .order('lap_time_ms', { ascending: true });
+      .order('created_at', { ascending: false });
 
-    if (runsErr) {
-      statLatestNoteEl.textContent = 'Could not load your vehicle records yet. Try reloading.';
-      return;
-    }
-
-    // Personal best per vehicle: runs are already sorted by lap_time_ms
-    // ascending, so the first run seen per vehicle_id is that vehicle's PB.
-    const bestByVehicle = new Map();
-    for (const run of runs ?? []) {
-      if (!bestByVehicle.has(run.vehicle_id)) bestByVehicle.set(run.vehicle_id, run);
-    }
-
-    statVehicleCountEl.textContent = `${bestByVehicle.size} Vehicle${bestByVehicle.size === 1 ? '' : 's'}`;
-
-    // Latest submission: most recently created run, any vehicle, any status
-    // (including rejected/invalidated -- unlike the PB table above, "latest
-    // submission" is about activity, not a valid record).
-    const { data: allRuns } = await sb
-      .from('runs')
-      .select('vehicle_id, lap_time_ms, review_status, publication_status, submitted_at, created_at, vehicles(make, model)')
-      .eq('driver_id', driverRow.driver_id)
-      .order('created_at', { ascending: false })
-      .limit(1);
-
-    const latest = allRuns?.[0];
-    if (latest) {
-      statLatestTimeEl.textContent = formatLapTime(latest.lap_time_ms);
-      const info = statusInfo(latest);
-      statLatestNoteEl.innerHTML = `${vehicleLabel(latest.vehicles)} · submitted recently &middot; <span class="status-pill ${info.cls}">${info.label}</span>`;
+    submissionsTbodyEl.innerHTML = '';
+    if (allRunsErr) {
+      submissionsEmptyEl.hidden = false;
+      submissionsEmptyEl.textContent = 'Could not load your submissions yet. Try reloading.';
+    } else if (!allRuns || allRuns.length === 0) {
+      submissionsEmptyEl.hidden = false;
     } else {
-      statLatestTimeEl.textContent = '—';
-      statLatestNoteEl.textContent = 'No submissions yet.';
+      submissionsEmptyEl.hidden = true;
+      for (const run of allRuns) {
+        const tr = document.createElement('tr');
+        const info = statusInfo(run);
+        tr.innerHTML = `
+          <td>${vehicleLabel(run.vehicles)}</td>
+          <td>${run.tracks?.name ?? '—'}</td>
+          <td>${formatLapTime(run.lap_time_ms)}</td>
+          <td><span class="status-pill ${info.cls}">${info.label}</span></td>
+          <td>${formatDate(run.submitted_at ?? run.created_at)}</td>
+        `;
+        submissionsTbodyEl.appendChild(tr);
+      }
+    }
+
+    // My Records: personal best per vehicle, excluding rejected/invalidated
+    // runs (those never were a valid record to begin with).
+    const validRuns = (allRuns ?? []).filter(
+      (r) => r.review_status !== 'rejected' && r.review_status !== 'invalidated'
+    );
+    validRuns.sort((a, b) => a.lap_time_ms - b.lap_time_ms);
+    const bestByVehicle = new Map();
+    for (const run of validRuns) {
+      if (!bestByVehicle.has(run.vehicle_id)) bestByVehicle.set(run.vehicle_id, run);
     }
 
     // Rank per vehicle: only meaningful once that vehicle's PB is actually
@@ -282,7 +290,7 @@ import Base from '../../layouts/Base.astro';
     // else can see. Computed against public_leaderboard -- the only public
     // read of run data (see the view's own comment in the schema) -- by
     // taking each OTHER driver's best time for that vehicle and counting how
-    // many beat mine. Not deduped-server-side, so done here client-side.
+    // many beat mine. Not deduped server-side, so done here client-side.
     recordsTbodyEl.innerHTML = '';
     if (bestByVehicle.size === 0) {
       recordsEmptyEl.hidden = false;

@@ -20,7 +20,19 @@ const globalLinks = [
         <a href={l.href} class:list={['global-link', { 'is-active': section === l.key }]}>{l.label}</a>
       ))}
     </nav>
-    <a class="account-link" href={`${base}account/`} class:list={{ 'is-active': section === 'account' }}>Account</a>
+    <div class="account-slot">
+      <a id="account-link-loggedout" class="account-link" href={`${base}account/`} class:list={{ 'is-active': section === 'account' }}>Account</a>
+      <div id="account-menu" class="account-menu" hidden>
+        <button type="button" id="account-menu-trigger" class="account-menu-trigger" aria-haspopup="true" aria-expanded="false">
+          <img id="account-avatar-img" class="account-avatar" alt="" hidden />
+          <span id="account-avatar-fallback" class="account-avatar-fallback" hidden></span>
+        </button>
+        <div id="account-menu-dropdown" class="account-menu-dropdown" hidden role="menu">
+          <a href={`${base}account/`} role="menuitem">Account</a>
+          <button type="button" id="account-menu-logout" role="menuitem">Logout</button>
+        </div>
+      </div>
+    </div>
     <a class="btn discord-btn" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>
       Join Discord
@@ -38,9 +50,18 @@ const globalLinks = [
   .global-link { color: var(--gh-muted); text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-size: 1.05rem; font-weight: 900; letter-spacing: .01em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
   .global-link:hover { color: var(--gh-text); }
   .global-link.is-active { color: var(--gh-text); border-color: var(--gh-red); }
+  [hidden] { display: none !important; }
+  .account-slot { position: relative; }
   .account-link { color: var(--gh-muted); text-decoration: none; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
   .account-link:hover, .account-link.is-active { color: var(--gh-text); }
   .account-link.is-active { border-color: var(--gh-red); }
+  .account-menu-trigger { display: flex; align-items: center; padding: 0; border: none; background: none; cursor: pointer; border-radius: 999px; }
+  .account-menu-trigger:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
+  .account-avatar { width: 2rem; height: 2rem; border-radius: 999px; object-fit: cover; border: 1px solid var(--gh-line); }
+  .account-avatar-fallback { width: 2rem; height: 2rem; border-radius: 999px; background: var(--gh-surface); color: var(--gh-text); border: 1px solid var(--gh-line); display: flex; align-items: center; justify-content: center; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .85rem; }
+  .account-menu-dropdown { position: absolute; top: calc(100% + .6rem); right: 0; min-width: 9rem; padding: .4rem; display: flex; flex-direction: column; gap: .1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); box-shadow: 0 8px 24px rgba(0,0,0,.35); }
+  .account-menu-dropdown a, .account-menu-dropdown button { display: block; width: 100%; text-align: left; padding: .55rem .7rem; border-radius: var(--gh-radius); border: none; background: none; color: var(--gh-text); font-size: .85rem; font-weight: 600; text-decoration: none; cursor: pointer; font-family: var(--gh-font-body); }
+  .account-menu-dropdown a:hover, .account-menu-dropdown button:hover { background: var(--gh-surface-soft); }
   /* Discord's own brand color (#5865F2, "blurple"), not a Gellhorn design
      token -- kept local to this button so it stays instantly recognizable
      as a Discord link. */
@@ -51,3 +72,82 @@ const globalLinks = [
     .global-nav-row { justify-content: space-between; }
   }
 </style>
+
+<script>
+  import { createClient } from '@supabase/supabase-js';
+
+  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+  const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+
+  // Without a configured backend there is no session to reflect, so the
+  // header just keeps showing the static "Account" link rendered above --
+  // same fallback pattern as account/index.astro and time-attack/submit.
+  if (backendConfigured) {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const loggedOutLinkEl = document.getElementById('account-link-loggedout');
+    const menuEl = document.getElementById('account-menu');
+    const triggerEl = document.getElementById('account-menu-trigger');
+    const dropdownEl = document.getElementById('account-menu-dropdown');
+    const avatarImgEl = document.getElementById('account-avatar-img');
+    const avatarFallbackEl = document.getElementById('account-avatar-fallback');
+    const logoutBtnEl = document.getElementById('account-menu-logout');
+
+    function closeDropdown() {
+      dropdownEl.hidden = true;
+      triggerEl.setAttribute('aria-expanded', 'false');
+    }
+
+    function renderAuthState(session) {
+      if (session) {
+        loggedOutLinkEl.hidden = true;
+        menuEl.hidden = false;
+        const avatarUrl = session.user.user_metadata?.avatar_url ?? null;
+        const label =
+          session.user.user_metadata?.full_name ??
+          session.user.user_metadata?.name ??
+          session.user.email ??
+          '?';
+        if (avatarUrl) {
+          avatarImgEl.src = avatarUrl;
+          avatarImgEl.alt = label;
+          avatarImgEl.hidden = false;
+          avatarFallbackEl.hidden = true;
+        } else {
+          avatarFallbackEl.textContent = label.charAt(0).toUpperCase();
+          avatarFallbackEl.hidden = false;
+          avatarImgEl.hidden = true;
+        }
+      } else {
+        loggedOutLinkEl.hidden = false;
+        menuEl.hidden = true;
+        closeDropdown();
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => renderAuthState(data?.session ?? null));
+    supabase.auth.onAuthStateChange((_event, session) => renderAuthState(session));
+
+    triggerEl.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = !dropdownEl.hidden;
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        dropdownEl.hidden = false;
+        triggerEl.setAttribute('aria-expanded', 'true');
+      }
+    });
+    document.addEventListener('click', (event) => {
+      if (!menuEl.contains(event.target)) closeDropdown();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') closeDropdown();
+    });
+    logoutBtnEl.addEventListener('click', async () => {
+      closeDropdown();
+      await supabase.auth.signOut();
+    });
+  }
+</script>
