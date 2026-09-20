@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 const base = import.meta.env.BASE_URL;
 
 const steps = [
@@ -32,8 +33,9 @@ const steps = [
 <Base
   title="How It Works — Gellhorn Time Attack"
   description="How to submit a lap for Gellhorn Time Attack: drive your lap, save proof, get it onto your phone, and submit it on the site."
-  active="how-it-works"
+  section="time-attack"
 >
+  <TimeAttackSubnav active="how-it-works" />
   <section class="page-head">
     <div class="wrap">
       <p class="eyebrow">Gellhorn Time Attack</p>

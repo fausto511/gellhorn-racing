@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 const base = import.meta.env.BASE_URL;
 
 const submitSteps = [
@@ -12,8 +13,9 @@ const submitSteps = [
 <Base
   title="Rules & Verification — Gellhorn Time Attack"
   description="How lap submissions are verified for Gellhorn Time Attack: screenshot entry vs. video verification, what counts as a valid lap, and how your evidence is handled."
-  active="rules"
+  section="time-attack"
 >
+  <TimeAttackSubnav active="rules" />
   <section class="page-head">
     <div class="wrap">
       <p class="eyebrow">Gellhorn Standard — Draft</p>

@@ -1,0 +1,228 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import { vehicleOptions } from '../../../../data/vehicles';
+import { vehicleCopy } from '../../../../data/vehicle-copy';
+
+export function getStaticPaths() {
+  return vehicleOptions.map((v) => ({ params: { id: v.id }, props: { vehicle: v } }));
+}
+
+const { vehicle } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const copy = vehicleCopy[vehicle.id];
+
+const acquisitionLabels: Record<string, string> = {
+  'pre-order': 'Pre-Order',
+  'ultimate-edition': 'Ultimate Edition',
+  'gta-plus': 'GTA+',
+};
+
+// Lightweight index for the quick vehicle search/switch dropdown above the
+// stage -- id/name/href only, so the client script doesn't need the full
+// vehicles dataset (classes, seats, drive, acquisition, etc).
+const vehicleIndex = vehicleOptions.map((v) => ({
+  id: v.id,
+  name: `${v.make} ${v.model}`,
+  href: `${base}garage/vehicles/${v.id}/`,
+}));
+
+// No per-vehicle photos are live yet. Until real photos exist, the page
+// falls back to the shared garage placeholder image with a "Photo pending"
+// badge on top -- add a vehicle's id -> real photo path here once confirmed.
+const photoOverrides: Record<string, string> = {};
+const photo = photoOverrides[vehicle.id];
+---
+<Base
+  title={`${vehicle.make} ${vehicle.model} — The Garage — Gellhorn Time Attack`}
+  description={`${vehicle.make} ${vehicle.model}: verified GTA class ${vehicle.classes.join(' / ')}. Price, top speed and Gellhorn lap data are added as they become available.`}
+  section="garage"
+>
+  <section class="wrap v-toolbar">
+    <div class="v-search-wrap">
+      <input class="garage-search" type="search" id="v-search" placeholder="Search Vehicle" aria-label="Search vehicles" autocomplete="off" />
+      <ul id="v-search-results" class="v-search-results" hidden></ul>
+    </div>
+    <a href={`${base}garage/#compare`} id="v-compare-cta" class="garage-compare-btn">Compare Selected (0)</a>
+  </section>
+
+  <section class="wrap v-stage">
+    <div class="v-photo">
+      {vehicle.acquisition && (
+        <span class="v-badge">{acquisitionLabels[vehicle.acquisition]}</span>
+      )}
+      <button type="button" id="v-compare-mark" class="v-compare-mark" data-id={vehicle.id} aria-pressed="false" aria-label={`Add ${vehicle.make} ${vehicle.model} to compare`}>＋</button>
+      {photo ? (
+        <img src={photo} alt={`${vehicle.make} ${vehicle.model}`} width="1672" height="941" />
+      ) : (
+        <>
+          <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="1672" height="941" />
+          <span class="v-photo-pending">Photo pending</span>
+        </>
+      )}
+    </div>
+
+    <aside class="panel v-identity">
+      <div class="v-maker">
+        <img src={`${base}images/logos/${vehicle.logoSlug}-gta-6-logo.webp`} alt="" width="22" height="22" />
+        <span>{vehicle.make}</span>
+      </div>
+      <h1 class="display v-title">{vehicle.model}</h1>
+      <p class="v-classes">{vehicle.classes.join(' / ')}</p>
+      <dl class="v-key">
+        <div><dt>Price</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
+        <div><dt>Seats</dt><dd>{vehicle.seats}</dd></div>
+        <div><dt>Drive</dt><dd>{vehicle.drive}</dd></div>
+        <div><dt>Top Speed</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
+        <div><dt>Gellhorn Lab Time</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <section class="wrap v-performance">
+    <h2>Release Info</h2>
+    <div class="v-performance-grid">
+      <div class="panel v-metric"><span>Release Date</span><strong class="status-pending"><span class="status-dot"></span>Data pending</strong></div>
+      <div class="panel v-metric"><span>DLC</span><strong class="status-pending"><span class="status-dot"></span>Data pending</strong></div>
+    </div>
+  </section>
+
+  {copy && (
+    <section class="wrap v-description">
+      <div class="panel v-description-panel">
+        {copy.map((paragraph) => <p>{paragraph}</p>)}
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .v-toolbar { display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: var(--gh-gap-card); padding-top: 1.5rem; }
+  .v-search-wrap { position: relative; }
+  .garage-search { width: 100%; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); padding: .65rem .9rem; font-size: .85rem; font-family: var(--gh-font-body); }
+  .v-search-results { position: absolute; top: calc(100% + .35rem); left: 0; right: 0; z-index: 20; margin: 0; padding: .3rem; list-style: none; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); max-height: 16rem; overflow-y: auto; }
+  .v-search-results li + li { margin-top: .15rem; }
+  .v-search-results a { display: block; padding: .5rem .6rem; border-radius: calc(var(--gh-radius) - .2rem); color: var(--gh-text); text-decoration: none; font-size: .85rem; }
+  .v-search-results a:hover, .v-search-results a:focus { background: rgba(160,160,198,.12); }
+  .garage-compare-btn { justify-self: end; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); padding: .55rem 1rem; font-size: .8rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .garage-compare-btn:hover { border-color: var(--gh-muted); }
+  .garage-compare-btn.has-selection { border-color: var(--gh-yellow); color: var(--gh-yellow); }
+
+  .v-stage { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--gh-gap-card); padding-top: 1.5rem; }
+  .v-photo { position: relative; aspect-ratio: 16/9; background: rgba(160,160,198,.08); border-radius: var(--gh-radius-lg); overflow: hidden; }
+  .v-photo > img { width: 100%; height: 100%; object-fit: cover; }
+  .v-photo-fallback { opacity: .4; filter: saturate(.7); }
+  .v-photo-pending { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,20,26,.7); border: 1px solid rgba(252,250,247,.12); padding: .35rem .75rem; border-radius: 999px; color: var(--gh-muted); font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+  .v-badge { position: absolute; top: .7rem; left: .7rem; z-index: 2; padding: .3rem .65rem; border-radius: 999px; background: var(--gh-red); color: #fff; font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .v-compare-mark { position: absolute; top: .7rem; right: .7rem; z-index: 2; width: 2.1rem; height: 2.1rem; border-radius: 50%; border: 1px solid rgba(252,250,247,.35); background: rgba(20,20,26,.65); color: var(--gh-text); font-size: 1.2rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .v-compare-mark:hover { border-color: var(--gh-text); }
+  .v-compare-mark.is-selected { background: var(--gh-yellow); border-color: var(--gh-yellow); color: #1a1206; }
+
+  .v-identity { padding: var(--gh-pad-card); }
+  .v-maker { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+  .v-maker img { filter: brightness(0) invert(1); opacity: .85; object-fit: contain; }
+  .v-maker span { color: var(--gh-muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
+  .v-title { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 .3rem; }
+  .v-classes { color: var(--gh-muted); font-size: .85rem; margin: 0 0 1.25rem; }
+  .v-key { display: grid; gap: .75rem; margin: 0; }
+  .v-key > div { display: flex; justify-content: space-between; border-top: 1px solid var(--gh-line); padding-top: .6rem; }
+  .v-key dt { color: var(--gh-muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
+  .v-key dd { margin: 0; font-size: .85rem; font-weight: 600; }
+
+  .v-performance { padding-top: var(--gh-gap-card); }
+  .v-performance h2 { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.1rem; margin: 0 0 1rem; }
+  .v-performance-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: var(--gh-gap-card); }
+  .v-metric { padding: var(--gh-pad-card); display: flex; flex-direction: column; gap: .5rem; }
+  .v-metric span { color: var(--gh-muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
+  .v-metric strong { font-size: .95rem; }
+
+  .v-description { padding-top: var(--gh-gap-card); padding-bottom: var(--gh-gap-section); }
+  .v-description-panel { padding: var(--gh-pad-card); color: var(--gh-muted); font-size: .8rem; line-height: 1.6; }
+  .v-description-panel p { margin: 0 0 1rem; }
+  .v-description-panel p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 760px) {
+    .v-stage { grid-template-columns: 1fr; }
+    .v-toolbar { grid-template-columns: 1fr; }
+    .garage-compare-btn { justify-self: stretch; text-align: center; }
+  }
+</style>
+
+<script define:vars={{ vehicleIndex }}>
+  const searchInput = document.getElementById('v-search');
+  const resultsList = document.getElementById('v-search-results');
+
+  function renderResults(matches) {
+    resultsList.innerHTML = '';
+    if (matches.length === 0) {
+      resultsList.hidden = true;
+      return;
+    }
+    matches.slice(0, 8).forEach((v) => {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = v.href;
+      a.textContent = v.name;
+      li.appendChild(a);
+      resultsList.appendChild(li);
+    });
+    resultsList.hidden = false;
+  }
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    if (!q) {
+      resultsList.hidden = true;
+      resultsList.innerHTML = '';
+      return;
+    }
+    renderResults(vehicleIndex.filter((v) => v.name.toLowerCase().includes(q)));
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      const first = resultsList.querySelector('a');
+      if (first) {
+        e.preventDefault();
+        window.location.href = first.getAttribute('href');
+      }
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!(e.target instanceof Node)) return;
+    if (!searchInput.contains(e.target) && !resultsList.contains(e.target)) {
+      resultsList.hidden = true;
+    }
+  });
+</script>
+
+<script>
+  import { getSelected, isSelected, toggleSelected } from '../../../../scripts/compare';
+
+  const iconBtn = document.getElementById('v-compare-mark') as HTMLButtonElement | null;
+  const compareCta = document.getElementById('v-compare-cta') as HTMLAnchorElement | null;
+
+  function updateCompareCta() {
+    if (!compareCta) return;
+    const count = getSelected().length;
+    compareCta.textContent = `Compare Selected (${count})`;
+    compareCta.classList.toggle('has-selection', count > 0);
+  }
+
+  const id = iconBtn?.dataset.id;
+  if (id) {
+    function render(selected: boolean) {
+      iconBtn?.classList.toggle('is-selected', selected);
+      iconBtn?.setAttribute('aria-pressed', String(selected));
+    }
+    render(isSelected(id));
+    iconBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      const nowSelected = toggleSelected(id);
+      render(nowSelected);
+      updateCompareCta();
+    });
+  }
+
+  updateCompareCta();
+</script>

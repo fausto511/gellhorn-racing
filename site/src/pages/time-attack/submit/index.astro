@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 import { vehicleOptions } from '../../../data/vehicles';
 
 const PLATFORMS = [
@@ -10,8 +11,9 @@ const PLATFORMS = [
 <Base
   title="Submit a Lap — Gellhorn Time Attack"
   description="Submit your Gellhorn International Raceway lap time: vehicle, platform, lap time, and proof."
-  active={null}
+  section="time-attack"
 >
+  <TimeAttackSubnav />
   <section class="wrap submit-wrap">
     <p class="eyebrow">Gellhorn International Raceway</p>
     <h1 class="display submit-title">Submit a Lap</h1>
@@ -57,7 +59,7 @@ const PLATFORMS = [
         <select id="vehicle_id" name="vehicle_id" required>
           <option value="" disabled selected>Select the vehicle you drove</option>
           {vehicleOptions.map((v) => (
-            <option value={v.id}>{v.make} {v.model} — {v.class}</option>
+            <option value={v.id}>{v.make} {v.model} — {v.classes.join(" / ")}</option>
           ))}
         </select>
         <p class="hint">Not seeing your exact trim? Pick the closest match and note it in your submission — moderators reconcile this before acceptance.</p>

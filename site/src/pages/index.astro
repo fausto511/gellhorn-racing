@@ -6,27 +6,86 @@ const base = import.meta.env.BASE_URL;
   title="Gellhorn Time Attack — a GTA 6 racing community project"
   description="A community time attack for Grand Theft Auto VI, starting with Gellhorn International Raceway."
 >
-  <section class="landing">
-    <picture>
-      <source type="image/webp" srcset={`${base}images/gellhorn-raceway-640.webp 640w, ${base}images/gellhorn-raceway-1080.webp 1080w, ${base}images/gellhorn-raceway-1672.webp 1672w`} sizes="100vw" />
-      <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="" width="1672" height="941" loading="eager" />
-    </picture>
-    <div class="landing-veil" aria-hidden="true"></div>
-    <div class="wrap landing-copy">
-      <p class="eyebrow">GTA VI community project</p>
-      <h1 class="display landing-title">Gellhorn<span> Time Attack</span></h1>
-      <p class="landing-lede">A lap-time competition for Grand Theft Auto VI. One shared standard, one leaderboard — starting with Gellhorn International Raceway.</p>
-      <a class="btn btn-primary" href={`${base}tracks/gellhorn-international-raceway/`}>Explore Gellhorn International Raceway</a>
+  <section class="home-split-section">
+    <div class="wrap home-split">
+      <a class="home-tile home-tile-garage" href={`${base}garage/`}>
+        <img src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" width="1672" height="941" loading="eager" />
+        <div class="home-tile-veil" aria-hidden="true"></div>
+        <div class="home-tile-copy">
+          <p class="eyebrow">Vehicles</p>
+          <h2 class="display home-tile-title">The Garage</h2>
+          <p class="home-tile-lede">Specs, classes and stats for every GTA 6 vehicle confirmed so far.</p>
+          <span class="btn btn-primary home-tile-cta" aria-hidden="true">Browse the Garage</span>
+        </div>
+      </a>
+      <a class="home-tile home-tile-track" href={`${base}tracks/gellhorn-international-raceway/`}>
+        <picture>
+          <source type="image/webp" srcset={`${base}images/gellhorn-raceway-640.webp 640w, ${base}images/gellhorn-raceway-1080.webp 1080w, ${base}images/gellhorn-raceway-1672.webp 1672w`} sizes="(max-width: 760px) 100vw, 50vw" />
+          <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="" width="1672" height="941" loading="eager" fetchpriority="high" />
+        </picture>
+        <div class="home-tile-veil" aria-hidden="true"></div>
+        <div class="home-tile-copy">
+          <p class="eyebrow">Gellhorn Time Attack</p>
+          <h2 class="display home-tile-title">The Track</h2>
+          <p class="home-tile-lede">Submit a lap, climb the leaderboard — starting with Gellhorn International Raceway.</p>
+          <span class="btn btn-primary home-tile-cta" aria-hidden="true">Enter Time Attack</span>
+        </div>
+      </a>
     </div>
   </section>
 </Base>
 
 <style>
-  .landing { position: relative; overflow: hidden; min-height: calc(100vh - 4.5rem); display: flex; align-items: center; }
-  .landing picture, .landing img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  .landing-veil { position: absolute; inset: 0; background: linear-gradient(120deg, rgba(20,20,26,.97) 20%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.85)); }
-  .landing-copy { position: relative; max-width: 42rem; padding-block: 5rem; }
-  .landing-title { font-size: clamp(2.6rem, 6vw, 4.6rem); margin: .7rem 0 1.2rem; }
-  .landing-title span { color: var(--gh-red); display: block; }
-  .landing-lede { color: var(--gh-muted); font-size: 1.1rem; max-width: 38ch; margin: 0 0 2rem; }
+  .home-split-section { padding-block: clamp(2.5rem, 6vw, 4rem); }
+  .home-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gh-gap-card);
+  }
+  .home-tile-garage { order: 1; }
+  .home-tile-track { order: 2; }
+
+  .home-tile {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--gh-text);
+    background: var(--gh-surface);
+    border: 1px solid var(--gh-line);
+    border-radius: var(--gh-radius-lg);
+    aspect-ratio: 3 / 4;
+  }
+  .home-tile picture, .home-tile img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .home-tile-veil {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, rgba(20,20,26,.93) 8%, rgba(20,20,26,.4) 55%, rgba(20,20,26,.6));
+    transition: background .15s ease;
+  }
+  .home-tile:hover .home-tile-veil,
+  .home-tile:focus-visible .home-tile-veil {
+    background: linear-gradient(0deg, rgba(20,20,26,.85) 8%, rgba(20,20,26,.3) 55%, rgba(20,20,26,.45));
+  }
+  .home-tile-copy {
+    position: relative;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+  }
+  .home-tile-title { font-size: clamp(1.8rem, 3.2vw, 2.6rem); margin: .6rem 0 .8rem; }
+  .home-tile-lede { color: var(--gh-muted); font-size: .95rem; margin: 0 0 1.25rem; max-width: 30ch; }
+  .home-tile-cta { pointer-events: none; }
+
+  @media (max-width: 760px) {
+    .home-split { grid-template-columns: 1fr; }
+    .home-tile-garage { order: 2; }
+    .home-tile-track { order: 1; }
+    .home-tile { aspect-ratio: 4 / 5; }
+  }
 </style>
