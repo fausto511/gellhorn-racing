@@ -23,8 +23,8 @@
   --gh-font-body: 'Gellhorn Text', -apple-system, 'Segoe UI', sans-serif;
 
   /* rhythm — 8px card radius per design system; section gaps 64-96px desktop */
-  --gh-radius: 8px;
-  --gh-radius-lg: 14px;
+  --gh-radius: 4px;
+  --gh-radius-lg: 6px;
   --gh-gap-section: clamp(3.5rem, 7vw, 6rem);
   --gh-gap-card: 1.5rem;
   --gh-pad-card: clamp(1.4rem, 2.4vw, 2rem);
@@ -59,18 +59,11 @@ a { color: inherit; }
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--gh-yellow);
-}
-.eyebrow::before {
-  content: '';
-  width: 1.5rem;
-  height: 2px;
-  background: var(--gh-red);
 }
 
 .display {
@@ -105,6 +98,27 @@ a { color: inherit; }
 .btn-red:hover { filter: brightness(1.08); }
 .btn-outline { background: transparent; border-color: var(--gh-line); color: var(--gh-text); }
 .btn-outline:hover, .outline-hover:hover { background: rgba(252,250,247,.08); border-color: var(--gh-muted); }
+
+/* Secondary button family (2026-09-20, Fausto's Referenzbeispiele):
+   tonal = muted background at low opacity, text in the full-strength
+   accent color; outline-<color> = transparent bg, colored border + text.
+   Solid .btn-red/.btn-primary stay "100% Kraft" for primary actions;
+   these are for secondary actions that still carry brand color. */
+.btn-red-tonal { background: rgba(237,37,61,.14); color: var(--gh-red); }
+.btn-red-tonal:hover { background: rgba(237,37,61,.22); }
+.btn-yellow-tonal { background: rgba(255,215,76,.14); color: var(--gh-yellow); }
+.btn-yellow-tonal:hover { background: rgba(255,215,76,.22); }
+.btn-white-tonal { background: rgba(252,250,247,.12); color: var(--gh-text); }
+.btn-white-tonal:hover { background: rgba(252,250,247,.2); }
+.btn-outline-red { background: transparent; border-color: var(--gh-red); color: var(--gh-red); }
+.btn-outline-red:hover { background: rgba(237,37,61,.1); }
+.btn-outline-yellow { background: transparent; border-color: var(--gh-yellow); color: var(--gh-yellow); }
+.btn-outline-yellow:hover { background: rgba(255,215,76,.1); }
+/* Solid, but in our second-darkest surface color rather than an accent --
+   for secondary chrome (e.g. the header's Discord link) that should read
+   as a real button, not compete with red/yellow accent CTAs. */
+.btn-surface { background: var(--gh-surface); color: var(--gh-text); }
+.btn-surface:hover { filter: brightness(1.25); }
 
 .status-ok, .status-pending {
   display: inline-flex;

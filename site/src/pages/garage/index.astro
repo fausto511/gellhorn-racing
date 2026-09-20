@@ -39,12 +39,16 @@ const photoOverrides: Record<string, string> = {};
     </div>
   </section>
 
-  <section class="wrap garage-body">
-    <div class="garage-tabs" role="tablist" aria-label="Garage sections">
-      <button type="button" class="garage-tab is-active" data-tab="vehicles" role="tab" aria-selected="true">Vehicles</button>
-      <button type="button" class="garage-tab" data-tab="compare" role="tab" aria-selected="false" id="compare">Compare</button>
+  <div class="garage-tabs-bar">
+    <div class="wrap">
+      <div class="garage-tabs" role="tablist" aria-label="Garage sections">
+        <button type="button" class="garage-tab is-active" data-tab="vehicles" role="tab" aria-selected="true">Vehicles</button>
+        <button type="button" class="garage-tab" data-tab="compare" role="tab" aria-selected="false" id="compare">Compare</button>
+      </div>
     </div>
+  </div>
 
+  <section class="wrap garage-body">
     <div class="garage-panel" data-panel="vehicles">
       <div class="garage-content-head">
         <p class="garage-count" id="garage-count" aria-live="polite">{vehicleOptions.length} vehicles</p>
@@ -142,8 +146,12 @@ const photoOverrides: Record<string, string> = {};
   .garage-body { padding-bottom: var(--gh-gap-section); }
 
   /* Same visual language as the Time Attack subnav's page tabs
-     (.subnav-tab in TimeAttackSubnav.astro) -- kept in sync intentionally. */
-  .garage-tabs { display: flex; gap: .5rem; border-bottom: 1px solid var(--gh-line); margin-bottom: 1.5rem; }
+     (.subnav-tab in TimeAttackSubnav.astro) -- kept in sync intentionally.
+     The divider line lives on .garage-tabs-bar (full page width, like
+     .subnav-bar in TimeAttackSubnav.astro) rather than on .garage-tabs
+     (content width), so it matches the main nav's full-bleed line. */
+  .garage-tabs-bar { border-bottom: 1px solid var(--gh-line); margin-bottom: 1.5rem; }
+  .garage-tabs { display: flex; gap: .5rem; }
   .garage-tab { color: var(--gh-muted); background: none; text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: .85rem; letter-spacing: .02em; padding: .7rem 1rem; border: none; border-top: 2px solid transparent; border-bottom: 2px solid transparent; cursor: pointer; }
   .garage-tab:hover { color: var(--gh-text); }
   .garage-tab.is-active { color: var(--gh-text); border-bottom-color: var(--gh-red); }
