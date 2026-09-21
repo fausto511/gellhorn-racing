@@ -16,17 +16,11 @@ import Base from '../../layouts/Base.astro';
     </div>
 
     <div id="auth-box" class="panel auth-box" hidden>
-      <div id="auth-signed-out" hidden>
-        <p>Sign in with Discord to see your driver overview.</p>
-        <button type="button" id="discord-signin-btn" class="btn btn-outline">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>
-          Sign in with Discord
-        </button>
-      </div>
-      <div id="auth-signed-in" hidden>
-        <p>Signed in as <strong id="auth-user-label"></strong>.</p>
-        <button type="button" id="discord-signout-btn" class="btn btn-outline">Sign out</button>
-      </div>
+      <p>Sign in with Discord to see your driver overview.</p>
+      <button type="button" id="discord-signin-btn" class="btn btn-outline">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>
+        Sign in with Discord
+      </button>
     </div>
 
     <div id="account-content" hidden>
@@ -76,6 +70,15 @@ import Base from '../../layouts/Base.astro';
           <input id="display-name-input" type="text" maxlength="40" />
         </label>
         <button type="button" id="save-name-btn" class="btn btn-outline">Save</button>
+
+        <div class="field account-status">
+          <span>Account</span>
+          <div class="account-status-row">
+            <p>Signed in as <strong id="auth-user-label"></strong>.</p>
+            <button type="button" id="discord-signout-btn" class="btn btn-outline">Sign out</button>
+          </div>
+        </div>
+
         <p id="settings-msg" class="settings-msg" hidden></p>
       </div>
     </div>
@@ -94,18 +97,26 @@ import Base from '../../layouts/Base.astro';
   .notice strong { color: var(--gh-yellow); }
   .notice code { color: var(--gh-text); }
 
-  .auth-box { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .auth-box { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
   .auth-box p { margin: 0; font-size: .88rem; }
 
   .section-heading { margin: 2.5rem 0 .3rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
   .section-heading:first-of-type { margin-top: 0; }
   .section-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; }
 
-  .table-wrap { padding: var(--gh-pad-card); overflow-x: auto; }
-  .records-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
-  .records-table th { text-align: left; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); font-weight: 700; padding-bottom: .7rem; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
-  .records-table td { padding: .7rem 1rem .7rem 0; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
-  .records-table tr:last-child td { border-bottom: none; }
+  .table-wrap { padding: 0; overflow-x: auto; }
+  .records-table { width: 100%; border-collapse: collapse; font-size: .88rem; min-width: 32rem; }
+  .records-table th { text-align: left; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); font-weight: 700; padding: .8rem 1.1rem; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
+  /* :global() below: the actual data rows (tbody) are inserted at runtime
+     via innerHTML from live Supabase data (see loadAccountData()), so
+     Astro's scoped-CSS attribute never reaches those <td> elements --
+     without :global() this rule silently never applied and every cell fell
+     back to the browser's default ~1px td padding, which is exactly why
+     the table looked cramped no matter what padding was set here. Same
+     class of bug as the status-pill/rank-cell fix above, just missed on
+     this base rule the first time round. */
+  :global(.records-table td) { padding: .8rem 1.1rem; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
+  :global(.records-table tbody tr:last-child td) { border-bottom: none; }
   /* :global() below: these classes are only ever added at runtime via
      innerHTML in the <script> block (record rows are rendered from live
      Supabase data), so Astro's scoped-CSS attribute is never attached to
@@ -116,12 +127,15 @@ import Base from '../../layouts/Base.astro';
   :global(.status-live) { background: rgba(79,209,197,.14); color: #4fd1c5; }
   :global(.status-rejected) { background: rgba(237,37,61,.14); color: var(--gh-red); }
   :global(.status-muted) { background: var(--gh-surface-soft); color: var(--gh-muted); }
-  .empty-note { margin: 0; color: var(--gh-muted); font-size: .85rem; }
+  .empty-note { margin: 0; padding: 1.1rem; color: var(--gh-muted); font-size: .85rem; }
   .empty-note a { color: var(--gh-text); text-decoration: underline; }
 
-  .settings-card { padding: var(--gh-pad-card); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1rem; }
+  .settings-card { padding: var(--gh-pad-card); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.5rem; }
   .settings-card .field { display: flex; flex-direction: column; gap: .4rem; flex: 1 1 16rem; }
   .settings-card .field span { font-weight: 700; font-size: .85rem; }
+  .account-status { padding-left: 1.75rem; border-left: 1px solid var(--gh-line); }
+  .account-status-row { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem; padding-block: .05rem; }
+  .account-status-row p { margin: 0; font-size: .88rem; }
   .settings-card input[type="text"] {
     padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line);
     background: var(--gh-bg); color: var(--gh-text); font-size: .9rem; font-family: var(--gh-font-body);
@@ -141,8 +155,6 @@ import Base from '../../layouts/Base.astro';
 
   const noticeEl = document.getElementById('backend-notice');
   const authBoxEl = document.getElementById('auth-box');
-  const authSignedOutEl = document.getElementById('auth-signed-out');
-  const authSignedInEl = document.getElementById('auth-signed-in');
   const authUserLabelEl = document.getElementById('auth-user-label');
   const contentEl = document.getElementById('account-content');
 
@@ -210,8 +222,7 @@ import Base from '../../layouts/Base.astro';
   function renderAuthState() {
     if (!backendConfigured) return;
     if (currentSession) {
-      authSignedOutEl.hidden = true;
-      authSignedInEl.hidden = false;
+      authBoxEl.hidden = true;
       authUserLabelEl.textContent =
         currentSession.user.user_metadata?.full_name ??
         currentSession.user.user_metadata?.name ??
@@ -220,8 +231,7 @@ import Base from '../../layouts/Base.astro';
       contentEl.hidden = false;
       loadAccountData();
     } else {
-      authSignedOutEl.hidden = false;
-      authSignedInEl.hidden = true;
+      authBoxEl.hidden = false;
       contentEl.hidden = true;
       currentDriverRow = null;
     }
