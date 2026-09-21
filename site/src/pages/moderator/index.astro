@@ -147,6 +147,14 @@ import Base from '../../layouts/Base.astro';
   :global(.decision-msg.is-error) { color: var(--gh-red); }
   :global(.decision-msg.is-ok) { color: #4fd1c5; }
   :global(.decision-hint) { margin: .4rem 0 0; color: var(--gh-muted); font-size: .76rem; }
+
+  :global(.override-box) { border-color: var(--gh-yellow); }
+  :global(.override-grid) { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: .9rem; margin-bottom: .3rem; }
+  :global(.override-grid label) { display: flex; flex-direction: column; gap: .35rem; font-size: .72rem; color: var(--gh-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  :global(.override-grid select), :global(.override-grid input[type="text"]) { padding: .5rem .6rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font-size: .85rem; font-family: var(--gh-font-body); text-transform: none; letter-spacing: normal; font-weight: 400; }
+  :global(.override-grid select:focus), :global(.override-grid input:focus) { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  :global(.override-checkbox) { flex-direction: row !important; align-items: center; gap: .5rem !important; }
+  :global(.override-checkbox input) { width: 1rem; height: 1rem; }
 </style>
 
 <script>
@@ -182,6 +190,31 @@ import Base from '../../layouts/Base.astro';
   let queueRuns = [];
   let selectedRunId = null;
   let currentFilter = 'pending';
+  let currentModeratorDriverId = null;
+  let allVehicles = [];
+
+  const REVIEW_STATUS_OPTIONS = [
+    ['draft', 'Draft'],
+    ['submitted', 'Submitted'],
+    ['needs_correction', 'Needs Correction'],
+    ['under_review', 'Under Review'],
+    ['accepted', 'Accepted'],
+    ['rejected', 'Rejected'],
+    ['invalidated', 'Invalidated'],
+  ];
+  const PUBLICATION_STATUS_OPTIONS = [
+    ['hidden', 'Hidden'],
+    ['provisional', 'Provisional'],
+    ['official', 'Official'],
+    ['archived', 'Archived'],
+  ];
+  const VERIFICATION_TIER_OPTIONS = [
+    ['self_reported', 'Self-Reported'],
+    ['unverified', 'Unverified'],
+    ['video_submitted', 'Video Submitted'],
+    ['verified', 'Verified'],
+    ['trusted_test', 'Trusted Test'],
+  ];
 
   function getSupabase() {
     if (!supabase) supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -261,6 +294,59 @@ import Base from '../../layouts/Base.astro';
     );
   }
 
+  // Parses a "1:42.318"-style lap time back into milliseconds for the
+  // Moderator Override form. Returns null on anything that doesn't match.
+  function parseLapTime(str) {
+    const m = /^(\d+):([0-5]\d)\.(\d{1,3})$/.exec((str ?? '').trim());
+    if (!m) return null;
+    const minutes = parseInt(m[1], 10);
+    const seconds = parseInt(m[2], 10);
+    const millis = parseInt(m[3].padEnd(3, '0'), 10);
+    return minutes * 60000 + seconds * 1000 + millis;
+  }
+
+  function optionsHtml(pairs, selected) {
+    return pairs
+      .map(([val, label]) => `<option value="${val}" ${val === selected ? 'selected' : ''}>${label}</option>`)
+      .join('');
+  }
+
+  function vehicleOptionsHtml(selectedId) {
+    return allVehicles
+      .map((v) => `<option value="${v.vehicle_id}" ${v.vehicle_id === selectedId ? 'selected' : ''}>${v.make} ${v.model}</option>`)
+      .join('');
+  }
+
+  // Fetched once per session and cached — the vehicle list barely changes
+  // and every review panel render needs it for the override dropdown.
+  async function loadVehicles() {
+    if (allVehicles.length) return;
+    const sb = getSupabase();
+    const { data, error } = await sb
+      .from('vehicles')
+      .select('vehicle_id, make, model')
+      .order('make', { ascending: true })
+      .order('model', { ascending: true });
+    if (!error && data) allVehicles = data;
+  }
+
+  // The moderation_log insert below is only accepted (by RLS) when
+  // moderator_driver_id matches the caller's own drivers row — never
+  // some other moderator's, even though `moderators` itself is readable
+  // by any moderator. So we resolve our own driver_id once, from our own
+  // session, rather than trusting the first row a `moderators` select
+  // happens to return.
+  async function loadOwnDriverId() {
+    if (currentModeratorDriverId || !currentSession?.user?.id) return;
+    const sb = getSupabase();
+    const { data, error } = await sb
+      .from('drivers')
+      .select('driver_id')
+      .eq('auth_user_id', currentSession.user.id)
+      .maybeSingle();
+    if (!error && data) currentModeratorDriverId = data.driver_id;
+  }
+
   function renderAuthState() {
     if (!backendConfigured) return;
     if (currentSession) {
@@ -280,6 +366,7 @@ import Base from '../../layouts/Base.astro';
     if (isModerator) {
       notModNoticeEl.hidden = true;
       modContentEl.hidden = false;
+      await Promise.all([loadOwnDriverId(), loadVehicles()]);
       await loadQueue();
     } else {
       notModNoticeEl.hidden = false;
@@ -443,6 +530,48 @@ import Base from '../../layouts/Base.astro';
         </div>
       </div>
 
+      <div class="review-box override-box" style="margin-bottom:1.25rem;">
+        <div class="review-box-head"><h3>Moderator Override</h3><span>Bypasses part of the audit trail — reason required</span></div>
+        <div class="override-grid">
+          <label>Vehicle
+            <select id="override-vehicle">${vehicleOptionsHtml(run.vehicle_id)}</select>
+          </label>
+          <label>Lap time
+            <input type="text" id="override-laptime" value="${formatLapTime(run.lap_time_ms)}" placeholder="1:42.318" />
+          </label>
+          <label>Platform
+            <select id="override-platform">
+              <option value="ps5" ${run.platform === 'ps5' ? 'selected' : ''}>PS5</option>
+              <option value="xbox_series" ${run.platform === 'xbox_series' ? 'selected' : ''}>Xbox Series X|S</option>
+            </select>
+          </label>
+          <label>Game version
+            <input type="text" id="override-gameversion" value="${run.game_version ?? ''}" />
+          </label>
+          <label>Standard
+            <input type="text" id="override-standard" value="${run.standard_version ?? ''}" />
+          </label>
+          <label class="override-checkbox">
+            <input type="checkbox" id="override-consent" ${run.display_name_consent ? 'checked' : ''} />
+            Display name consent
+          </label>
+          <label>Review status
+            <select id="override-review-status">${optionsHtml(REVIEW_STATUS_OPTIONS, run.review_status)}</select>
+          </label>
+          <label>Publication status
+            <select id="override-publication-status">${optionsHtml(PUBLICATION_STATUS_OPTIONS, run.publication_status)}</select>
+          </label>
+          <label>Verification tier
+            <select id="override-verification-tier">${optionsHtml(VERIFICATION_TIER_OPTIONS, run.verification_tier)}</select>
+          </label>
+        </div>
+        <textarea id="override-reason" placeholder="Reason for this manual change (required, logged to moderation_log)"></textarea>
+        <div class="decision-actions">
+          <button type="button" class="btn btn-primary" data-action="save-override">Save Override</button>
+        </div>
+        <p class="decision-msg" id="override-msg" hidden></p>
+      </div>
+
       <div class="review-box" style="margin-bottom:1.25rem;">
         <div class="review-box-head"><h3>Automated Checks</h3><span>Decision support only</span></div>
         <div class="checks-grid" id="checks-grid">
@@ -534,6 +663,119 @@ import Base from '../../layouts/Base.astro';
     el.className = `decision-msg ${isError ? 'is-error' : 'is-ok'}`;
   }
 
+  function showOverrideMsg(text, isError) {
+    const el = document.getElementById('override-msg');
+    if (!el) return;
+    el.hidden = false;
+    el.textContent = text;
+    el.className = `decision-msg ${isError ? 'is-error' : 'is-ok'}`;
+  }
+
+  // Direct table update, bypassing the moderate-submission Edge Function.
+  // Moderators already have UPDATE on `runs` via the runs_update_moderator
+  // RLS policy (no with-check clause, so any column combination the DB's
+  // CHECK constraints allow goes through). Those constraints — official
+  // requires verified, verified requires accepted, provisional/official
+  // requires display_name_consent — still apply and are the real safety
+  // net here, so we mirror them client-side first only for a friendlier
+  // error message, not as the actual guard.
+  //
+  // Because this bypasses the Edge Function, it also bypasses that
+  // function's server-side moderation_log write (only the service role
+  // can insert there by default). We log it ourselves as a second,
+  // best-effort call under a migration-granted moderator INSERT policy —
+  // not atomic with the update, so in rare cases (e.g. a dropped
+  // connection between the two calls) the change could go through
+  // without a log entry. Good enough for a single-owner/small-team tool;
+  // revisit if this ever needs a hard guarantee.
+  async function saveOverride(run, triggerBtn) {
+    const reason = (document.getElementById('override-reason')?.value ?? '').trim();
+    if (!reason) {
+      showOverrideMsg('Reason is required.', true);
+      return;
+    }
+
+    const lapTimeStr = document.getElementById('override-laptime')?.value ?? '';
+    const lapTimeMs = parseLapTime(lapTimeStr);
+    if (lapTimeMs == null) {
+      showOverrideMsg('Lap time must look like 1:42.318.', true);
+      return;
+    }
+
+    const vehicleId = document.getElementById('override-vehicle')?.value;
+    const platform = document.getElementById('override-platform')?.value;
+    const gameVersion = document.getElementById('override-gameversion')?.value.trim() || null;
+    const standardVersion = document.getElementById('override-standard')?.value.trim() || null;
+    const consent = document.getElementById('override-consent')?.checked ?? false;
+    const reviewStatus = document.getElementById('override-review-status')?.value;
+    const publicationStatus = document.getElementById('override-publication-status')?.value;
+    const verificationTier = document.getElementById('override-verification-tier')?.value;
+
+    if (publicationStatus === 'official' && verificationTier !== 'verified') {
+      showOverrideMsg('Official requires Verified as the verification tier.', true);
+      return;
+    }
+    if (verificationTier === 'verified' && reviewStatus !== 'accepted') {
+      showOverrideMsg('Verified requires Accepted as the review status.', true);
+      return;
+    }
+    if (!['hidden', 'archived'].includes(publicationStatus) && !consent) {
+      showOverrideMsg('Provisional/Official requires display name consent.', true);
+      return;
+    }
+
+    const newValues = {
+      vehicle_id: vehicleId,
+      lap_time_ms: lapTimeMs,
+      platform,
+      game_version: gameVersion,
+      standard_version: standardVersion,
+      display_name_consent: consent,
+      review_status: reviewStatus,
+      publication_status: publicationStatus,
+      verification_tier: verificationTier,
+    };
+    const previousValues = {
+      vehicle_id: run.vehicle_id,
+      lap_time_ms: run.lap_time_ms,
+      platform: run.platform,
+      game_version: run.game_version,
+      standard_version: run.standard_version,
+      display_name_consent: run.display_name_consent,
+      review_status: run.review_status,
+      publication_status: run.publication_status,
+      verification_tier: run.verification_tier,
+    };
+
+    if (triggerBtn) triggerBtn.disabled = true;
+    const sb = getSupabase();
+    const { error: updateError } = await sb.from('runs').update(newValues).eq('run_id', run.run_id);
+    if (updateError) {
+      showOverrideMsg(updateError.message, true);
+      if (triggerBtn) triggerBtn.disabled = false;
+      return;
+    }
+
+    if (currentModeratorDriverId) {
+      const { error: logError } = await sb.from('moderation_log').insert({
+        run_id: run.run_id,
+        moderator_driver_id: currentModeratorDriverId,
+        action: 'manual_override',
+        previous_value: previousValues,
+        new_value: newValues,
+        reason,
+      });
+      if (logError) {
+        showOverrideMsg(`Saved, but the audit-log entry failed: ${logError.message}`, true);
+        await loadQueue();
+        return;
+      }
+    }
+
+    showOverrideMsg('Saved.');
+    await loadQueue();
+  }
+
   async function callModerate(action, runId, reason, extra) {
     const accessToken = currentSession?.access_token;
     if (!accessToken) throw new Error('No active session.');
@@ -578,6 +820,11 @@ import Base from '../../layouts/Base.astro';
     const action = actionBtn.dataset.action;
     const run = queueRuns.find((r) => r.run_id === selectedRunId);
     if (!run) return;
+
+    if (action === 'save-override') {
+      await saveOverride(run, actionBtn);
+      return;
+    }
 
     const reasonInput = document.getElementById('decision-reason');
     const reason = reasonInput ? reasonInput.value.trim() : '';
