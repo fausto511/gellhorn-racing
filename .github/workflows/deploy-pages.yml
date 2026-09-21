@@ -3,7 +3,7 @@ name: Deploy site to GitHub Pages
 # Baut site/ (Astro, gellhorn-v2) und deployed nach GitHub Pages.
 # Voraussetzung (einmalig, im Repo-Besitzer-Account):
 #   - Settings -> Pages -> Build and deployment -> Source: GitHub Actions
-#   - Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, PUBLIC_SUBMIT_LAP_URL
+#   - Secrets: SUPABASE_URL, SUPABASE_ANON_KEY, PUBLIC_SUBMIT_LAP_URL, PUBLIC_MODERATE_SUBMISSION_URL
 #     (siehe SETUP-BACKEND.md; SUPABASE_URL/ANON_KEY sind dieselben Werte
 #     wie fuer build-snapshot.yml, nur hier zusaetzlich mit PUBLIC_-Praefix
 #     ins Build gereicht, weil Astro sie client-seitig in die Submit-Seite
@@ -53,6 +53,7 @@ jobs:
           PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           PUBLIC_SUBMIT_LAP_URL: ${{ secrets.PUBLIC_SUBMIT_LAP_URL }}
+          PUBLIC_MODERATE_SUBMISSION_URL: ${{ secrets.PUBLIC_MODERATE_SUBMISSION_URL }}
         run: npx astro build
 
       - uses: actions/configure-pages@v5
