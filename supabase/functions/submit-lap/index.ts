@@ -190,13 +190,23 @@ Deno.serve(async (req) => {
   const ocrResult = await runOcr(input.evidence[0]);
 
   const hasPublicVideo = input.evidence.some((e) => e.type === "video_link");
-  // 6.1: a screenshot-backed run may auto-publish as provisional/unverified
-  // once basic validation passes and the driver consented to publishing
-  // their display_name. A video-only or video+screenshot submission with no
-  // prior moderator review sits as video_submitted until a human checks the
-  // full, uncut lap (5.3) — it must NOT jump to verified/official here.
+  // Decision 2026-09-21: this used to auto-set publication_status to
+  // 'provisional' whenever display_name_consent was true -- meaning
+  // unreviewed, possibly-wrong submitted data (driver-typed vehicle/time/
+  // platform, never checked against the evidence) went straight onto the
+  // public leaderboard (public_leaderboard is anon-readable) with zero
+  // human or automated check. That's closed now: provisional publication
+  // requires a prior check that the submitted fields match the evidence,
+  // and today that check can only be a human moderator (OCR/runOcr() above
+  // is still an inert placeholder). So every new run starts hidden, full
+  // stop, regardless of consent. A moderator's "Accept" on /moderator/ is
+  // what promotes it to publication_status='provisional' (see
+  // moderate-submission's accept_provisional and the moderator page's
+  // client-side promotion step, which already do this correctly). Once a
+  // real OCR check exists, it can plug in here as an *additional* way to
+  // reach 'provisional' automatically -- but never as the only gate again.
   const reviewStatus = "submitted";
-  const publicationStatus = input.display_name_consent ? "provisional" : "hidden";
+  const publicationStatus = "hidden";
   const verificationTier = hasPublicVideo ? "video_submitted" : "unverified";
 
   const { data: run, error: runErr } = await admin
