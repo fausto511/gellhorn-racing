@@ -5,9 +5,9 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
   <div class="wrap">
     <div class="lb-head">
       <div>
-        <span class="sample-flag">Sample data — no real community records yet</span>
+        <span class="sample-flag" id="lb-flag">Sample data — no real community records yet</span>
         <h2 class="display lb-title">Leaderboard</h2>
-        <p class="lb-meta">Gellhorn International Raceway · PS5 · Current Standard · {leaderboardStats.drivers} drivers · {leaderboardStats.acceptedLaps} accepted laps</p>
+        <p class="lb-meta" id="lb-meta">Gellhorn International Raceway · PS5 · Current Standard · {leaderboardStats.drivers} drivers · {leaderboardStats.acceptedLaps} accepted laps</p>
       </div>
       <div class="lb-tabs" role="tablist" aria-label="Leaderboard view">
         <button type="button" class="lb-tab is-active" role="tab" aria-selected="true">Overall</button>
@@ -43,7 +43,7 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
             <th scope="col">Video</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="lb-tbody">
           {sampleLaps.map((row) => (
             <tr class:list={{ 'is-top3': row.rank <= 3 }}>
               <td class="lb-rank">{row.rank}</td>
@@ -147,3 +147,135 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
     .needed ul { justify-content: flex-start; }
   }
 </style>
+
+<script>
+  // Live leaderboard feed. The template above renders sampleLaps (from
+  // ../data/leaderboard) at build time so the page always looks correct
+  // even with JS disabled or before this script runs. This script then
+  // tries to load real accepted runs from Supabase's public_leaderboard
+  // view (the only public read of run data, see its comment in the schema)
+  // and, only if at least one real row comes back, replaces the sample
+  // rows with the real ones and drops the "Sample data" flag. If there are
+  // zero real rows yet (pre-launch, no accepted submissions), the sample
+  // data stays exactly as it is today -- nothing to configure or flip
+  // later, this switches over on its own the first time a moderator
+  // accepts a run.
+  //
+  // TRACK_ID is hardcoded because there is currently only one track
+  // (Gellhorn). If a second track is ever added, this needs to become a
+  // prop passed in from the page, same as the static copy above already
+  // assumes a single track.
+  import { createClient } from '@supabase/supabase-js';
+
+  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
+  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
+  const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  const TRACK_ID = 'gellhorn-international-raceway';
+
+  function formatLapTime(ms: number): string {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const millis = ms % 1000;
+    return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+  }
+
+  function logoUrl(slug: string | null): string | null {
+    if (!slug) return null;
+    const base = import.meta.env.BASE_URL;
+    return `${base}images/logos/${slug}-gta-6-logo.webp`;
+  }
+
+  function escapeHtml(value: unknown): string {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
+  interface LiveRow {
+    driver: string;
+    make: string;
+    model: string;
+    manufacturer_logo_slug: string | null;
+    lap_time_ms: number;
+    track_entries: number;
+    video_verified: boolean;
+    video_url: string | null;
+  }
+
+  function renderLiveRows(rows: LiveRow[]) {
+    const tbodyEl = document.getElementById('lb-tbody');
+    if (!tbodyEl) return;
+
+    const flagEl = document.getElementById('lb-flag');
+    if (flagEl) flagEl.hidden = true;
+
+    const metaEl = document.getElementById('lb-meta');
+    if (metaEl) {
+      const driverCount = new Set(rows.map((r) => r.driver)).size;
+      metaEl.textContent = `Gellhorn International Raceway · PS5 · Current Standard · ${driverCount} driver${driverCount === 1 ? '' : 's'} · ${rows.length} accepted lap${rows.length === 1 ? '' : 's'}`;
+    }
+
+    const bestMs = rows[0].lap_time_ms;
+    tbodyEl.innerHTML = rows
+      .map((row, i) => {
+        const rank = i + 1;
+        const gapHtml =
+          rank === 1
+            ? ''
+            : `<span class="lb-gap">+${((row.lap_time_ms - bestMs) / 1000).toFixed(3)}</span>`;
+        const logo = logoUrl(row.manufacturer_logo_slug);
+        const logoHtml = logo
+          ? `<span class="logo-chip"><img src="${logo}" alt="${escapeHtml(row.make)} logo" width="20" height="20" loading="lazy" /></span>`
+          : '';
+        const statusHtml = row.video_verified
+          ? `<span class="status-ok"><span class="check-circle"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span> Video verified</span>`
+          : `<span class="status-pending"><span class="status-dot"></span> Not video verified</span>`;
+        const videoHtml =
+          row.video_verified && row.video_url
+            ? `<a class="watch-btn outline-hover" href="${escapeHtml(row.video_url)}" target="_blank" rel="noopener" aria-label="Watch ${escapeHtml(row.driver)}'s lap">Watch</a>`
+            : '—';
+
+        return `
+          <tr class="${rank <= 3 ? 'is-top3' : ''}">
+            <td class="lb-rank">${rank}</td>
+            <td class="lb-driver">${escapeHtml(row.driver)}</td>
+            <td>
+              <span class="lb-vehicle">
+                ${logoHtml}
+                <span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}
+              </span>
+            </td>
+            <td class="lb-num">${row.track_entries}</td>
+            <td class="lb-time">${formatLapTime(row.lap_time_ms)}${gapHtml}</td>
+            <td>${statusHtml}</td>
+            <td class="lb-video">${videoHtml}</td>
+          </tr>`;
+      })
+      .join('');
+  }
+
+  async function loadLiveLeaderboard() {
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await sb
+      .from('public_leaderboard')
+      .select(
+        'driver, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
+      )
+      .eq('track_id', TRACK_ID)
+      .order('lap_time_ms', { ascending: true });
+
+    // Any error, or zero real rows (the normal pre-launch state): leave
+    // the build-time sample data exactly as rendered. Only swap in once
+    // there is at least one real accepted run to show.
+    if (error || !data || data.length === 0) return;
+
+    renderLiveRows(data as LiveRow[]);
+  }
+
+  if (backendConfigured) {
+    loadLiveLeaderboard();
+  }
+</script>
