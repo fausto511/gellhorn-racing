@@ -95,6 +95,11 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
   .lb { padding-top: 1rem; padding-bottom: var(--gh-gap-section); }
   .lb-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 1.5rem; margin-bottom: 1.5rem; }
   .sample-flag { display: inline-block; margin-bottom: .7rem; padding: .3rem .65rem; border-radius: 999px; background: rgba(237,37,61,.14); color: var(--gh-red); font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  /* JS sets [hidden] on this once live data loads; without this rule the
+     UA default [hidden]{display:none} loses to the display:inline-block
+     above (author CSS always beats UA CSS), so the badge stayed visible
+     even though renderLiveRows() correctly hid it. */
+  .sample-flag[hidden] { display: none; }
   .lb-title { font-size: clamp(1.9rem, 3vw, 2.6rem); margin: 0; }
   .lb-meta { margin: .5rem 0 0; color: var(--gh-muted); font-size: .85rem; }
   .lb-tabs { display: flex; gap: .5rem; }
@@ -111,23 +116,32 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
   .lb-table-wrap { padding: 0; overflow-x: auto; }
   .lb-table { width: 100%; border-collapse: collapse; min-width: 46rem; }
   .lb-table th { text-align: left; padding: .9rem 1.1rem; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--gh-line); }
-  .lb-table td { padding: .85rem 1.1rem; font-size: .88rem; border-bottom: 1px solid var(--gh-line); }
-  .lb-table tbody tr:last-child td { border-bottom: none; }
-  .lb-table tr.is-top3 { background: rgba(255,215,76,.05); }
-  .lb-rank { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; color: var(--gh-muted); }
-  .is-top3 .lb-rank { color: var(--gh-yellow); }
-  .lb-driver { font-weight: 700; }
-  .lb-vehicle { display: inline-flex; align-items: center; gap: .5rem; }
-  .lb-make { color: var(--gh-muted); font-size: .78rem; }
-  .lb-num { color: var(--gh-muted); }
-  .lb-time { font-variant-numeric: tabular-nums; font-weight: 700; }
-  .lb-gap { display: block; color: var(--gh-muted); font-size: .72rem; font-weight: 400; }
-  .status-ok { color: var(--gh-yellow); }
-  .check-circle { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: var(--gh-yellow); color: #1a1206; }
-  .watch-btn { display: inline-flex; align-items: center; padding: .35rem .8rem; border-radius: var(--gh-radius); background: transparent; border: 1px solid var(--gh-line); color: var(--gh-text); font-size: .76rem; font-weight: 700; text-decoration: none; }
+  /* :global() throughout this block: #lb-tbody's real rows are inserted at
+     runtime via innerHTML from live Supabase data (renderLiveRows() below),
+     so Astro's scoped-CSS attribute never reaches them -- same bug class
+     already found and fixed on the account page's .records-table (see
+     e8ce020). Without :global() every one of these rules silently only
+     ever applied to the build-time sample rows, and live rows fell back to
+     bare browser defaults: ~1px cell padding, no rank/gap/logo/status
+     styling, no top3 highlight -- which is exactly what "sieht komisch
+     aus" / "Tabelle sieht nicht ordentlich aus" was. */
+  :global(.lb-table td) { padding: .85rem 1.1rem; font-size: .88rem; border-bottom: 1px solid var(--gh-line); }
+  :global(.lb-table tbody tr:last-child td) { border-bottom: none; }
+  :global(.lb-table tr.is-top3) { background: rgba(255,215,76,.05); }
+  :global(.lb-rank) { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; color: var(--gh-muted); }
+  :global(.is-top3 .lb-rank) { color: var(--gh-yellow); }
+  :global(.lb-driver) { font-weight: 700; }
+  :global(.lb-vehicle) { display: inline-flex; align-items: center; gap: .5rem; }
+  :global(.lb-make) { color: var(--gh-muted); font-size: .78rem; }
+  :global(.lb-num) { color: var(--gh-muted); }
+  :global(.lb-time) { font-variant-numeric: tabular-nums; font-weight: 700; }
+  :global(.lb-gap) { display: block; color: var(--gh-muted); font-size: .72rem; font-weight: 400; }
+  :global(.status-ok) { color: var(--gh-yellow); }
+  :global(.check-circle) { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: var(--gh-yellow); color: #1a1206; }
+  :global(.watch-btn) { display: inline-flex; align-items: center; padding: .35rem .8rem; border-radius: var(--gh-radius); background: transparent; border: 1px solid var(--gh-line); color: var(--gh-text); font-size: .76rem; font-weight: 700; text-decoration: none; }
 
-  .logo-chip { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--gh-text); padding: 4px; }
-  .logo-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  :global(.logo-chip) { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--gh-text); padding: 4px; }
+  :global(.logo-chip img) { width: 100%; height: 100%; object-fit: contain; display: block; }
   .logo-chip-lg { width: 40px; height: 40px; padding: 5px; }
 
   .needed { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; margin-top: 1.25rem; padding: var(--gh-pad-card); }
