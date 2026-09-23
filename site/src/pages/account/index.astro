@@ -73,6 +73,11 @@ import Base from '../../layouts/Base.astro';
         </label>
         <button type="button" id="save-name-btn" class="btn btn-outline">Save</button>
 
+        <label class="field field-checkbox">
+          <input id="hide-name-input" type="checkbox" />
+          <span>Hide my name publicly (your lap times stay visible, just without your name attached)</span>
+        </label>
+
         <div class="field account-status">
           <span>Account</span>
           <div class="account-status-row">
@@ -147,6 +152,9 @@ import Base from '../../layouts/Base.astro';
   .settings-msg.is-error { color: var(--gh-red); }
   .settings-msg.is-ok { color: #4fd1c5; }
   .withdraw-btn { padding: .4rem .9rem; font-size: .72rem; letter-spacing: .01em; }
+  .field-checkbox { flex-direction: row; align-items: flex-start; gap: .6rem; }
+  .field-checkbox input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--gh-yellow); }
+  .field-checkbox span { font-size: .85rem; color: var(--gh-muted); }
 </style>
 
 <script>
@@ -171,6 +179,7 @@ import Base from '../../layouts/Base.astro';
   const submissionsEmptyEl = document.getElementById('submissions-empty');
   const submissionsMsgEl = document.getElementById('submissions-msg');
   const displayNameInputEl = document.getElementById('display-name-input');
+  const hideNameInputEl = document.getElementById('hide-name-input');
   const saveNameBtnEl = document.getElementById('save-name-btn');
   const settingsMsgEl = document.getElementById('settings-msg');
 
@@ -288,7 +297,7 @@ import Base from '../../layouts/Base.astro';
 
     const { data: driverRow, error: driverErr } = await sb
       .from('drivers')
-      .select('driver_id, display_name')
+      .select('driver_id, display_name, hide_display_name')
       .eq('auth_user_id', currentSession.user.id)
       .maybeSingle();
 
@@ -299,6 +308,7 @@ import Base from '../../layouts/Base.astro';
     }
     currentDriverRow = driverRow;
     displayNameInputEl.value = driverRow.display_name;
+    hideNameInputEl.checked = Boolean(driverRow.hide_display_name);
 
     // My Submissions: every run of this driver, any status, most recent
     // first -- this is the activity log, unlike My Records below.
@@ -359,14 +369,18 @@ import Base from '../../layouts/Base.astro';
         const isPublished = run.publication_status === 'provisional' || run.publication_status === 'official';
         let rankCell = '—';
         if (isPublished) {
+          // Group by driver_id, not the `driver` display label -- once a
+          // driver can hide their name (hide_display_name), more than one
+          // person can show as "Anonymous Driver" and grouping by the
+          // label would merge different people into one bucket.
           const { data: lbRows } = await sb
             .from('public_leaderboard')
-            .select('driver, lap_time_ms')
+            .select('driver_id, lap_time_ms')
             .eq('vehicle_id', run.vehicle_id);
           const bestPerDriver = new Map();
           for (const row of lbRows ?? []) {
-            const prev = bestPerDriver.get(row.driver);
-            if (prev == null || row.lap_time_ms < prev) bestPerDriver.set(row.driver, row.lap_time_ms);
+            const prev = bestPerDriver.get(row.driver_id);
+            if (prev == null || row.lap_time_ms < prev) bestPerDriver.set(row.driver_id, row.lap_time_ms);
           }
           const faster = [...bestPerDriver.values()].filter((ms) => ms < run.lap_time_ms).length;
           rankCell = `#${faster + 1}`;
@@ -433,6 +447,29 @@ import Base from '../../layouts/Base.astro';
         settingsMsgEl.textContent = 'Saved.';
         settingsMsgEl.classList.add('is-ok');
         currentDriverRow.display_name = newName;
+      }
+    });
+
+    hideNameInputEl.addEventListener('change', async () => {
+      if (!currentSession || !currentDriverRow) return;
+      const wantHidden = hideNameInputEl.checked;
+      const sb = getSupabase();
+      const { error } = await sb
+        .from('drivers')
+        .update({ hide_display_name: wantHidden })
+        .eq('auth_user_id', currentSession.user.id);
+      settingsMsgEl.hidden = false;
+      settingsMsgEl.className = 'settings-msg';
+      if (error) {
+        hideNameInputEl.checked = !wantHidden;
+        settingsMsgEl.textContent = 'Could not save -- please try again.';
+        settingsMsgEl.classList.add('is-error');
+      } else {
+        settingsMsgEl.textContent = wantHidden
+          ? 'Saved. Your name is now hidden on public pages -- your times stay visible.'
+          : 'Saved. Your name is shown on public pages again.';
+        settingsMsgEl.classList.add('is-ok');
+        currentDriverRow.hide_display_name = wantHidden;
       }
     });
   }
