@@ -151,7 +151,8 @@ import Base from '../../layouts/Base.astro';
   .settings-msg { flex-basis: 100%; margin: 0; font-size: .82rem; }
   .settings-msg.is-error { color: var(--gh-red); }
   .settings-msg.is-ok { color: #4fd1c5; }
-  .withdraw-btn { padding: .4rem .9rem; font-size: .72rem; letter-spacing: .01em; }
+  .withdraw-btn, .add-video-btn { padding: .4rem .9rem; font-size: .72rem; letter-spacing: .01em; }
+  .actions-cell { display: flex; flex-wrap: wrap; gap: .4rem; }
   .field-checkbox { flex-direction: row; align-items: flex-start; gap: .6rem; }
   .field-checkbox input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--gh-yellow); }
   .field-checkbox span { font-size: .85rem; color: var(--gh-muted); }
@@ -167,6 +168,7 @@ import Base from '../../layouts/Base.astro';
   // Edge Function path under the same project, same pattern as every
   // other *_URL in this codebase deriving from PUBLIC_SUPABASE_URL.
   const WITHDRAW_RUN_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/withdraw-run` : '';
+  const ADD_VIDEO_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/add-video-evidence` : '';
 
   const noticeEl = document.getElementById('backend-notice');
   const authBoxEl = document.getElementById('auth-box');
@@ -274,6 +276,40 @@ import Base from '../../layouts/Base.astro';
     }
   }
 
+  // Lets a driver attach a video link to an already-submitted run --
+  // screenshot-only at first, video found/uploaded later. Same
+  // re-verification happens server-side (ownership, not already
+  // rejected/invalidated/verified); this is just the UI trigger.
+  async function addVideo(runId, btnEl) {
+    if (!currentSession) return;
+    const url = window.prompt('Paste the video link (YouTube, etc.) for this run:');
+    if (!url || !url.trim()) return;
+    btnEl.disabled = true;
+    const originalLabel = btnEl.textContent;
+    btnEl.textContent = 'Adding…';
+    submissionsMsgEl.hidden = true;
+    try {
+      const res = await fetch(ADD_VIDEO_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentSession.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ run_id: runId, video_url: url.trim() }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.detail ?? body.error ?? `add-video-evidence returned ${res.status}`);
+      await loadAccountData();
+    } catch (err) {
+      submissionsMsgEl.hidden = false;
+      submissionsMsgEl.className = 'settings-msg is-error';
+      submissionsMsgEl.textContent = err instanceof Error ? err.message : 'Could not add video -- please try again.';
+      btnEl.disabled = false;
+      btnEl.textContent = originalLabel;
+    }
+  }
+
   function renderAuthState() {
     if (!backendConfigured) return;
     if (currentSession) {
@@ -314,7 +350,7 @@ import Base from '../../layouts/Base.astro';
     // first -- this is the activity log, unlike My Records below.
     const { data: allRuns, error: allRunsErr } = await sb
       .from('runs')
-      .select('run_id, vehicle_id, track_id, lap_time_ms, review_status, publication_status, submitted_at, created_at, vehicles(make, model), tracks(name)')
+      .select('run_id, vehicle_id, track_id, lap_time_ms, review_status, publication_status, verification_tier, submitted_at, created_at, vehicles(make, model), tracks(name)')
       .eq('driver_id', driverRow.driver_id)
       .order('created_at', { ascending: false });
 
@@ -330,13 +366,19 @@ import Base from '../../layouts/Base.astro';
         const tr = document.createElement('tr');
         const info = statusInfo(run);
         const canWithdraw = run.publication_status === 'hidden';
+        const canAddVideo = run.review_status !== 'rejected' && run.review_status !== 'invalidated'
+          && run.verification_tier !== 'verified';
+        const actionButtons = [
+          canWithdraw ? '<button type="button" class="btn btn-outline-red withdraw-btn" data-run-id="' + run.run_id + '">Withdraw</button>' : '',
+          canAddVideo ? '<button type="button" class="btn btn-outline add-video-btn" data-run-id="' + run.run_id + '">+ Video</button>' : '',
+        ].filter(Boolean).join(' ') || '—';
         tr.innerHTML = `
           <td>${vehicleLabel(run.vehicles)}</td>
           <td>${run.tracks?.name ?? '—'}</td>
           <td>${formatLapTime(run.lap_time_ms)}</td>
           <td><span class="status-pill ${info.cls}">${info.label}</span></td>
           <td>${formatDate(run.submitted_at ?? run.created_at)}</td>
-          <td>${canWithdraw ? '<button type="button" class="btn btn-outline-red withdraw-btn" data-run-id="' + run.run_id + '">Withdraw</button>' : '—'}</td>
+          <td class="actions-cell">${actionButtons}</td>
         `;
         submissionsTbodyEl.appendChild(tr);
       }
@@ -408,9 +450,15 @@ import Base from '../../layouts/Base.astro';
     });
 
     submissionsTbodyEl.addEventListener('click', (ev) => {
-      const btn = ev.target.closest('.withdraw-btn');
-      if (!btn) return;
-      withdrawRun(btn.dataset.runId, btn);
+      const withdrawBtn = ev.target.closest('.withdraw-btn');
+      if (withdrawBtn) {
+        withdrawRun(withdrawBtn.dataset.runId, withdrawBtn);
+        return;
+      }
+      const videoBtn = ev.target.closest('.add-video-btn');
+      if (videoBtn) {
+        addVideo(videoBtn.dataset.runId, videoBtn);
+      }
     });
 
     document.getElementById('discord-signin-btn').addEventListener('click', async () => {
