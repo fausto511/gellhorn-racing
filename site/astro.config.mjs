@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
 
 // GitHub-Pages-Projektseite: braucht `site` + `base`, weil die Seite unter
 // https://fausto511.github.io/gellhorn-racing/ läuft, nicht auf der Root.
@@ -15,6 +16,14 @@ export default defineConfig({
   build: {
     format: 'directory',
   },
+  integrations: [
+    sitemap({
+      // /account/ and /moderator/ are private/internal, not content for
+      // search -- excluded from the sitemap and separately set to
+      // noindex on the page itself (see Base.astro).
+      filter: (page) => !page.includes('/account/') && !page.includes('/moderator/'),
+    }),
+  ],
   redirects: {
     // DEC-0047: /time-attack/ is reserved for a future multi-track hub.
     // Until a second track exists, it forwards to the only active track.

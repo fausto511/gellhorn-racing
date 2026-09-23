@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /account/
+Disallow: /moderator/
+
+Sitemap: https://fausto511.github.io/gellhorn-racing/sitemap-index.xml
