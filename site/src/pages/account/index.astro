@@ -54,6 +54,7 @@ import Base from '../../layouts/Base.astro';
               <th scope="col">Lap Time</th>
               <th scope="col">Status</th>
               <th scope="col">Submitted</th>
+              <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody id="submissions-tbody"></tbody>
@@ -61,6 +62,7 @@ import Base from '../../layouts/Base.astro';
         <p id="submissions-empty" class="empty-note" hidden>
           No submissions yet. <a href="../time-attack/submit/">Submit your first lap</a>.
         </p>
+        <p id="submissions-msg" class="settings-msg" hidden></p>
       </div>
 
       <h2 class="section-heading">Settings</h2>
@@ -144,6 +146,7 @@ import Base from '../../layouts/Base.astro';
   .settings-msg { flex-basis: 100%; margin: 0; font-size: .82rem; }
   .settings-msg.is-error { color: var(--gh-red); }
   .settings-msg.is-ok { color: #4fd1c5; }
+  .withdraw-btn { padding: .4rem .9rem; font-size: .72rem; letter-spacing: .01em; }
 </style>
 
 <script>
@@ -152,6 +155,10 @@ import Base from '../../layouts/Base.astro';
   const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
   const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  // No separate env var -- withdraw-run lives at the standard Supabase
+  // Edge Function path under the same project, same pattern as every
+  // other *_URL in this codebase deriving from PUBLIC_SUPABASE_URL.
+  const WITHDRAW_RUN_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/withdraw-run` : '';
 
   const noticeEl = document.getElementById('backend-notice');
   const authBoxEl = document.getElementById('auth-box');
@@ -162,6 +169,7 @@ import Base from '../../layouts/Base.astro';
   const recordsEmptyEl = document.getElementById('records-empty');
   const submissionsTbodyEl = document.getElementById('submissions-tbody');
   const submissionsEmptyEl = document.getElementById('submissions-empty');
+  const submissionsMsgEl = document.getElementById('submissions-msg');
   const displayNameInputEl = document.getElementById('display-name-input');
   const saveNameBtnEl = document.getElementById('save-name-btn');
   const settingsMsgEl = document.getElementById('settings-msg');
@@ -219,6 +227,44 @@ import Base from '../../layouts/Base.astro';
     return { label: 'Accepted', cls: 'status-muted' };
   }
 
+  // Lets a driver pull back their own screenshot submission before a
+  // moderator has looked at it (publication_status still 'hidden'). Once
+  // a moderator has acted, withdraw-run itself refuses (409) -- deleting
+  // an already-reviewed run isn't allowed this way, on purpose: it would
+  // let a driver yank a real, already-accepted time right before it
+  // matters. The server re-checks ownership and status itself; this is
+  // just the UI trigger.
+  async function withdrawRun(runId, btnEl) {
+    if (!currentSession) return;
+    const ok = window.confirm('Withdraw this submission? This deletes it and its screenshot permanently.');
+    if (!ok) return;
+    btnEl.disabled = true;
+    btnEl.textContent = 'Withdrawing…';
+    submissionsMsgEl.hidden = true;
+    try {
+      const res = await fetch(WITHDRAW_RUN_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentSession.access_token}`,
+          apikey: SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ run_id: runId }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error === 'already_reviewed'
+        ? 'Already reviewed by a moderator -- can no longer be withdrawn this way.'
+        : (body.error ?? `withdraw-run returned ${res.status}`));
+      await loadAccountData();
+    } catch (err) {
+      submissionsMsgEl.hidden = false;
+      submissionsMsgEl.className = 'settings-msg is-error';
+      submissionsMsgEl.textContent = err instanceof Error ? err.message : 'Could not withdraw -- please try again.';
+      btnEl.disabled = false;
+      btnEl.textContent = 'Withdraw';
+    }
+  }
+
   function renderAuthState() {
     if (!backendConfigured) return;
     if (currentSession) {
@@ -273,12 +319,14 @@ import Base from '../../layouts/Base.astro';
       for (const run of allRuns) {
         const tr = document.createElement('tr');
         const info = statusInfo(run);
+        const canWithdraw = run.publication_status === 'hidden';
         tr.innerHTML = `
           <td>${vehicleLabel(run.vehicles)}</td>
           <td>${run.tracks?.name ?? '—'}</td>
           <td>${formatLapTime(run.lap_time_ms)}</td>
           <td><span class="status-pill ${info.cls}">${info.label}</span></td>
           <td>${formatDate(run.submitted_at ?? run.created_at)}</td>
+          <td>${canWithdraw ? '<button type="button" class="btn btn-outline-red withdraw-btn" data-run-id="' + run.run_id + '">Withdraw</button>' : '—'}</td>
         `;
         submissionsTbodyEl.appendChild(tr);
       }
@@ -343,6 +391,12 @@ import Base from '../../layouts/Base.astro';
     sbInit.auth.onAuthStateChange((_event, session) => {
       currentSession = session;
       renderAuthState();
+    });
+
+    submissionsTbodyEl.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.withdraw-btn');
+      if (!btn) return;
+      withdrawRun(btn.dataset.runId, btn);
     });
 
     document.getElementById('discord-signin-btn').addEventListener('click', async () => {
