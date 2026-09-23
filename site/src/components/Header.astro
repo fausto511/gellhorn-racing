@@ -21,7 +21,11 @@ const globalLinks = [
       ))}
     </nav>
     <div class="account-slot">
-      <a id="account-link-loggedout" class="account-link" href={`${base}account/`} class:list={{ 'is-active': section === 'account' }}>Account</a>
+      <!-- No separate logged-out "Account" text link anymore (see
+           04-Offene-Punkte.md, 2026-09-20 note): the Discord button to the
+           right now doubles as "Login with Discord" while logged out, so a
+           second entry point next to it was redundant. Logged-in users
+           still reach /account/ via this avatar dropdown. -->
       <div id="account-menu" class="account-menu" hidden>
         <button type="button" id="account-menu-trigger" class="account-menu-trigger" aria-haspopup="true" aria-expanded="false">
           <img id="account-avatar-img" class="account-avatar" alt="" hidden />
@@ -33,9 +37,13 @@ const globalLinks = [
         </div>
       </div>
     </div>
-    <a class="btn discord-btn" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">
+    <!-- Default/no-JS state: a plain link to the Discord server (same as
+         always). Logged out + backend configured: script below turns this
+         into a "Login with Discord" trigger. Logged in: script restores
+         the plain server-invite link, since sign-in isn't needed anymore. -->
+    <a id="discord-btn" class="btn discord-btn" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>
-      Join Discord
+      <span id="discord-btn-label">Join Discord</span>
     </a>
   </div>
 </header>
@@ -52,9 +60,6 @@ const globalLinks = [
   .global-link.is-active { color: var(--gh-text); border-color: var(--gh-red); }
   [hidden] { display: none !important; }
   .account-slot { position: relative; }
-  .account-link { color: var(--gh-muted); text-decoration: none; font-size: .82rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
-  .account-link:hover, .account-link.is-active { color: var(--gh-text); }
-  .account-link.is-active { border-color: var(--gh-red); }
   .account-menu-trigger { display: flex; align-items: center; padding: 0; border: none; background: none; cursor: pointer; border-radius: 999px; }
   .account-menu-trigger:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
   .account-avatar { width: 2rem; height: 2rem; border-radius: 999px; object-fit: cover; border: 1px solid var(--gh-line); }
@@ -82,18 +87,28 @@ const globalLinks = [
   const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
   // Without a configured backend there is no session to reflect, so the
-  // header just keeps showing the static "Account" link rendered above --
-  // same fallback pattern as account/index.astro and time-attack/submit.
+  // header just keeps showing the static Discord-server link and avatar
+  // menu stays hidden -- same fallback pattern as account/index.astro and
+  // time-attack/submit.
+  const DISCORD_INVITE_URL = 'https://discord.gg/hPGuBwXRqT';
+
   if (backendConfigured) {
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const loggedOutLinkEl = document.getElementById('account-link-loggedout');
     const menuEl = document.getElementById('account-menu');
     const triggerEl = document.getElementById('account-menu-trigger');
     const dropdownEl = document.getElementById('account-menu-dropdown');
     const avatarImgEl = document.getElementById('account-avatar-img');
     const avatarFallbackEl = document.getElementById('account-avatar-fallback');
     const logoutBtnEl = document.getElementById('account-menu-logout');
+    const discordBtnEl = document.getElementById('discord-btn');
+    const discordBtnLabelEl = document.getElementById('discord-btn-label');
+
+    // Logged out: this button doubles as the login entry point (DEC/
+    // 04-Offene-Punkte.md, 2026-09-20 note) -- no separate "Account" text
+    // link anymore. Logged in: it's just the normal community-invite link
+    // again, since signing in isn't the point anymore.
+    let isLoggedIn = false;
 
     function closeDropdown() {
       dropdownEl.hidden = true;
@@ -101,9 +116,13 @@ const globalLinks = [
     }
 
     function renderAuthState(session) {
+      isLoggedIn = Boolean(session);
       if (session) {
-        loggedOutLinkEl.hidden = true;
         menuEl.hidden = false;
+        discordBtnLabelEl.textContent = 'Join Discord';
+        discordBtnEl.href = DISCORD_INVITE_URL;
+        discordBtnEl.target = '_blank';
+        discordBtnEl.rel = 'noopener';
         const avatarUrl = session.user.user_metadata?.avatar_url ?? null;
         const label =
           session.user.user_metadata?.full_name ??
@@ -121,14 +140,25 @@ const globalLinks = [
           avatarImgEl.hidden = true;
         }
       } else {
-        loggedOutLinkEl.hidden = false;
         menuEl.hidden = true;
         closeDropdown();
+        discordBtnLabelEl.textContent = 'Login with Discord';
+        discordBtnEl.removeAttribute('target');
+        discordBtnEl.removeAttribute('rel');
       }
     }
 
     supabase.auth.getSession().then(({ data }) => renderAuthState(data?.session ?? null));
     supabase.auth.onAuthStateChange((_event, session) => renderAuthState(session));
+
+    discordBtnEl.addEventListener('click', (event) => {
+      if (isLoggedIn) return; // plain server-invite link, let it navigate
+      event.preventDefault();
+      supabase.auth.signInWithOAuth({
+        provider: 'discord',
+        options: { redirectTo: window.location.href },
+      });
+    });
 
     triggerEl.addEventListener('click', (event) => {
       event.stopPropagation();
