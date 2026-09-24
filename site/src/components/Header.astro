@@ -91,6 +91,7 @@ const globalLinks = [
   // menu stays hidden -- same fallback pattern as account/index.astro and
   // time-attack/submit.
   const DISCORD_INVITE_URL = 'https://discord.gg/hPGuBwXRqT';
+  const JOIN_DISCORD_GUILD_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/join-discord-guild` : '';
 
   if (backendConfigured) {
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -149,14 +150,38 @@ const globalLinks = [
     }
 
     supabase.auth.getSession().then(({ data }) => renderAuthState(data?.session ?? null));
-    supabase.auth.onAuthStateChange((_event, session) => renderAuthState(session));
+    supabase.auth.onAuthStateChange((event, session) => {
+      renderAuthState(session);
+      // provider_token (the driver's own short-lived Discord access token)
+      // is only ever present on this exact event, right after the OAuth
+      // redirect completes -- never on a later getSession()/refresh. This
+      // is therefore the only moment we can call join-discord-guild; if we
+      // miss it here it's gone. Never blocks the login itself -- a failed
+      // or skipped auto-join just means the driver joins Discord manually.
+      if (event === 'SIGNED_IN' && session?.provider_token && JOIN_DISCORD_GUILD_URL) {
+        fetch(JOIN_DISCORD_GUILD_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ discord_access_token: session.provider_token }),
+        }).catch((err) => console.warn('join-discord-guild failed (non-fatal):', err));
+      }
+    });
 
     discordBtnEl.addEventListener('click', (event) => {
       if (isLoggedIn) return; // plain server-invite link, let it navigate
       event.preventDefault();
       supabase.auth.signInWithOAuth({
         provider: 'discord',
-        options: { redirectTo: window.location.href },
+        // guilds.join on top of the usual identify+email -- lets
+        // join-discord-guild add the driver to our server automatically
+        // (see onAuthStateChange above). Supabase's default scope list
+        // is replaced, not extended, by this option, hence listing all
+        // three explicitly rather than just adding guilds.join.
+        options: { redirectTo: window.location.href, scopes: 'identify email guilds.join' },
       });
     });
 

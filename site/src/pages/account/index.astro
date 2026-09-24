@@ -466,7 +466,12 @@ import Base from '../../layouts/Base.astro';
       const sb = getSupabase();
       await sb.auth.signInWithOAuth({
         provider: 'discord',
-        options: { redirectTo: window.location.href },
+        // guilds.join on top of identify+email -- Header.astro's
+        // onAuthStateChange listener (present on every page) picks up
+        // the resulting provider_token and auto-adds the driver to our
+        // Discord server. Scopes are replaced, not extended, by this
+        // option, hence listing identify+email explicitly too.
+        options: { redirectTo: window.location.href, scopes: 'identify email guilds.join' },
       });
     });
     document.getElementById('discord-signout-btn').addEventListener('click', async () => {
