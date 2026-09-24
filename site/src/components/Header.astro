@@ -177,7 +177,7 @@ const globalLinks = [
         // (see onAuthStateChange above). Supabase's default scope list
         // is replaced, not extended, by this option, hence listing all
         // three explicitly rather than just adding guilds.join.
-        options: { redirectTo: window.location.href, scopes: 'identify email guilds.join' },
+        options: { redirectTo: window.location.origin + window.location.pathname + window.location.search, scopes: 'identify email guilds.join' },
       });
     });
 

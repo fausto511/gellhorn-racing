@@ -460,7 +460,7 @@ import Base from '../../layouts/Base.astro';
         // the resulting provider_token and auto-adds the driver to our
         // Discord server. Scopes are replaced, not extended, by this
         // option, hence listing identify+email explicitly too.
-        options: { redirectTo: window.location.href, scopes: 'identify email guilds.join' },
+        options: { redirectTo: window.location.origin + window.location.pathname + window.location.search, scopes: 'identify email guilds.join' },
       });
     });
     document.getElementById('discord-signout-btn').addEventListener('click', async () => {
