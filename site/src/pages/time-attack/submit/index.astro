@@ -142,11 +142,11 @@ const PLATFORMS = [
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { getSupabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../../../scripts/supabase-client';
 
-  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
-  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   const SUBMIT_LAP_URL = import.meta.env.PUBLIC_SUBMIT_LAP_URL ?? '';
+  // Stricter than the shared module's own backendConfigured -- this page
+  // also needs its own edge function URL configured.
   const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && SUBMIT_LAP_URL);
 
   const noticeEl = document.getElementById('backend-notice');
@@ -162,15 +162,7 @@ const PLATFORMS = [
     authBoxEl.hidden = false;
   }
 
-  let supabase = null;
   let currentSession = null;
-
-  function getSupabase() {
-    if (!supabase) {
-      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-    return supabase;
-  }
 
   function renderAuthState() {
     if (!backendConfigured) return;

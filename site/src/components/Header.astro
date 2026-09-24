@@ -80,11 +80,7 @@ const globalLinks = [
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
-
-  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
-  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
-  const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+  import { getSupabase, backendConfigured, SUPABASE_URL, SUPABASE_ANON_KEY } from '../scripts/supabase-client';
 
   // Without a configured backend there is no session to reflect, so the
   // header just keeps showing the static Discord-server link and avatar
@@ -94,7 +90,7 @@ const globalLinks = [
   const JOIN_DISCORD_GUILD_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/join-discord-guild` : '';
 
   if (backendConfigured) {
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = getSupabase();
 
     const menuEl = document.getElementById('account-menu');
     const triggerEl = document.getElementById('account-menu-trigger');

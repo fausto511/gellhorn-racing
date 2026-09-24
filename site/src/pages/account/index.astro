@@ -160,11 +160,8 @@ import Base from '../../layouts/Base.astro';
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { getSupabase, backendConfigured, SUPABASE_URL } from '../../scripts/supabase-client';
 
-  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
-  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
-  const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
   // No separate env var -- withdraw-run lives at the standard Supabase
   // Edge Function path under the same project, same pattern as every
   // other *_URL in this codebase deriving from PUBLIC_SUPABASE_URL.
@@ -192,16 +189,8 @@ import Base from '../../layouts/Base.astro';
     authBoxEl.hidden = false;
   }
 
-  let supabase = null;
   let currentSession = null;
   let currentDriverRow = null;
-
-  function getSupabase() {
-    if (!supabase) {
-      supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-    return supabase;
-  }
 
   // Same mm:ss.mmm formatting as the lap-time input elsewhere on the site,
   // just the inverse direction (ms -> text instead of text -> ms).

@@ -159,11 +159,11 @@ import Base from '../../layouts/Base.astro';
 </style>
 
 <script>
-  import { createClient } from '@supabase/supabase-js';
+  import { getSupabase, SUPABASE_URL, SUPABASE_ANON_KEY } from '../../scripts/supabase-client';
 
-  const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
-  const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
   const MODERATE_SUBMISSION_URL = import.meta.env.PUBLIC_MODERATE_SUBMISSION_URL ?? '';
+  // Stricter than the shared module's own backendConfigured -- this page
+  // also needs its own edge function URL configured.
   const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY && MODERATE_SUBMISSION_URL);
 
   const noticeEl = document.getElementById('backend-notice');
@@ -186,7 +186,6 @@ import Base from '../../layouts/Base.astro';
     authBoxEl.hidden = false;
   }
 
-  let supabase = null;
   let currentSession = null;
   let queueRuns = [];
   let selectedRunId = null;
@@ -216,11 +215,6 @@ import Base from '../../layouts/Base.astro';
     ['verified', 'Verified'],
     ['trusted_test', 'Trusted Test'],
   ];
-
-  function getSupabase() {
-    if (!supabase) supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    return supabase;
-  }
 
   function formatLapTime(ms) {
     if (ms == null) return '—';
