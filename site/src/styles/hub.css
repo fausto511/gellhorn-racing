@@ -15,8 +15,9 @@
 .crew-tag-md { min-width: 4.4rem; padding: .38rem .7rem .58rem; font-size: .85rem; }
 .crew-tag-sm { min-width: 2.9rem; padding: .22rem .4rem .38rem; font-size: .66rem; box-shadow: inset 0 -3px 0 var(--crew-color, var(--gh-red)); }
 
-.crew-emblem { flex: none; display: inline-flex; width: 3.6rem; height: 3.6rem; align-items: center; justify-content: center; border-radius: var(--gh-radius-lg); background: rgba(252,250,247,.05); border: 1px solid var(--gh-line); }
-.crew-emblem svg { width: 2.5rem; height: 2.5rem; }
+/* Racing-panel emblem stands on its own -- no box behind it. */
+.crew-emblem { flex: none; display: inline-flex; width: 3.6rem; height: 3.6rem; align-items: center; justify-content: center; }
+.crew-emblem svg { width: 3.6rem; height: 3.6rem; }
 
 /* ---- Chips --------------------------------------------------------------- */
 .chip { display: inline-flex; align-items: center; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--gh-line); color: var(--gh-muted); font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }

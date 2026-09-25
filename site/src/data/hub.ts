@@ -70,12 +70,12 @@ export const eventTypeLabels: Record<EventType, string> = {
 // Sample data (fictional)
 // ---------------------------------------------------------------------------
 export const sampleCrews: HubCrew[] = [
-  { slug: 'sample-apex-syndicate', name: 'Apex Syndicate', tag: 'APX', color: '#ed253d', platforms: ['ps5'], focus: ['racing', 'league'], region: 'Europe', language: 'English', description: 'Clean, competitive circuit racing with weekly league nights. Sample entry.', member_count: 142, discord_url: null, social_club_url: null, is_partner: true },
-  { slug: 'sample-vice-drift-union', name: 'Vice Drift Union', tag: 'VDU', color: '#ff7ab6', platforms: ['ps5', 'xbox'], focus: ['drift', 'car-meet'], region: 'North America', language: 'English', description: 'Tandem drift sessions and themed car meets. Sample entry.', member_count: 88, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-leonida-lap-club', name: 'Leonida Lap Club', tag: 'LLC', color: '#ffd74c', platforms: ['xbox'], focus: ['time-attack', 'racing'], region: 'Worldwide', language: 'English', description: 'Hotlap hunters chasing tenths on every board. Sample entry.', member_count: 37, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-nordring-crew', name: 'Nordring Crew', tag: 'NRC', color: '#3fa7ff', platforms: ['ps5'], focus: ['racing', 'cruise'], region: 'Europe', language: 'German', description: 'German-speaking racing crew with relaxed Sunday cruises. Sample entry.', member_count: 64, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-gulf-coast-racing', name: 'Gulf Coast Racing', tag: 'GCR', color: '#27c281', platforms: ['ps5', 'xbox'], focus: ['league'], region: 'North America', language: 'English', description: 'Season-based league with fixed grids and stewarding. Sample entry.', member_count: 210, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-midnight-meet', name: 'Midnight Meet', tag: 'MNM', color: '#9b6bff', platforms: ['ps5'], focus: ['car-meet', 'cruise'], region: 'Europe', language: 'English', description: 'Late-night meets, photo spots and convoy cruises. Sample entry.', member_count: 51, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-apex-syndicate', name: 'Apex Syndicate', tag: 'APEX', color: '#ed253d', platforms: ['ps5'], focus: ['racing', 'league'], region: 'Europe', language: 'English', description: 'Clean, competitive circuit racing with weekly league nights. Sample entry.', member_count: 142, discord_url: null, social_club_url: null, is_partner: true },
+  { slug: 'sample-vice-drift-union', name: 'Vice Drift Union', tag: 'VDRU', color: '#ff7ab6', platforms: ['ps5', 'xbox'], focus: ['drift', 'car-meet'], region: 'North America', language: 'English', description: 'Tandem drift sessions and themed car meets. Sample entry.', member_count: 88, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-leonida-lap-club', name: 'Leonida Lap Club', tag: 'LLAP', color: '#ffd74c', platforms: ['xbox'], focus: ['time-attack', 'racing'], region: 'Worldwide', language: 'English', description: 'Hotlap hunters chasing tenths on every board. Sample entry.', member_count: 37, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-nordring-crew', name: 'Nordring Crew', tag: 'NRDC', color: '#3fa7ff', platforms: ['ps5'], focus: ['racing', 'cruise'], region: 'Europe', language: 'German', description: 'German-speaking racing crew with relaxed Sunday cruises. Sample entry.', member_count: 64, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-gulf-coast-racing', name: 'Gulf Coast Racing', tag: 'GCRX', color: '#27c281', platforms: ['ps5', 'xbox'], focus: ['league'], region: 'North America', language: 'English', description: 'Season-based league with fixed grids and stewarding. Sample entry.', member_count: 210, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-midnight-meet', name: 'Midnight Meet', tag: 'MNMT', color: '#9b6bff', platforms: ['ps5'], focus: ['car-meet', 'cruise'], region: 'Europe', language: 'English', description: 'Late-night meets, photo spots and convoy cruises. Sample entry.', member_count: 51, discord_url: null, social_club_url: null, is_partner: false },
 ];
 
 const sampleHost = (slug: string) => {
@@ -113,9 +113,24 @@ export function crewTagHtml(tag: string, color: string, size: 'sm' | 'md' = 'md'
   return `<span class="crew-tag crew-tag-${size}" style="--crew-color:${safeColor(color)}" title="Crew tag ${esc(tag)}">${esc(tag)}</span>`;
 }
 
-/** Generic crew emblem (no crew logos, DEC-0062 / 25.09.) -- tinted with the crew colour. */
+/** Crew emblem (Fausto, 2026-09-26): racing number panel in the crew colour
+ *  with a steering wheel. Panel + wheel are Fausto's own drawings
+ *  (Visual/Crew-Emblem/), wheel vectorised with potrace. The wheel turns dark
+ *  on light crew colours so it stays readable (WCAG relative luminance). */
+const EMBLEM_PANEL = 'M17.19 3H46.3L30.81 45H1.7Z';
+const EMBLEM_WHEEL = 'M2365 5114 c-659 -68 -1184 -312 -1622 -755 -610 -617 -860 -1465 -687 -2327 142 -711 622 -1357 1274 -1717 539 -297 1188 -388 1800 -250 701 157 1323 626 1673 1263 293 531 384 1147 261 1760 -192 958 -973 1752 -1934 1967 -219 49 -585 77 -765 59z m515 -490 c542 -76 1074 -414 1385 -879 91 -137 250 -459 275 -559 80 -316 -93 -356 -575 -133 -957 442 -1979 422 -2950 -58 -199 -99 -303 -113 -384 -55 -104 73 -79 227 93 568 223 444 598 793 1042 970 380 151 739 198 1114 146z m-1903 -2400 c72 -25 128 -68 163 -127 17 -28 56 -95 87 -147 154 -260 290 -392 573 -555 353 -203 450 -343 438 -633 -10 -249 -128 -267 -539 -82 -437 195 -779 528 -1008 980 -76 150 -95 209 -95 295 0 203 187 335 381 269z m3409 -17 c118 -60 171 -178 145 -322 -30 -166 -260 -545 -459 -757 -234 -249 -621 -478 -955 -565 -184 -48 -267 95 -211 365 41 200 131 300 424 467 299 170 435 307 607 608 84 149 132 195 233 228 49 16 162 4 216 -24z';
+function luminance(hex: string): number {
+  const n = parseInt(hex.slice(1), 16);
+  const c = [n >> 16, (n >> 8) & 255, n & 255].map((v) => {
+    const x = v / 255;
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
 export function crewEmblemHtml(color: string): string {
-  return `<span class="crew-emblem" style="--crew-color:${safeColor(color)}" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48"><path d="M24 3 42 9v14c0 11-7.6 19.2-18 22C13.6 42.2 6 34 6 23V9z" fill="var(--crew-color)"/><path d="M24 3 42 9v14c0 11-7.6 19.2-18 22z" fill="rgba(0,0,0,.18)"/><path d="M14 30 24 14l10 16h-6l-4-6.4-4 6.4z" fill="#14141a"/></svg></span>`;
+  const c = safeColor(color);
+  const wheel = luminance(c) > 0.45 ? '#14141a' : '#ffffff';
+  return `<span class="crew-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48"><path d="${EMBLEM_PANEL}" fill="${c}"/><g transform="translate(11.5 11.5) scale(0.048828) translate(0 512) scale(0.1 -0.1)"><path fill="${wheel}" d="${EMBLEM_WHEEL}"/></g></svg></span>`;
 }
 
 const iconUsers = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
