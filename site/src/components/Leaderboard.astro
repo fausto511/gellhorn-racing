@@ -1,5 +1,18 @@
 ---
 import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/leaderboard';
+import { vehicleOptions } from '../data/vehicles';
+const base = import.meta.env.BASE_URL;
+// Vehicle names link to their Garage page (2026-09-26). Live rows carry the
+// vehicle_id (identical to the Garage slug); sample rows only have make +
+// model, so they are matched by name -- sample vehicles that are not in the
+// Garage stay plain text instead of pointing at a missing page.
+const norm = (t: string) => t.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const garageId = (make: string, model: string) =>
+  vehicleOptions.find((v) => norm(v.make) === norm(make) && norm(v.model) === norm(model))?.id ?? null;
+const garageHref = (make: string, model: string) => {
+  const id = garageId(make, model);
+  return id ? `${base}garage/vehicles/${id}/` : null;
+};
 ---
 <section id="leaderboard" class="lb">
   <div class="wrap">
@@ -49,10 +62,17 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
               <td class="lb-rank">{row.rank}</td>
               <td class="lb-driver">{row.driver}</td>
               <td>
-                <span class="lb-vehicle">
-                  {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
-                  <span class="lb-make">{row.make}</span> {row.model}
-                </span>
+                {garageHref(row.make, row.model) ? (
+                  <a class="lb-vehicle lb-vehicle-link" href={garageHref(row.make, row.model)} title={`${row.make} ${row.model} in The Garage`}>
+                    {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
+                    <span class="lb-vehicle-name"><span class="lb-make">{row.make}</span> {row.model}</span>
+                  </a>
+                ) : (
+                  <span class="lb-vehicle">
+                    {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
+                    <span class="lb-make">{row.make}</span> {row.model}
+                  </span>
+                )}
               </td>
               <td class="lb-num">{row.entries}</td>
               <td class="lb-time">
@@ -83,7 +103,12 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
         {vehiclesNeeded.map((v) => (
           <li>
             {makeLogo(v.make) && <span class="logo-chip logo-chip-lg"><img src={makeLogo(v.make)} alt={`${v.make} logo`} width="30" height="30" loading="lazy" /></span>}
-            <span class="needed-text"><strong>{v.make} {v.model}</strong><span>No verified record</span></span>
+            <span class="needed-text">
+              {garageHref(v.make, v.model)
+                ? <a class="needed-link" href={garageHref(v.make, v.model)}><strong>{v.make} {v.model}</strong></a>
+                : <strong>{v.make} {v.model}</strong>}
+              <span>No verified record</span>
+            </span>
           </li>
         ))}
       </ul>
@@ -131,6 +156,12 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
   :global(.is-top3 .lb-rank) { color: var(--gh-yellow); }
   :global(.lb-driver) { font-weight: 700; }
   :global(.lb-vehicle) { display: inline-flex; align-items: center; gap: .5rem; }
+  :global(.lb-vehicle-link) { color: inherit; text-decoration: none; }
+  /* same spacing between make and model as the non-link rows (flex gap) */
+  :global(.lb-vehicle-name) { display: inline-flex; align-items: baseline; gap: .5rem; }
+  :global(.lb-vehicle-link:hover .lb-vehicle-name), :global(.lb-vehicle-link:focus-visible .lb-vehicle-name) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
+  .needed-link { color: inherit; text-decoration: none; }
+  .needed-link:hover strong { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
   :global(.lb-make) { color: var(--gh-muted); font-size: .78rem; }
   :global(.lb-num) { color: var(--gh-muted); }
   :global(.lb-time) { font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -209,6 +240,7 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
 
   interface LiveRow {
     driver: string;
+    vehicle_id: string | null;
     make: string;
     model: string;
     manufacturer_logo_slug: string | null;
@@ -256,10 +288,9 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
             <td class="lb-rank">${rank}</td>
             <td class="lb-driver">${escapeHtml(row.driver)}</td>
             <td>
-              <span class="lb-vehicle">
-                ${logoHtml}
-                <span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}
-              </span>
+              ${row.vehicle_id
+                ? `<a class="lb-vehicle lb-vehicle-link" href="${import.meta.env.BASE_URL}garage/vehicles/${encodeURIComponent(row.vehicle_id)}/" title="${escapeHtml(row.make)} ${escapeHtml(row.model)} in The Garage">${logoHtml}<span class="lb-vehicle-name"><span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}</span></a>`
+                : `<span class="lb-vehicle">${logoHtml}<span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}</span>`}
             </td>
             <td class="lb-num">${row.track_entries}</td>
             <td class="lb-time">${formatLapTime(row.lap_time_ms)}${gapHtml}</td>
@@ -275,7 +306,7 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
     const { data, error } = await sb
       .from('public_leaderboard')
       .select(
-        'driver, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
+        'driver, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
       )
       .eq('track_id', TRACK_ID)
       .order('lap_time_ms', { ascending: true });
