@@ -175,8 +175,16 @@ const globalLinks = [
       moderatorLinkEl.hidden = !isMod;
       if (isMod) { hubLinkEl.hidden = true; return; }
       // hub_roles: non-moderators only see their own rows (RLS).
-      const roles = await supabase.from('hub_roles').select('role_id').limit(1);
-      hubLinkEl.hidden = !(!roles.error && Array.isArray(roles.data) && roles.data.length > 0);
+      const roles = await supabase.from('hub_roles').select('role, crew_id');
+      const list = !roles.error && Array.isArray(roles.data) ? roles.data : [];
+      hubLinkEl.hidden = list.length === 0;
+      // Crew leaders: show open join requests (RS-0024) right in the menu.
+      const crewIds = list.filter((r) => r.role === 'crew_leader' && r.crew_id).map((r) => r.crew_id);
+      hubLinkEl.textContent = 'Hub Content';
+      if (crewIds.length) {
+        const { count } = await supabase.from('crew_membership_overview').select('membership_id', { count: 'exact', head: true }).eq('status', 'pending').in('crew_id', crewIds);
+        if (count) hubLinkEl.textContent = `Hub Content (${count} new)`;
+      }
     }
 
     function renderAuthState(session) {

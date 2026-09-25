@@ -10,7 +10,7 @@ export async function fetchLiveCrews(): Promise<HubCrew[] | null> {
   try {
     const { data, error } = await getSupabase()
       .from('crews')
-      .select('slug,name,tag,color,platforms,focus,region,language,description,member_count,discord_url,social_club_url,is_partner')
+      .select('crew_id,slug,name,tag,color,platforms,focus,region,language,description,member_count,discord_url,social_club_url,is_partner')
       .eq('is_published', true)
       .order('is_partner', { ascending: false })
       .order('sort_order', { ascending: true })
@@ -40,4 +40,20 @@ export async function fetchLiveEvents(): Promise<HubEvent[] | null> {
   } catch {
     return null;
   }
+}
+
+/** Public roster (active members of published crews, anonymised drivers
+ *  excluded by the view). crew_id -> display names, alphabetical. */
+export async function fetchRoster(): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>();
+  if (!backendConfigured) return out;
+  try {
+    const { data, error } = await getSupabase().from('public_crew_roster').select('crew_id,display_name').order('display_name');
+    if (error || !data) return out;
+    for (const r of data as { crew_id: string; display_name: string }[]) {
+      if (!out.has(r.crew_id)) out.set(r.crew_id, []);
+      out.get(r.crew_id)!.push(r.display_name);
+    }
+  } catch { /* keep empty */ }
+  return out;
 }

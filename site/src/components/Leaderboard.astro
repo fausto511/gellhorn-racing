@@ -155,6 +155,7 @@ const garageHref = (make: string, model: string) => {
   :global(.lb-rank) { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; color: var(--gh-muted); }
   :global(.is-top3 .lb-rank) { color: var(--gh-yellow); }
   :global(.lb-driver) { font-weight: 700; }
+  :global(.lb-crew-tag) { margin-left: .45rem; vertical-align: 1px; }
   :global(.lb-vehicle) { display: inline-flex; align-items: center; gap: .5rem; }
   :global(.lb-vehicle-link) { color: inherit; text-decoration: none; }
   /* same spacing between make and model as the non-link rows (flex gap) */
@@ -240,6 +241,7 @@ const garageHref = (make: string, model: string) => {
 
   interface LiveRow {
     driver: string;
+    driver_id: string;
     vehicle_id: string | null;
     make: string;
     model: string;
@@ -250,7 +252,15 @@ const garageHref = (make: string, model: string) => {
     video_url: string | null;
   }
 
-  function renderLiveRows(rows: LiveRow[]) {
+  // Crew tag next to the driver (RS-0024). public_crew_roster only lists
+  // active members of published crews and never anonymised drivers.
+  type CrewTag = { tag: string; color: string };
+  function crewTag(t: CrewTag | undefined): string {
+    if (!t || !/^#[0-9a-fA-F]{6}$/.test(t.color)) return '';
+    return ` <span class="crew-tag crew-tag-sm lb-crew-tag" style="--crew-color:${t.color}" title="Crew tag ${escapeHtml(t.tag)}">${escapeHtml(t.tag)}</span>`;
+  }
+
+  function renderLiveRows(rows: LiveRow[], tags: Map<string, CrewTag> = new Map()) {
     const tbodyEl = document.getElementById('lb-tbody');
     if (!tbodyEl) return;
 
@@ -286,7 +296,7 @@ const garageHref = (make: string, model: string) => {
         return `
           <tr class="${rank <= 3 ? 'is-top3' : ''}">
             <td class="lb-rank">${rank}</td>
-            <td class="lb-driver">${escapeHtml(row.driver)}</td>
+            <td class="lb-driver">${escapeHtml(row.driver)}${crewTag(tags.get(row.driver_id))}</td>
             <td>
               ${row.vehicle_id
                 ? `<a class="lb-vehicle lb-vehicle-link" href="${import.meta.env.BASE_URL}garage/vehicles/${encodeURIComponent(row.vehicle_id)}/" title="${escapeHtml(row.make)} ${escapeHtml(row.model)} in The Garage">${logoHtml}<span class="lb-vehicle-name"><span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}</span></a>`
@@ -306,7 +316,7 @@ const garageHref = (make: string, model: string) => {
     const { data, error } = await sb
       .from('public_leaderboard')
       .select(
-        'driver, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
+        'driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
       )
       .eq('track_id', TRACK_ID)
       .order('lap_time_ms', { ascending: true });
@@ -316,7 +326,14 @@ const garageHref = (make: string, model: string) => {
     // there is at least one real accepted run to show.
     if (error || !data || data.length === 0) return;
 
-    renderLiveRows(data as LiveRow[]);
+    const rows = data as LiveRow[];
+    const tags = new Map<string, CrewTag>();
+    const ids = [...new Set(rows.map((r) => r.driver_id).filter(Boolean))];
+    if (ids.length) {
+      const roster = await sb.from('public_crew_roster').select('driver_id, tag, color').in('driver_id', ids.slice(0, 300));
+      for (const r of (roster.data ?? []) as { driver_id: string; tag: string; color: string }[]) tags.set(r.driver_id, { tag: r.tag, color: r.color });
+    }
+    renderLiveRows(rows, tags);
   }
 
   if (backendConfigured) {

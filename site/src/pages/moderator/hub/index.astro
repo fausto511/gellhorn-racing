@@ -90,6 +90,14 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
             </div>
           </form>
 
+          <!-- CREW MEMBERS (RS-0024) -->
+          <div id="members-panel" class="members-panel" hidden>
+            <div class="form-head"><h2>Members</h2><span class="members-sub" id="members-sub"></span></div>
+            <div id="members-pending"></div>
+            <div id="members-active"></div>
+            <p class="form-msg" id="members-msg" aria-live="polite"></p>
+          </div>
+
           <!-- EVENT FORM -->
           <form id="event-form" class="hc-form" hidden novalidate>
             <div class="form-head">
@@ -262,6 +270,8 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
   let isHost = false;
   let leaderCrewIds = new Set<string>();
   let roles: any[] = [];
+  let members: any[] = []; // crew_membership_overview rows visible to me
+  const pendingFor = (crewId: string) => members.filter((m) => m.crew_id === crewId && m.status === 'pending').length;
   const visibleCrews = () => (isMod ? crews : crews.filter((c) => leaderCrewIds.has(c.crew_id)));
   const visibleEvents = () => (isMod ? events : events.filter((e) => e.created_by === ownDriverId || (e.host_crew_id && leaderCrewIds.has(e.host_crew_id))));
   const canCreateEvent = () => isMod || isHost || leaderCrewIds.size > 0;
@@ -324,7 +334,9 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
       const id = kind === 'crews' ? r.crew_id : r.event_id;
       const pill = r.is_published ? '<span class="li-pill pub">Live</span>' : '<span class="li-pill draft">Draft</span>';
       if (kind === 'crews') {
-        return `<button type="button" class="li${id === selectedId ? ' is-active' : ''}" data-id="${esc(id)}">${crewTagHtml(r.tag, r.color, 'sm')}<span class="li-main"><span class="li-title">${esc(r.name)}</span><span class="li-sub">/${esc(r.slug)}</span></span>${pill}</button>`;
+        const req = pendingFor(id);
+        const reqPill = req ? `<span class="li-pill req" title="Open join requests">${req} new</span>` : '';
+        return `<button type="button" class="li${id === selectedId ? ' is-active' : ''}" data-id="${esc(id)}">${crewTagHtml(r.tag, r.color, 'sm')}<span class="li-main"><span class="li-title">${esc(r.name)}</span><span class="li-sub">/${esc(r.slug)}</span></span>${reqPill}${pill}</button>`;
       }
       const when = new Date(r.starts_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
       return `<button type="button" class="li${id === selectedId ? ' is-active' : ''}" data-id="${esc(id)}"><span class="li-main"><span class="li-title">${r.status === 'cancelled' ? '✕ ' : ''}${esc(r.title)}</span><span class="li-sub">${esc(when)}</span></span>${pill}</button>`;
@@ -346,6 +358,7 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
     crews = c.data ?? [];
     events = e.data ?? [];
     if (isMod) await loadRoles();
+    await loadMembers();
     renderList();
     fillHostSelect();
     fillRoleCrewSelect();
@@ -366,7 +379,62 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
     crewForm.hidden = which !== 'crews';
     eventForm.hidden = which !== 'events';
     $('roles-panel').hidden = which !== 'roles';
+    $('members-panel').hidden = which !== 'crews' || !selectedId;
   }
+
+  // ------------------------------------------------------------ members
+  async function loadMembers() {
+    const { data } = await getSupabase().from('crew_membership_overview').select('membership_id, crew_id, driver_id, display_name, status, requested_at, decided_at').order('requested_at');
+    // Own membership in a crew I don't manage is not relevant here.
+    members = ((data ?? []) as any[]).filter((m) => isMod || leaderCrewIds.has(m.crew_id));
+    const total = visibleCrews().reduce((n, c) => n + pendingFor(c.crew_id), 0);
+    const tab = document.querySelector<HTMLElement>('.hc-tab[data-kind="crews"]')!;
+    tab.innerHTML = `${isMod ? 'Crews' : 'My crew'}${total ? `<span class="tab-count">${total}</span>` : ''}`;
+  }
+
+  function renderMembers(message = '', isError = false) {
+    if (!selectedId) return;
+    const mine = members.filter((m) => m.crew_id === selectedId);
+    const pending = mine.filter((m) => m.status === 'pending');
+    const active = mine.filter((m) => m.status === 'active');
+    const d = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '');
+    $('members-sub').textContent = `${active.length} member${active.length === 1 ? '' : 's'} on this site`;
+    $('members-pending').innerHTML = `<p class="mem-group-title">Join requests</p>` + (pending.length
+      ? pending.map((m) => `<div class="mem-row is-pending"><span class="mem-name">${esc(m.display_name)}</span><span class="mem-date">asked ${esc(d(m.requested_at))}</span><span class="mem-actions"><button type="button" class="btn btn-primary btn-sm" data-approve="${esc(m.membership_id)}">Approve</button><button type="button" class="btn btn-outline-red btn-sm" data-drop="${esc(m.membership_id)}" data-label="Decline">Decline</button></span></div>`).join('')
+      : '<p class="mem-empty">No open requests.</p>');
+    $('members-active').innerHTML = `<p class="mem-group-title">Members</p>` + (active.length
+      ? active.map((m) => `<div class="mem-row"><span class="mem-name">${esc(m.display_name)}</span><span class="mem-date">since ${esc(d(m.decided_at))}</span><span class="mem-actions">${m.driver_id === ownDriverId ? '<span class="mem-date">you</span>' : `<button type="button" class="btn btn-outline-red btn-sm" data-drop="${esc(m.membership_id)}" data-label="Remove">Remove</button>`}</span></div>`).join('')
+      : '<p class="mem-empty">No members yet. Drivers ask to join on the public Crews page.</p>');
+    const msgEl = $('members-msg');
+    msgEl.textContent = message;
+    msgEl.className = `form-msg ${message ? (isError ? 'is-error' : 'is-ok') : ''}`;
+  }
+
+  $('members-panel').addEventListener('click', async (ev) => {
+    const t = ev.target as HTMLElement;
+    const approve = t.closest<HTMLButtonElement>('[data-approve]');
+    const drop = t.closest<HTMLButtonElement>('[data-drop]');
+    const sb = getSupabase();
+    if (approve) {
+      approve.disabled = true;
+      const { error } = await sb.from('crew_memberships').update({ status: 'active' }).eq('membership_id', approve.dataset.approve!);
+      await loadMembers(); renderList();
+      renderMembers(error ? `Could not approve: ${error.message}` : 'Approved — the driver now shows up in your roster.', Boolean(error));
+      return;
+    }
+    if (drop) {
+      if (drop.dataset.armed !== '1') {
+        drop.dataset.armed = '1';
+        drop.textContent = `Click again to ${drop.dataset.label!.toLowerCase()}`;
+        setTimeout(() => { if (drop.isConnected && drop.dataset.armed === '1') { drop.dataset.armed = ''; drop.textContent = drop.dataset.label!; } }, 4000);
+        return;
+      }
+      drop.disabled = true;
+      const { error } = await sb.from('crew_memberships').delete().eq('membership_id', drop.dataset.drop!);
+      await loadMembers(); renderList();
+      renderMembers(error ? `That did not work: ${error.message}` : drop.dataset.label === 'Decline' ? 'Request declined.' : 'Member removed.', Boolean(error));
+    }
+  });
 
   // ------------------------------------------------------------ crew form
   const cf = crewForm.elements as any;
@@ -439,6 +507,7 @@ import { eventTypeLabels, focusLabels, platformLabels } from '../../../data/hub'
     showForm('crews');
     renderCrewPreview();
     renderList();
+    renderMembers();
   }
 
   cf.name.addEventListener('input', () => { if (!slugTouched) cf.slug.value = slugify(cf.name.value); });

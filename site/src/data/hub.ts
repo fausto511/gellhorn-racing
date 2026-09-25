@@ -17,6 +17,7 @@ export type CrewFocus = 'racing' | 'time-attack' | 'league' | 'drift' | 'car-mee
 export type EventType = 'race' | 'time-attack' | 'league' | 'car-meet' | 'cruise' | 'other';
 
 export interface HubCrew {
+  crew_id?: string; // only on live data (needed for join requests)
   slug: string;
   name: string;
   tag: string;
@@ -138,11 +139,13 @@ const iconUsers = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" s
 const iconPin = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>';
 const iconClock = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
-export function crewCardHtml(c: HubCrew): string {
+/** roster: display names of the crew's members on this site (live only,
+ *  anonymised drivers are already excluded by the DB view). */
+export function crewCardHtml(c: HubCrew, roster?: string[]): string {
   const discord = safeUrl(c.discord_url);
   const sc = safeUrl(c.social_club_url);
   const meta = [c.region, c.language].filter(Boolean).map(esc).join(' · ');
-  return `<article class="crew-card" data-platforms="${esc(c.platforms.join('|'))}" data-focus="${esc(c.focus.join('|'))}" data-search="${esc(`${c.name} ${c.tag}`.toLowerCase())}" style="--crew-color:${safeColor(c.color)}">
+  return `<article class="crew-card"${c.crew_id ? ` data-crew-id="${esc(c.crew_id)}"` : ''} data-platforms="${esc(c.platforms.join('|'))}" data-focus="${esc(c.focus.join('|'))}" data-search="${esc(`${c.name} ${c.tag}`.toLowerCase())}" style="--crew-color:${safeColor(c.color)}">
   <div class="crew-card-head">
     ${crewEmblemHtml(c.color)}
     <div class="crew-card-id">
@@ -156,9 +159,11 @@ export function crewCardHtml(c: HubCrew): string {
     ${c.platforms.map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join('')}
     ${c.focus.map((f) => `<span class="chip">${esc(focusLabels[f] ?? f)}</span>`).join('')}
   </div>
+  ${roster && roster.length ? `<details class="crew-roster"><summary>Roster · ${roster.length} driver${roster.length === 1 ? '' : 's'}</summary><ul>${roster.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></details>` : ''}
   <div class="crew-foot">
     <span class="crew-meta">${meta}</span>
     <span class="crew-links">
+      ${c.crew_id ? '<span class="crew-join-slot"></span>' : ''}
       ${sc ? `<a class="crew-link" href="${esc(sc)}" target="_blank" rel="noopener">Social Club</a>` : ''}
       ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : ''}
     </span>

@@ -7,7 +7,7 @@ import { sampleEvents, sampleCrews, eventRowHtml, crewCardHtml } from '../../dat
 
 const base = import.meta.env.BASE_URL;
 const nextEventsHtml = sampleEvents.filter((e) => e.status !== 'cancelled').slice(0, 3).map(eventRowHtml).join('');
-const crewsHtml = sampleCrews.slice(0, 3).map(crewCardHtml).join('');
+const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
 ---
 <Base
   title="The Hub — GTA 6 Racing Community: Events & Crews"
@@ -78,7 +78,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map(crewCardHtml).join('');
   });
   fetchLiveCrews().then((live) => {
     if (!live) return;
-    document.getElementById('hub-crew-root')!.innerHTML = live.slice(0, 3).map(crewCardHtml).join('');
+    document.getElementById('hub-crew-root')!.innerHTML = live.slice(0, 3).map((c) => crewCardHtml(c)).join('');
     document.getElementById('hub-crew-flag')!.hidden = true;
   });
 </script>

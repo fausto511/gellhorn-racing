@@ -5,7 +5,7 @@ import HubSubnav from '../../../components/HubSubnav.astro';
 import '../../../styles/hub.css';
 import { sampleCrews, crewCardHtml, focusLabels, platformLabels } from '../../../data/hub';
 
-const initialHtml = sampleCrews.map(crewCardHtml).join('');
+const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
 ---
 <Base
   title="GTA 6 Racing Crews — Crew Directory | The Hub"
@@ -33,16 +33,18 @@ const initialHtml = sampleCrews.map(crewCardHtml).join('');
       <span class="hub-sample-flag" id="crew-flag">Sample data — example crews, not real</span>
     </div>
 
+    <div class="crew-me" id="crew-me" hidden aria-live="polite"></div>
     <div class="crew-grid" id="crew-root" set:html={initialHtml} />
     <p class="hub-empty" id="crew-empty" hidden>No crews match these filters.</p>
 
-    <p class="hub-note">Want your crew listed? The directory is curated for now — reach out on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Crew pages managed by crew leaders and membership requests are planned.</p>
+    <p class="hub-note">Want your crew listed? The directory is curated for now — reach out on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Drivers can ask to join a listed crew right here; the crew leader approves.</p>
   </section>
 </Base>
 
 <script>
-  import { crewCardHtml } from '../../../data/hub';
-  import { fetchLiveCrews } from '../../../scripts/hub-live';
+  import { crewCardHtml, crewTagHtml, esc, type HubCrew } from '../../../data/hub';
+  import { fetchLiveCrews, fetchRoster } from '../../../scripts/hub-live';
+  import { getSupabase } from '../../../scripts/supabase-client';
 
   const root = document.getElementById('crew-root')!;
   const emptyEl = document.getElementById('crew-empty')!;
@@ -68,10 +70,144 @@ const initialHtml = sampleCrews.map(crewCardHtml).join('');
   }
 
   [search, focusSel, platSel].forEach((el) => el.addEventListener('input', applyFilters));
-  fetchLiveCrews().then((live) => {
-    if (!live) return;
-    root.innerHTML = live.map(crewCardHtml).join('');
-    flagEl.hidden = true;
-    applyFilters();
+
+  // ---------------------------------------------------------------------
+  // Crew membership (RS-0024, DEC-0066): one crew per driver. Requests go
+  // to the crew leader (Hub Content). All rules are enforced by the DB
+  // (RLS on crew_memberships); this is only the UI.
+  // ---------------------------------------------------------------------
+  type Mine = { membership_id: string; crew_id: string; status: 'pending' | 'active' } | null;
+  let liveCrews: HubCrew[] = [];
+  let session: any = null;
+  let ownDriverId: string | null = null;
+  let mine: Mine = null;
+  let busy = false;
+  const meEl = document.getElementById('crew-me')!;
+
+  function crewById(id: string) { return liveCrews.find((c) => c.crew_id === id); }
+
+  function renderMembership(message = '', isError = false) {
+    // Per-card slot
+    root.querySelectorAll<HTMLElement>('.crew-card[data-crew-id]').forEach((card) => {
+      const slot = card.querySelector<HTMLElement>('.crew-join-slot');
+      if (!slot) return;
+      const id = card.dataset.crewId!;
+      if (!mine) slot.innerHTML = `<button type="button" class="crew-link crew-join-btn" data-join="${esc(id)}">Request to join</button>`;
+      else if (mine.crew_id === id) slot.innerHTML = mine.status === 'active' ? '<span class="crew-pill">Your crew</span>' : '<span class="crew-pill is-pending">Request sent</span>';
+      else slot.innerHTML = '';
+    });
+    // Status bar
+    const c = mine ? crewById(mine.crew_id) : null;
+    if (!mine || !c) {
+      meEl.hidden = !message;
+      meEl.innerHTML = message ? `<span class="crew-me-msg${isError ? ' is-error' : ''}">${esc(message)}</span>` : '';
+      return;
+    }
+    const tag = crewTagHtml(c.tag, c.color, 'sm');
+    meEl.hidden = false;
+    meEl.innerHTML = mine.status === 'active'
+      ? `<span class="crew-me-text">You're a member of ${tag} <strong>${esc(c.name)}</strong></span><button type="button" class="crew-link" data-leave>Leave crew</button>`
+      : `<span class="crew-me-text">Your request to join ${tag} <strong>${esc(c.name)}</strong> is waiting for the crew leader.</span><button type="button" class="crew-link" data-leave>Withdraw request</button>`;
+    if (message) meEl.insertAdjacentHTML('beforeend', `<span class="crew-me-msg${isError ? ' is-error' : ''}">${esc(message)}</span>`);
+  }
+
+  async function loadMine() {
+    mine = null; ownDriverId = null;
+    if (!session) return;
+    const sb = getSupabase();
+    const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    ownDriverId = own.data?.driver_id ?? null;
+    if (!ownDriverId) return;
+    const { data } = await sb.from('crew_memberships').select('membership_id, crew_id, status').eq('driver_id', ownDriverId).maybeSingle();
+    mine = (data as Mine) ?? null;
+  }
+
+  async function requestJoin(crewId: string) {
+    if (busy) return;
+    if (!session) {
+      // Sign in first, then come back and send the request automatically.
+      const url = new URL(window.location.href);
+      url.hash = '';
+      url.searchParams.set('join', crewId);
+      getSupabase().auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: url.toString(), scopes: 'identify email guilds.join' } });
+      return;
+    }
+    if (!ownDriverId) { renderMembership('Your driver profile is not ready yet — reload the page in a moment.', true); return; }
+    busy = true;
+    const { data, error } = await getSupabase().from('crew_memberships').insert({ crew_id: crewId, driver_id: ownDriverId }).select('membership_id, crew_id, status').single();
+    busy = false;
+    if (error) {
+      await loadMine();
+      renderMembership(mine ? '' : 'Could not send the request. Please try again.', !mine);
+      return;
+    }
+    mine = data as Mine;
+    renderMembership('Request sent. The crew leader will see it in Hub Content.');
+  }
+
+  let leaveArmed = false;
+  async function leave(btn: HTMLButtonElement) {
+    if (!mine || busy) return;
+    if (!leaveArmed) {
+      leaveArmed = true;
+      btn.textContent = mine.status === 'active' ? 'Click again to leave' : 'Click again to withdraw';
+      setTimeout(() => { if (leaveArmed) { leaveArmed = false; renderMembership(); } }, 4000);
+      return;
+    }
+    leaveArmed = false; busy = true;
+    const wasActive = mine.status === 'active';
+    const { error } = await getSupabase().from('crew_memberships').delete().eq('membership_id', mine.membership_id);
+    busy = false;
+    if (error) { renderMembership('That did not work. Please try again.', true); return; }
+    mine = null;
+    renderMembership(wasActive ? 'You left the crew.' : 'Request withdrawn.');
+    refreshRoster();
+  }
+
+  root.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-join]');
+    if (b) { b.disabled = true; requestJoin(b.dataset.join!).finally(() => { b.disabled = false; }); }
   });
+  meEl.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-leave]');
+    if (b) leave(b);
+  });
+
+  let rosterMap = new Map<string, string[]>();
+  function renderCards() {
+    root.innerHTML = liveCrews.map((c) => crewCardHtml(c, rosterMap.get(c.crew_id!))).join('');
+    applyFilters();
+  }
+  async function refreshRoster() {
+    rosterMap = await fetchRoster();
+    renderCards();
+    renderMembership();
+  }
+
+  async function init() {
+    const live = await fetchLiveCrews();
+    if (!live) return; // sample data: no membership UI
+    liveCrews = live;
+    flagEl.hidden = true;
+    rosterMap = await fetchRoster();
+    renderCards();
+    const sb = getSupabase();
+    session = (await sb.auth.getSession()).data?.session ?? null;
+    await loadMine();
+    renderMembership();
+    // Came back from the sign-in started by "Request to join"
+    const url = new URL(window.location.href);
+    const pending = url.searchParams.get('join');
+    if (pending) {
+      url.searchParams.delete('join');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+      if (session && !mine && crewById(pending)) requestJoin(pending);
+    }
+    sb.auth.onAuthStateChange(async (event, s) => {
+      if (event !== 'SIGNED_IN' && event !== 'SIGNED_OUT') return;
+      if ((s?.user?.id ?? null) === (session?.user?.id ?? null)) return;
+      session = s; await loadMine(); renderMembership();
+    });
+  }
+  init();
 </script>
