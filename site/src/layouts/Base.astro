@@ -7,7 +7,7 @@ import Footer from '../components/Footer.astro';
 interface Props {
   title: string;
   description: string;
-  section?: 'time-attack' | 'garage' | 'account' | 'moderator' | null;
+  section?: 'time-attack' | 'garage' | 'hub' | 'account' | 'moderator' | null;
   noindex?: boolean;
 }
 const { title, description, section = null, noindex = false } = Astro.props;

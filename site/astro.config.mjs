@@ -21,7 +21,8 @@ export default defineConfig({
       // /account/ and /moderator/ are private/internal, not content for
       // search -- excluded from the sitemap and separately set to
       // noindex on the page itself (see Base.astro).
-      filter: (page) => !page.includes('/account/') && !page.includes('/moderator/'),
+      // /hub/ stays out while it only shows sample data (noindex, RS-0022).
+      filter: (page) => !page.includes('/account/') && !page.includes('/moderator/') && !page.includes('/hub/'),
     }),
   ],
   redirects: {

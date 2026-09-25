@@ -1,0 +1,98 @@
+---
+import Base from '../../../layouts/Base.astro';
+import HubSubnav from '../../../components/HubSubnav.astro';
+import '../../../styles/hub.css';
+import { sampleEvents, eventRowHtml, eventTypeLabels, platformLabels, monthLabel } from '../../../data/hub';
+
+// Build-time render (UTC) of the flagged sample events, grouped by month.
+const groups: { label: string; rows: string[] }[] = [];
+for (const e of sampleEvents) {
+  const label = monthLabel(e.starts_at, true);
+  const last = groups[groups.length - 1];
+  if (last && last.label === label) last.rows.push(eventRowHtml(e));
+  else groups.push({ label, rows: [eventRowHtml(e)] });
+}
+const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div class="ev-list">${g.rows.join('')}</div>`).join('');
+---
+<Base
+  title="GTA 6 Event Calendar — Races, Car Meets & Leagues | The Hub"
+  description="Upcoming GTA VI community events: races, time attack sessions, league rounds, car meets and cruises — all times shown in your local time zone."
+  section="hub"
+  noindex={true /* until real crews/events replace the sample data (RS-0022) */}
+>
+  <section class="hub-head">
+    <div class="wrap">
+      <p class="eyebrow">The Hub</p>
+      <h1 class="display hub-title">Event Calendar</h1>
+      <p class="hub-lede">Races, league rounds, time attack sessions, car meets and cruises from the GTA VI racing community. All times are shown in your local time zone.</p>
+    </div>
+  </section>
+
+  <HubSubnav active="events" />
+
+  <section class="wrap hub-body">
+    <div class="hub-toolbar">
+      <div class="hub-filters">
+        <select class="hub-select" id="ev-type" aria-label="Filter by event type">
+          <option value="">All event types</option>
+          {Object.entries(eventTypeLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+        <select class="hub-select" id="ev-platform" aria-label="Filter by platform">
+          <option value="">All platforms</option>
+          {Object.entries(platformLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+      </div>
+      <span class="hub-sample-flag" id="ev-flag">Sample data — example events, not real</span>
+    </div>
+
+    <div id="ev-root" set:html={initialHtml} />
+    <p class="hub-empty" id="ev-empty" hidden>No events match these filters.</p>
+
+    <p class="hub-note">Hosting an event? Event listings are curated for now — send the details on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Self-service event hosting for verified hosts is planned.</p>
+  </section>
+</Base>
+
+<script>
+  import { sampleEvents, eventRowHtml, localizeTimes, monthLabel, type HubEvent } from '../../../data/hub';
+  import { fetchLiveEvents } from '../../../scripts/hub-live';
+
+  const root = document.getElementById('ev-root')!;
+  const emptyEl = document.getElementById('ev-empty')!;
+  const flagEl = document.getElementById('ev-flag')!;
+  const typeSel = document.getElementById('ev-type') as HTMLSelectElement;
+  const platSel = document.getElementById('ev-platform') as HTMLSelectElement;
+
+  let events: HubEvent[] = sampleEvents;
+
+  function render() {
+    const t = typeSel.value;
+    const p = platSel.value;
+    const list = events.filter((e) => (!t || e.event_type === t) && (!p || e.platforms.includes(p as never)));
+    let html = '';
+    let current = '';
+    for (const e of list) {
+      const label = monthLabel(e.starts_at);
+      if (label !== current) {
+        if (current) html += '</div>';
+        html += `<h2 class="ev-month">${label}</h2><div class="ev-list">`;
+        current = label;
+      }
+      html += eventRowHtml(e);
+    }
+    if (current) html += '</div>';
+    root.innerHTML = html;
+    localizeTimes(root);
+    emptyEl.hidden = list.length > 0;
+  }
+
+  typeSel.addEventListener('change', render);
+  platSel.addEventListener('change', render);
+  render();
+
+  fetchLiveEvents().then((live) => {
+    if (!live) return;
+    events = live;
+    flagEl.hidden = true;
+    render();
+  });
+</script>

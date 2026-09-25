@@ -1,0 +1,89 @@
+---
+import Base from '../../layouts/Base.astro';
+import HubSubnav from '../../components/HubSubnav.astro';
+import '../../styles/hub.css';
+import { sampleEvents, sampleCrews, eventRowHtml, crewCardHtml } from '../../data/hub';
+
+const base = import.meta.env.BASE_URL;
+const nextEventsHtml = sampleEvents.filter((e) => e.status !== 'cancelled').slice(0, 3).map(eventRowHtml).join('');
+const crewsHtml = sampleCrews.slice(0, 3).map(crewCardHtml).join('');
+---
+<Base
+  title="The Hub — GTA 6 Racing Community: Events & Crews"
+  description="The meeting point of the GTA VI racing scene: an event calendar for races, leagues and car meets, and a directory of racing crews."
+  section="hub"
+  noindex={true /* until real crews/events replace the sample data (RS-0022) */}
+>
+  <section class="hub-head">
+    <div class="wrap">
+      <p class="eyebrow">GTA VI Racing Community</p>
+      <h1 class="display hub-title">The Hub</h1>
+      <p class="hub-lede">Where the GTA VI racing scene meets. Find the next race night, league round or car meet — and the crews behind them.</p>
+    </div>
+  </section>
+
+  <HubSubnav active="overview" />
+
+  <section class="wrap hub-body">
+    <div class="hub-entry-grid">
+      <a class="hub-entry" href={`${base}hub/events/`}>
+        <span class="eyebrow">Calendar</span>
+        <strong class="display hub-entry-title">Events</strong>
+        <span class="hub-entry-copy">Races, leagues, time attack sessions, car meets and cruises — in your local time.</span>
+        <span class="hub-entry-cta">Open calendar →</span>
+      </a>
+      <a class="hub-entry" href={`${base}hub/crews/`}>
+        <span class="eyebrow">Directory</span>
+        <strong class="display hub-entry-title">Crews</strong>
+        <span class="hub-entry-copy">Racing crews, leagues and meet communities on PS5 and Xbox Series X|S.</span>
+        <span class="hub-entry-cta">Browse crews →</span>
+      </a>
+    </div>
+
+    <div class="hub-block-head">
+      <h2 class="display hub-block-title">Next Up</h2>
+      <span class="hub-sample-flag" id="hub-ev-flag">Sample data</span>
+      <a class="hub-block-link" href={`${base}hub/events/`}>All events</a>
+    </div>
+    <div class="ev-list" id="hub-ev-root" set:html={nextEventsHtml} />
+
+    <div class="hub-block-head">
+      <h2 class="display hub-block-title">Crews</h2>
+      <span class="hub-sample-flag" id="hub-crew-flag">Sample data</span>
+      <a class="hub-block-link" href={`${base}hub/crews/`}>All crews</a>
+    </div>
+    <div class="crew-grid" id="hub-crew-root" set:html={crewsHtml} />
+  </section>
+</Base>
+
+<style>
+  .hub-entry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: var(--gh-gap-card); margin-bottom: 1rem; }
+  .hub-entry { display: flex; flex-direction: column; gap: .5rem; padding: var(--gh-pad-card); background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); text-decoration: none; transition: border-color .15s; }
+  .hub-entry:hover { border-color: var(--gh-muted); }
+  .hub-entry-title { font-size: 2rem; }
+  .hub-entry-copy { color: var(--gh-muted); font-size: .92rem; line-height: 1.55; }
+  .hub-entry-cta { margin-top: .4rem; color: var(--gh-red); font-weight: 800; font-size: .85rem; }
+  .hub-block-head { display: flex; align-items: center; gap: .75rem; margin: 2.75rem 0 1rem; }
+  .hub-block-title { margin: 0; font-size: 1.5rem; }
+  .hub-block-link { margin-left: auto; color: var(--gh-muted); font-size: .85rem; font-weight: 700; }
+  .hub-block-link:hover { color: var(--gh-text); }
+</style>
+
+<script>
+  import { eventRowHtml, crewCardHtml, localizeTimes } from '../../data/hub';
+  import { fetchLiveEvents, fetchLiveCrews } from '../../scripts/hub-live';
+
+  const evRoot = document.getElementById('hub-ev-root')!;
+  localizeTimes(evRoot);
+  fetchLiveEvents().then((live) => {
+    if (!live) return;
+    evRoot.innerHTML = live.filter((e) => e.status !== 'cancelled').slice(0, 3).map(eventRowHtml).join('');
+    localizeTimes(evRoot);
+    document.getElementById('hub-ev-flag')!.hidden = true;
+  });
+  fetchLiveCrews().then((live) => {
+    if (!live) return;
+    document.getElementById('hub-crew-root')!.innerHTML = live.slice(0, 3).map(crewCardHtml).join('');
+    document.getElementById('hub-crew-flag')!.hidden = true;
+  });
+</script>

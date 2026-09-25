@@ -1,0 +1,94 @@
+/* The Hub (DEC-0062) -- global, not component-scoped, because crew cards
+   and event rows are also injected at runtime via innerHTML (live data),
+   where Astro's scoped styles would not apply. */
+
+/* ---- Crew tag: Social-Club-style plate (Fausto, 25.09.2026) ----------- */
+.crew-tag {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: #fcfaf7; color: #111;
+  font-family: var(--gh-font-body); font-weight: 900; letter-spacing: .06em;
+  text-transform: uppercase; line-height: 1;
+  border-radius: 2px;
+  box-shadow: inset 0 -4px 0 var(--crew-color, var(--gh-red));
+  white-space: nowrap;
+}
+.crew-tag-md { min-width: 4.4rem; padding: .38rem .7rem .58rem; font-size: .85rem; }
+.crew-tag-sm { min-width: 2.9rem; padding: .22rem .4rem .38rem; font-size: .66rem; box-shadow: inset 0 -3px 0 var(--crew-color, var(--gh-red)); }
+
+.crew-emblem { flex: none; display: inline-flex; width: 3.6rem; height: 3.6rem; align-items: center; justify-content: center; border-radius: var(--gh-radius-lg); background: rgba(252,250,247,.05); border: 1px solid var(--gh-line); }
+.crew-emblem svg { width: 2.5rem; height: 2.5rem; }
+
+/* ---- Chips --------------------------------------------------------------- */
+.chip { display: inline-flex; align-items: center; padding: .2rem .55rem; border-radius: 999px; border: 1px solid var(--gh-line); color: var(--gh-muted); font-size: .66rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; white-space: nowrap; }
+.chip-platform { color: var(--gh-text); background: rgba(252,250,247,.06); }
+.chip-type { color: var(--gh-yellow); border-color: rgba(255,215,76,.35); background: rgba(255,215,76,.08); }
+.chip-car-meet, .chip-cruise { color: #b9a2ff; border-color: rgba(155,107,255,.4); background: rgba(155,107,255,.1); }
+.chip-league, .chip-race { color: var(--gh-red); border-color: rgba(237,37,61,.4); background: rgba(237,37,61,.1); }
+.chip-cancelled { color: var(--gh-text); background: rgba(237,37,61,.85); border-color: transparent; }
+
+/* ---- Sample flag (same look as the leaderboard's) ------------------------ */
+.hub-sample-flag { display: inline-block; padding: .3rem .65rem; border-radius: 999px; background: rgba(237,37,61,.14); color: var(--gh-red); font-size: .68rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.hub-sample-flag[hidden] { display: none; }
+
+/* ---- Crew card ----------------------------------------------------------- */
+.crew-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr)); gap: var(--gh-gap-card); }
+.crew-card { position: relative; display: flex; flex-direction: column; gap: .9rem; padding: 1.2rem 1.2rem 1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; }
+.crew-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--crew-color); }
+.crew-card-head { display: flex; gap: .9rem; align-items: flex-start; }
+.crew-card-id { display: flex; flex-direction: column; align-items: flex-start; gap: .35rem; min-width: 0; }
+.crew-name { margin: 0; font-size: 1.1rem; font-weight: 800; line-height: 1.2; }
+.crew-partner { display: inline-block; vertical-align: middle; margin-left: .35rem; padding: .12rem .45rem; border-radius: 999px; background: var(--gh-yellow); color: #1a1206; font-size: .58rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; }
+.crew-members { display: inline-flex; align-items: center; gap: .35rem; margin: 0; color: var(--gh-muted); font-size: .8rem; }
+.crew-desc { margin: 0; color: var(--gh-muted); font-size: .86rem; line-height: 1.55; }
+.crew-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
+.crew-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding-top: .8rem; border-top: 1px solid var(--gh-line); }
+.crew-meta { color: var(--gh-muted); font-size: .75rem; }
+.crew-links { display: flex; gap: .5rem; }
+.crew-link { color: var(--gh-text); font-size: .75rem; font-weight: 700; text-decoration: none; padding: .35rem .6rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); }
+.crew-link:hover { border-color: var(--gh-muted); }
+.crew-link-discord { background: #5865f2; border-color: #5865f2; color: #fff; }
+
+/* ---- Event rows ---------------------------------------------------------- */
+.ev-month { margin: 2rem 0 .75rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1rem; letter-spacing: .02em; color: var(--gh-muted); }
+.ev-month:first-child { margin-top: 0; }
+.ev-list { display: flex; flex-direction: column; gap: .75rem; }
+.ev-row { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 1.1rem; align-items: center; padding: 1rem 1.1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); }
+.ev-row.is-cancelled { opacity: .55; }
+.ev-row.is-cancelled .ev-title { text-decoration: line-through; }
+.ev-date { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .5rem 0; border-radius: var(--gh-radius); background: rgba(252,250,247,.05); border: 1px solid var(--gh-line); line-height: 1; }
+.ev-wd, .ev-mon { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); }
+.ev-day { margin: .2rem 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.7rem; color: var(--gh-text); }
+.ev-main { min-width: 0; }
+.ev-top { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .45rem; }
+.ev-title { margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; }
+.ev-facts { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin: 0; color: var(--gh-muted); font-size: .8rem; }
+.ev-facts > span { display: inline-flex; align-items: center; gap: .35rem; }
+.ev-tz { color: var(--gh-muted); font-size: .7rem; }
+.ev-desc { margin: .45rem 0 0; color: var(--gh-muted); font-size: .82rem; line-height: 1.5; }
+.ev-side { display: flex; flex-direction: column; align-items: flex-end; gap: .6rem; }
+.ev-host { display: inline-flex; align-items: center; gap: .45rem; color: var(--gh-text); font-size: .78rem; font-weight: 600; white-space: nowrap; }
+.ev-join { padding: .5rem .9rem; font-size: .8rem; }
+
+@media (max-width: 640px) {
+  .ev-row { grid-template-columns: 3.6rem 1fr; gap: .8rem; padding: .85rem; }
+  .ev-side { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+  .ev-day { font-size: 1.35rem; }
+  .crew-grid { grid-template-columns: 1fr; }
+}
+
+/* ---- Shared page chrome for /hub/* --------------------------------------- */
+.hub-head { padding-block: clamp(2.5rem, 5vw, 3.75rem) clamp(1.5rem, 3vw, 2.25rem); background: linear-gradient(180deg, rgba(36,36,48,.6), transparent); }
+.hub-title { margin: .5rem 0 .8rem; font-size: clamp(2.2rem, 4.5vw, 3rem); }
+.hub-lede { margin: 0; max-width: 58ch; color: var(--gh-muted); font-size: 1rem; line-height: 1.6; }
+.hub-body { padding-bottom: var(--gh-gap-section); }
+.hub-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: 1.25rem; }
+.hub-filters { flex: 1 1 36rem; display: flex; flex-wrap: wrap; gap: .6rem; }
+.hub-select, .hub-search { background: transparent; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); padding: .6rem .9rem; font-size: .85rem; font-family: var(--gh-font-body); }
+.hub-select { appearance: none; -webkit-appearance: none; min-width: 9rem; padding-right: 2.2rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0a0c6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .8rem center; }
+.hub-select option { background: var(--gh-surface); }
+.hub-search { flex: 0 1 16rem; min-width: 11rem; }
+.hub-search::placeholder { color: var(--gh-muted); }
+.hub-count { margin: 0; color: var(--gh-muted); font-size: .8rem; }
+.hub-empty { padding: 2.5rem 1rem; text-align: center; color: var(--gh-muted); border: 1px dashed var(--gh-line); border-radius: var(--gh-radius-lg); }
+.hub-note { margin: 2rem 0 0; padding: 1rem 1.2rem; border-left: 3px solid var(--gh-yellow); background: var(--gh-surface-soft); color: var(--gh-muted); font-size: .85rem; line-height: 1.6; }
+.crew-card[hidden], .ev-row[hidden] { display: none; }

@@ -1,0 +1,82 @@
+---
+import Base from '../../../layouts/Base.astro';
+import HubSubnav from '../../../components/HubSubnav.astro';
+import '../../../styles/hub.css';
+import { sampleCrews, crewCardHtml, focusLabels, platformLabels } from '../../../data/hub';
+
+const initialHtml = sampleCrews.map(crewCardHtml).join('');
+---
+<Base
+  title="GTA 6 Racing Crews — Crew Directory | The Hub"
+  description="Discover GTA VI racing crews: circuit racers, leagues, time attack hunters, drift crews and car meet communities on PS5 and Xbox Series X|S."
+  section="hub"
+  noindex={true /* until real crews/events replace the sample data (RS-0022) */}
+>
+  <section class="hub-head">
+    <div class="wrap">
+      <p class="eyebrow">The Hub</p>
+      <h1 class="display hub-title">Crews</h1>
+      <p class="hub-lede">Racing crews, leagues and car meet communities from across the GTA VI scene. Find a crew that races the way you do.</p>
+    </div>
+  </section>
+
+  <HubSubnav active="crews" />
+
+  <section class="wrap hub-body">
+    <div class="hub-toolbar">
+      <div class="hub-filters">
+        <input type="search" class="hub-search" id="crew-search" placeholder="Search name or tag" aria-label="Search crews" />
+        <select class="hub-select" id="crew-focus" aria-label="Filter by focus">
+          <option value="">All focus areas</option>
+          {Object.entries(focusLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+        <select class="hub-select" id="crew-platform" aria-label="Filter by platform">
+          <option value="">All platforms</option>
+          {Object.entries(platformLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+      </div>
+      <span class="hub-sample-flag" id="crew-flag">Sample data — example crews, not real</span>
+    </div>
+
+    <div class="crew-grid" id="crew-root" set:html={initialHtml} />
+    <p class="hub-empty" id="crew-empty" hidden>No crews match these filters.</p>
+
+    <p class="hub-note">Want your crew listed? The directory is curated for now — reach out on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Crew pages managed by crew leaders and membership requests are planned.</p>
+  </section>
+</Base>
+
+<script>
+  import { crewCardHtml } from '../../../data/hub';
+  import { fetchLiveCrews } from '../../../scripts/hub-live';
+
+  const root = document.getElementById('crew-root')!;
+  const emptyEl = document.getElementById('crew-empty')!;
+  const flagEl = document.getElementById('crew-flag')!;
+  const search = document.getElementById('crew-search') as HTMLInputElement;
+  const focusSel = document.getElementById('crew-focus') as HTMLSelectElement;
+  const platSel = document.getElementById('crew-platform') as HTMLSelectElement;
+
+  function applyFilters() {
+    const q = search.value.trim().toLowerCase();
+    const f = focusSel.value;
+    const p = platSel.value;
+    let shown = 0;
+    root.querySelectorAll<HTMLElement>('.crew-card').forEach((card) => {
+      const ok =
+        (!q || (card.dataset.search ?? '').includes(q)) &&
+        (!f || (card.dataset.focus ?? '').split('|').includes(f)) &&
+        (!p || (card.dataset.platforms ?? '').split('|').includes(p));
+      card.hidden = !ok;
+      if (ok) shown++;
+    });
+    emptyEl.hidden = shown > 0;
+  }
+
+  [search, focusSel, platSel].forEach((el) => el.addEventListener('input', applyFilters));
+  fetchLiveCrews().then((live) => {
+    if (!live) return;
+    root.innerHTML = live.map(crewCardHtml).join('');
+    flagEl.hidden = true;
+    applyFilters();
+  });
+</script>
