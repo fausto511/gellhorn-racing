@@ -34,6 +34,10 @@ const globalLinks = [
         </button>
         <div id="account-menu-dropdown" class="account-menu-dropdown" hidden role="menu">
           <a href={`${base}account/`} role="menuitem">Account</a>
+          <!-- Only shown to moderators (checked after login). Hiding it is
+               cosmetic -- the moderator pages and the database (RLS) do
+               their own access check. -->
+          <a href={`${base}moderator/`} role="menuitem" id="account-menu-moderator" hidden>Moderator</a>
           <button type="button" id="account-menu-logout" role="menuitem">Logout</button>
         </div>
       </div>
@@ -139,6 +143,7 @@ const globalLinks = [
     const avatarImgEl = document.getElementById('account-avatar-img');
     const avatarFallbackEl = document.getElementById('account-avatar-fallback');
     const logoutBtnEl = document.getElementById('account-menu-logout');
+    const moderatorLinkEl = document.getElementById('account-menu-moderator');
     const discordBtnEl = document.getElementById('discord-btn');
     const discordBtnLabelEl = document.getElementById('discord-btn-label');
 
@@ -153,8 +158,20 @@ const globalLinks = [
       triggerEl.setAttribute('aria-expanded', 'false');
     }
 
+    // `moderators` is only readable by moderators themselves (RLS), so any
+    // row coming back means "this user is a moderator".
+    let moderatorCheckedFor = null;
+    async function updateModeratorLink(session) {
+      if (!session) { moderatorLinkEl.hidden = true; moderatorCheckedFor = null; return; }
+      if (moderatorCheckedFor === session.user.id) return;
+      moderatorCheckedFor = session.user.id;
+      const { data, error } = await supabase.from('moderators').select('driver_id').limit(1);
+      moderatorLinkEl.hidden = !(!error && Array.isArray(data) && data.length > 0);
+    }
+
     function renderAuthState(session) {
       isLoggedIn = Boolean(session);
+      updateModeratorLink(session);
       if (session) {
         menuEl.hidden = false;
         discordBtnLabelEl.textContent = 'Join Discord';
