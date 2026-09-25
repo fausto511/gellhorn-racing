@@ -22,20 +22,13 @@ export default defineConfig({
       // search -- excluded from the sitemap and separately set to
       // noindex on the page itself (see Base.astro).
       // /hub/ stays out while it only shows sample data (noindex, RS-0022).
-      filter: (page) => !page.includes('/account/') && !page.includes('/moderator/') && !page.includes('/hub/'),
+      // Forwarding pages (/time-attack/, /tracks/…) are not content either.
+      filter: (page) =>
+        !page.includes('/account/') && !page.includes('/moderator/') && !page.includes('/hub/') &&
+        !page.endsWith('/time-attack/') && !page.includes('/tracks/'),
     }),
   ],
-  redirects: {
-    // DEC-0047: /time-attack/ is reserved for a future multi-track hub.
-    // Until a second track exists, it forwards to the only active track.
-    // NB: astro's `redirects` does NOT auto-prefix the target with `base` —
-    // muss hier explizit passieren, sonst 404 die Weiterleitung sobald unter
-    // einem Unterpfad deployed.
-    '/time-attack/': `${base}/time-attack/gellhorn-international-raceway/`,
-    // DEC-0056 (18.09.2026): Gellhorn-Seite lief frueher unter /tracks/,
-    // ist jetzt unter /time-attack/ verschoben (kein Redesign, nur Umzug).
-    // Alter Pfad bleibt dauerhaft als Redirect bestehen (SEO/Bookmarks/
-    // Discord-Links), damit nichts ins Leere zeigt.
-    '/tracks/gellhorn-international-raceway/': `${base}/time-attack/gellhorn-international-raceway/`,
-  },
+  // Forwarding URLs (/time-attack/ and the old /tracks/gellhorn-international-raceway/)
+  // are real pages now (src/components/RedirectPage.astro) instead of
+  // Astro's `redirects`, whose generated page flashed white (2026-09-26).
 });

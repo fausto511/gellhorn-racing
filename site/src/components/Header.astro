@@ -7,7 +7,9 @@ const base = import.meta.env.BASE_URL;
 
 const globalLinks = [
   { key: 'garage', label: 'The Garage', href: `${base}garage/` },
-  { key: 'time-attack', label: 'Time Attack', href: `${base}time-attack/` },
+  // Direct to the track page: /time-attack/ is only a forwarding page (DEC-0047),
+  // linking it would add a pointless extra page load on every click.
+  { key: 'time-attack', label: 'Time Attack', href: `${base}time-attack/gellhorn-international-raceway/` },
   { key: 'hub', label: 'The Hub', href: `${base}hub/` },
 ];
 ---

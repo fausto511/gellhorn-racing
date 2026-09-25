@@ -1,0 +1,26 @@
+---
+// Replaces Astro's built-in `redirects` (config) for our forwarding URLs.
+// Astro's generated redirect page is unstyled -- white background with a
+// "Redirecting from … to …" line -- which flashed white for a split second
+// whenever someone clicked "Time Attack" (Fausto, 2026-09-26). Same meta
+// refresh + canonical + noindex, but on the site's dark background and
+// with the redirect executed as early as possible.
+interface Props { to: string; }
+const { to } = Astro.props;
+const target = `${import.meta.env.BASE_URL}${to}`;
+const canonical = new URL(target, Astro.site).href;
+---
+<!doctype html>
+<html lang="en" style="background:#14141a">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href={canonical} />
+    <title>Gellhorn Time Attack</title>
+    <script is:inline define:vars={{ target }}>location.replace(target + location.search + location.hash);</script>
+  </head>
+  <body style="margin:0;background:#14141a;color:#a0a0c6;font:14px/1.5 system-ui,sans-serif">
+    <noscript><p style="padding:2rem"><a href={target} style="color:#fcfaf7">Continue</a></p></noscript>
+  </body>
+</html>
