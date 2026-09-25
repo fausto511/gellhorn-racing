@@ -114,6 +114,7 @@ export function crewTagHtml(tag: string, color: string, size: 'sm' | 'md' = 'md'
 }
 
 /** Crew emblem (Fausto, 2026-09-26): racing number panel in the crew colour
+ *  (wheel 21/48 wide so it keeps clear space to the panel edges)
  *  with a steering wheel. Panel + wheel are Fausto's own drawings
  *  (Visual/Crew-Emblem/), wheel vectorised with potrace. The wheel turns dark
  *  on light crew colours so it stays readable (WCAG relative luminance). */
@@ -130,7 +131,7 @@ function luminance(hex: string): number {
 export function crewEmblemHtml(color: string): string {
   const c = safeColor(color);
   const wheel = luminance(c) > 0.45 ? '#14141a' : '#ffffff';
-  return `<span class="crew-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48"><path d="${EMBLEM_PANEL}" fill="${c}"/><g transform="translate(11.5 11.5) scale(0.048828) translate(0 512) scale(0.1 -0.1)"><path fill="${wheel}" d="${EMBLEM_WHEEL}"/></g></svg></span>`;
+  return `<span class="crew-emblem" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48"><path d="${EMBLEM_PANEL}" fill="${c}"/><g transform="translate(13.5 13.5) scale(0.041016) translate(0 512) scale(0.1 -0.1)"><path fill="${wheel}" d="${EMBLEM_WHEEL}"/></g></svg></span>`;
 }
 
 const iconUsers = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
