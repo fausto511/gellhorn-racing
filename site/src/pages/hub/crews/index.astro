@@ -20,12 +20,12 @@ const initialHtml = sampleCrews.map(crewCardHtml).join('');
   <section class="wrap hub-body">
     <div class="hub-toolbar">
       <div class="hub-filters">
-        <input type="search" class="hub-search" id="crew-search" placeholder="Search name or tag" aria-label="Search crews" />
-        <select class="hub-select" id="crew-focus" aria-label="Filter by focus">
+        <label class="ui-search hub-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" id="crew-search" placeholder="Search Crew" aria-label="Search crews by name or tag" /></label>
+        <select class="ui-select" id="crew-focus" aria-label="Filter by focus">
           <option value="">All focus areas</option>
           {Object.entries(focusLabels).map(([k, v]) => <option value={k}>{v}</option>)}
         </select>
-        <select class="hub-select" id="crew-platform" aria-label="Filter by platform">
+        <select class="ui-select" id="crew-platform" aria-label="Filter by platform">
           <option value="">All platforms</option>
           {Object.entries(platformLabels).map(([k, v]) => <option value={k}>{v}</option>)}
         </select>

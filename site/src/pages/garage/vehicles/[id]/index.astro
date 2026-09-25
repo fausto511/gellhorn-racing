@@ -39,7 +39,7 @@ const photo = photoOverrides[vehicle.id];
 >
   <section class="wrap v-toolbar">
     <div class="v-search-wrap">
-      <input class="garage-search" type="search" id="v-search" placeholder="Search Vehicle" aria-label="Search vehicles" autocomplete="off" />
+      <label class="ui-search v-search-field"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" id="v-search" placeholder="Search Vehicle" aria-label="Search vehicles" autocomplete="off" /></label>
       <ul id="v-search-results" class="v-search-results" hidden></ul>
     </div>
     <a href={`${base}garage/#compare`} id="v-compare-cta" class="garage-compare-btn">Compare Selected (0)</a>
@@ -98,7 +98,7 @@ const photo = photoOverrides[vehicle.id];
 <style>
   .v-toolbar { display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: var(--gh-gap-card); padding-top: 1.5rem; }
   .v-search-wrap { position: relative; }
-  .garage-search { width: 100%; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); padding: .65rem .9rem; font-size: .85rem; font-family: var(--gh-font-body); }
+  .v-search-field { width: 100%; } /* look: site-wide .ui-search (tokens.css) */
   .v-search-results { position: absolute; top: calc(100% + .35rem); left: 0; right: 0; z-index: 20; margin: 0; padding: .3rem; list-style: none; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); max-height: 16rem; overflow-y: auto; }
   .v-search-results li + li { margin-top: .15rem; }
   .v-search-results a { display: block; padding: .5rem .6rem; border-radius: calc(var(--gh-radius) - .2rem); color: var(--gh-text); text-decoration: none; font-size: .85rem; }

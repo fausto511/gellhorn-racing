@@ -56,19 +56,19 @@ const photoOverrides: Record<string, string> = {};
       </div>
 
       <div class="garage-controls">
-        <label class="garage-search">
+        <label class="ui-search garage-search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           <input type="search" id="garage-search" placeholder="Search Vehicle" aria-label="Search vehicles" />
         </label>
-        <select class="garage-filter" id="garage-class-filter" aria-label="Filter by GTA class">
+        <select class="ui-select garage-filter" id="garage-class-filter" aria-label="Filter by GTA class">
           <option value="">All classes</option>
           {classes.map((c) => <option value={c}>{c}</option>)}
         </select>
-        <select class="garage-filter" id="garage-make-filter" aria-label="Filter by manufacturer">
+        <select class="ui-select garage-filter" id="garage-make-filter" aria-label="Filter by manufacturer">
           <option value="">All manufacturers</option>
           {makes.map((m) => <option value={m}>{m}</option>)}
         </select>
-        <select class="garage-filter" id="garage-drive-filter" aria-label="Filter by drivetrain">
+        <select class="ui-select garage-filter" id="garage-drive-filter" aria-label="Filter by drivetrain">
           <option value="">All drivetrains</option>
           {drives.map((d) => <option value={d}>{d}</option>)}
         </select>
@@ -163,14 +163,9 @@ const photoOverrides: Record<string, string> = {};
   .garage-compare-btn.has-selection { border-color: var(--gh-yellow); color: var(--gh-yellow); }
 
   .garage-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-bottom: 1.5rem; }
-  /* Same visual language as the Leaderboard's search fields (.lb-search in
-     Leaderboard.astro) -- kept in sync intentionally: no fill of their own,
-     just a border against the page background. */
-  .garage-search, .garage-filter { background: transparent; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); padding: .65rem .9rem; font-size: .85rem; font-family: var(--gh-font-body); }
-  .garage-search { flex: 0 1 18rem; min-width: 12rem; display: flex; align-items: center; gap: .55rem; color: var(--gh-muted); }
-  .garage-search svg { flex: none; }
-  .garage-search input { flex: 1; background: none; border: none; color: var(--gh-text); font-size: .85rem; font-family: var(--gh-font-body); outline: none; padding: 0; }
-  .garage-filter { appearance: none; -webkit-appearance: none; -moz-appearance: none; min-width: 9rem; padding-right: 2.2rem; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0a0c6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right .8rem center; }
+  /* Look comes from the site-wide .ui-search / .ui-select (tokens.css);
+     only layout lives here. */
+  .garage-search { flex: 0 1 18rem; min-width: 12rem; }
 
   .garage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: var(--gh-gap-card); }
   .v-tile { position: relative; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; transition: border-color .15s; }

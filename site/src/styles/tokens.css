@@ -132,3 +132,35 @@ a { color: inherit; }
 .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 50%; }
 .status-ok .status-dot { background: var(--gh-yellow); }
 .status-pending .status-dot { border: 1.5px solid var(--gh-muted); }
+
+/* ---- Filter controls (site-wide standard, Fausto 2026-09-25) -------------
+   One look for every search field and filter dropdown on public pages
+   (Garage, vehicle pages, Leaderboard, The Hub, future pages):
+   - search: transparent field, thin line border, magnifier icon in muted,
+     typed text in full white, browser-default placeholder colour;
+   - dropdown: same border/padding, custom chevron, and the opened option
+     list on the dark surface colour (not the browser's white list).
+   Markup:  <label class="ui-search"><svg …/><input type="search" …/></label>
+            <select class="ui-select">…</select>
+   Layout (width/flex) stays with each page; only the look lives here. */
+.ui-search, .ui-select {
+  border: 1px solid var(--gh-line);
+  border-radius: var(--gh-radius);
+  color: var(--gh-text);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: var(--gh-font-body);
+  min-height: 2.5rem; /* same height for search + dropdown in every row */
+}
+.ui-search { display: flex; align-items: center; gap: 0.55rem; background: transparent; color: var(--gh-muted); }
+.ui-search:focus-within, .ui-select:focus-visible { border-color: var(--gh-muted); outline: none; }
+.ui-search svg { flex: none; }
+.ui-search input { flex: 1; min-width: 0; background: none; border: none; color: var(--gh-text); font-size: 0.85rem; font-family: var(--gh-font-body); outline: none; padding: 0; }
+.ui-select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  min-width: 9rem; padding-right: 2.2rem; cursor: pointer;
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a0a0c6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.8rem center;
+}
+.ui-select option { background: var(--gh-surface); color: var(--gh-text); }

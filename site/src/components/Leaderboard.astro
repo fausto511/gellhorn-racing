@@ -16,11 +16,11 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
     </div>
 
     <div class="lb-controls">
-      <label class="lb-search">
+      <label class="ui-search lb-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" placeholder="Search driver" aria-label="Search driver" />
       </label>
-      <label class="lb-search">
+      <label class="ui-search lb-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
         <input type="search" placeholder="Search vehicle" aria-label="Search vehicle" />
       </label>
@@ -107,8 +107,7 @@ import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/
   .lb-tab.is-active { border-color: var(--gh-yellow); color: var(--gh-yellow); }
 
   .lb-controls { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 1.25rem; }
-  .lb-search { display: flex; align-items: center; gap: .55rem; flex: 1 1 14rem; padding: .65rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); color: var(--gh-muted); }
-  .lb-search input { flex: 1; background: none; border: none; color: var(--gh-text); font-size: .85rem; outline: none; }
+  .lb-search { flex: 1 1 14rem; } /* look: site-wide .ui-search (tokens.css) */
   .lb-toggle { display: inline-flex; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); overflow: hidden; }
   .lb-toggle button { padding: .65rem 1.1rem; border: none; background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .78rem; cursor: pointer; }
   .lb-toggle button.is-active { background: var(--gh-yellow); color: #1a1206; }
