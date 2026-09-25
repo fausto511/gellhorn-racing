@@ -31,6 +31,19 @@ const base = import.meta.env.BASE_URL;
           <span class="btn btn-primary home-tile-cta" aria-hidden="true">Enter Time Attack</span>
         </div>
       </a>
+      <a class="home-tile home-tile-hub" href={`${base}hub/`}>
+        <picture>
+          <source type="image/webp" srcset={`${base}images/hub/hub-carmeet-640.webp 640w, ${base}images/hub/hub-carmeet-1080.webp 1080w, ${base}images/hub/hub-carmeet-1672.webp 1672w`} sizes="100vw" />
+          <img src={`${base}images/hub/hub-carmeet-1672.jpg`} alt="" width="1672" height="940" loading="lazy" />
+        </picture>
+        <div class="home-tile-veil" aria-hidden="true"></div>
+        <div class="home-tile-copy">
+          <p class="eyebrow">Community</p>
+          <h2 class="display home-tile-title">The Hub</h2>
+          <p class="home-tile-lede">Race nights, league rounds and car meets — plus the crews behind them.</p>
+          <span class="btn btn-primary home-tile-cta" aria-hidden="true">Explore The Hub</span>
+        </div>
+      </a>
     </div>
   </section>
 </Base>
@@ -40,10 +53,21 @@ const base = import.meta.env.BASE_URL;
   .home-split {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    /* Layout (Fausto, 2026-09-26): two ~16:9 tiles on top, one full-width
+       tile below with the SAME height (i.e. roughly two 16:9 side by side).
+       grid-auto-rows: 1fr makes the bottom row as tall as the top row, whose
+       height comes from the 16:9 tiles. */
+    grid-auto-rows: 1fr;
     gap: var(--gh-gap-card);
   }
   .home-tile-garage { order: 1; }
   .home-tile-track { order: 2; }
+  .home-tile-hub { order: 3; grid-column: 1 / -1; aspect-ratio: auto !important; }
+  .home-tile-hub img { object-position: 60% 45%; }
+  /* Wide tile: text sits on the left over a busy crowd, so darken from the
+     left instead of only from the bottom. */
+  .home-tile-hub .home-tile-veil { background: linear-gradient(90deg, rgba(20,20,26,.95) 12%, rgba(20,20,26,.6) 42%, rgba(20,20,26,.2) 75%), linear-gradient(0deg, rgba(20,20,26,.55), transparent 60%); }
+  .home-tile-hub:hover .home-tile-veil, .home-tile-hub:focus-visible .home-tile-veil { background: linear-gradient(90deg, rgba(20,20,26,.9) 12%, rgba(20,20,26,.5) 42%, rgba(20,20,26,.1) 75%), linear-gradient(0deg, rgba(20,20,26,.45), transparent 60%); }
 
   .home-tile {
     position: relative;
@@ -55,7 +79,7 @@ const base = import.meta.env.BASE_URL;
     background: var(--gh-surface);
     border: 1px solid var(--gh-line);
     border-radius: var(--gh-radius-lg);
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 16 / 9;
   }
   .home-tile picture, .home-tile img {
     position: absolute;
@@ -67,7 +91,7 @@ const base = import.meta.env.BASE_URL;
   .home-tile-veil {
     position: absolute;
     inset: 0;
-    background: linear-gradient(0deg, rgba(20,20,26,.93) 8%, rgba(20,20,26,.4) 55%, rgba(20,20,26,.6));
+    background: linear-gradient(0deg, rgba(20,20,26,.95) 10%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.65));
     transition: background .15s ease;
   }
   .home-tile:hover .home-tile-veil,
@@ -82,10 +106,15 @@ const base = import.meta.env.BASE_URL;
   .home-tile-lede { color: var(--gh-muted); font-size: .95rem; margin: 0 0 1.25rem; max-width: 30ch; }
   .home-tile-cta { pointer-events: none; }
 
+  /* Between tablet and phone the 16:9 tiles get too flat for their text. */
+  @media (max-width: 1000px) {
+    .home-tile { aspect-ratio: 4 / 3; }
+  }
   @media (max-width: 760px) {
-    .home-split { grid-template-columns: 1fr; }
+    .home-split { grid-template-columns: 1fr; grid-auto-rows: auto; }
+    .home-tile-hub .home-tile-veil { background: linear-gradient(0deg, rgba(20,20,26,.95) 10%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.65)); }
     .home-tile-garage { order: 2; }
     .home-tile-track { order: 1; }
-    .home-tile { aspect-ratio: 4 / 5; }
+    .home-tile, .home-tile-hub { aspect-ratio: 4 / 5 !important; }
   }
 </style>
