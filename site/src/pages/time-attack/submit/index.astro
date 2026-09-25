@@ -4,9 +4,15 @@ import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 import { vehicleOptions } from '../../../data/vehicles';
 
 const PLATFORMS = [
-  { value: 'ps5', label: 'PlayStation 5' },
+  { value: 'ps5', label: 'PS5' },
   { value: 'xbox_series', label: 'Xbox Series X|S' },
 ];
+// Vehicle list grouped by manufacturer -- a 100+ entry flat list is hard to
+// scroll on a phone; the native picker shows the groups as headers.
+const byMake = new Map<string, typeof vehicleOptions>();
+[...vehicleOptions]
+  .sort((a, b) => a.make.localeCompare(b.make) || a.model.localeCompare(b.model))
+  .forEach((v) => byMake.set(v.make, [...(byMake.get(v.make) ?? []), v]));
 ---
 <Base
   title="Submit a Lap — Gellhorn Time Attack"
@@ -17,10 +23,7 @@ const PLATFORMS = [
   <section class="wrap submit-wrap">
     <p class="eyebrow">Gellhorn International Raceway</p>
     <h1 class="display submit-title">Submit a Lap</h1>
-    <p class="submit-lede">
-      Every field below matches what the real submission API (<code>submit-lap</code>) expects. Submitting
-      here talks to that same API — nothing is faked once a Supabase project is connected.
-    </p>
+    <p class="submit-lede">Add your results screenshot, check the details and send it in — it takes under a minute.</p>
 
     <div id="backend-notice" class="notice" hidden>
       <strong>Backend not connected yet.</strong>
@@ -47,58 +50,90 @@ const PLATFORMS = [
     </div>
 
     <form id="submit-form" class="panel submit-form" novalidate>
+      <!-- 1. Screenshot first: once it is in, the preview stays on screen so
+           the driver can read vehicle and lap time off it while filling in
+           the fields below. -->
       <div class="field">
-        <label for="platform">Platform</label>
-        <select id="platform" name="platform" required>
-          {PLATFORMS.map((p) => <option value={p.value}>{p.label}</option>)}
-        </select>
+        <span class="field-label">1 · Results screenshot</span>
+        <label class="dropzone" id="dropzone" for="screenshot">
+          <input id="screenshot" name="screenshot" type="file" accept="image/*" class="visually-hidden" />
+          <span class="dz-empty" id="dz-empty">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <strong class="dz-title">Add screenshot</strong>
+            <span class="dz-sub dz-touch">Tap to pick it from your photos</span>
+            <span class="dz-sub dz-desk">Drop it here, click to choose, or paste with <kbd>Ctrl</kbd>+<kbd>V</kbd></span>
+          </span>
+          <img id="dz-preview" class="dz-preview" alt="Selected screenshot" hidden />
+          <span class="dz-busy" id="dz-busy" hidden>Preparing image…</span>
+        </label>
+        <div class="dz-meta" id="dz-meta" hidden>
+          <span id="dz-info"></span>
+          <span class="dz-actions">
+            <button type="button" class="link-btn" id="dz-replace">Replace</button>
+            <button type="button" class="link-btn" id="dz-remove">Remove</button>
+          </span>
+        </div>
+        <p class="hint">Must clearly show driver name, vehicle and lap time. Stored privately, never published. On PS5: share the screenshot to the PlayStation App, save it to your phone, then add it here.</p>
       </div>
 
       <div class="field">
-        <label for="vehicle_id">Vehicle</label>
+        <span class="field-label" id="platform-label">2 · Platform</span>
+        <div class="seg" role="radiogroup" aria-labelledby="platform-label">
+          {PLATFORMS.map((p, i) => (
+            <label class="seg-opt"><input type="radio" name="platform" value={p.value} checked={i === 0} /><span>{p.label}</span></label>
+          ))}
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" for="vehicle_id">3 · Vehicle</label>
         <select id="vehicle_id" name="vehicle_id" required>
           <option value="" disabled selected>Select the vehicle you drove</option>
-          {vehicleOptions.map((v) => (
-            <option value={v.id}>{v.make} {v.model} — {v.classes.join(" / ")}</option>
+          {[...byMake.entries()].map(([make, list]) => (
+            <optgroup label={make}>
+              {list.map((v) => <option value={v.id}>{v.make} {v.model}</option>)}
+            </optgroup>
           ))}
         </select>
-        <p class="hint">Not seeing your exact trim? Pick the closest match and note it in your submission — moderators reconcile this before acceptance.</p>
       </div>
 
       <div class="field">
-        <label for="lap_time">Lap time</label>
-        <input id="lap_time" name="lap_time" type="text" inputmode="numeric" placeholder="1:24.683" pattern="^\d{1,2}:\d{2}\.\d{1,3}$" required />
-        <p class="hint">Format: minutes:seconds.milliseconds, e.g. 1:24.683</p>
+        <label class="field-label" for="lap_time">4 · Lap time</label>
+        <input id="lap_time" name="lap_time" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="1:24.683" required />
+        <p class="hint">Just type the digits — <strong>124683</strong> becomes <strong>1:24.683</strong>.</p>
       </div>
 
-      <div class="field">
-        <label for="screenshot">Screenshot (required)</label>
-        <input id="screenshot" name="screenshot" type="file" accept="image/*" required />
-        <p class="hint">Must clearly show driver name, vehicle, and lap time. Stored privately — never published (see the Rules page). Max 8&nbsp;MB.</p>
-      </div>
+      <details class="more" id="more">
+        <summary>Add a full lap video <span>(optional — needed for Video verified)</span></summary>
+        <div class="field">
+          <label class="field-label" for="video_url">Video link</label>
+          <input id="video_url" name="video_url" type="url" inputmode="url" placeholder="https://youtube.com/watch?v=..." />
+          <p class="hint">Complete, uncut lap. A moderator watches it before the run can become Video verified. You can also add it later in your account.</p>
+        </div>
+      </details>
 
-      <div class="field">
-        <label for="video_url">Full lap video link (optional, but required for an official Video Verified record)</label>
-        <input id="video_url" name="video_url" type="url" placeholder="https://youtube.com/watch?v=..." />
-        <p class="hint">Must be a complete, uncut lap. A moderator has to watch it before this run can become Video verified.</p>
-      </div>
-
-      <div class="field field-checkbox">
-        <label>
-          <input id="display_name_consent" name="display_name_consent" type="checkbox" required />
-          I agree to publish my chosen display name next to this lap time.
-        </label>
-      </div>
+      <label class="consent">
+        <input id="display_name_consent" name="display_name_consent" type="checkbox" required />
+        <span>Show my display name next to this lap time.</span>
+      </label>
 
       <div id="form-errors" class="form-errors" hidden></div>
 
       <button type="submit" class="btn btn-red submit-btn">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
-        Submit Lap
+        <span id="submit-label">Submit Lap</span>
       </button>
-
-      <p id="form-success" class="form-success" hidden></p>
     </form>
+
+    <div id="form-success" class="panel success" hidden>
+      <p class="eyebrow">Received</p>
+      <h2 class="display success-title">Lap submitted</h2>
+      <p id="success-text" class="success-text"></p>
+      <div class="success-actions">
+        <button type="button" class="btn btn-red" id="submit-another">Submit another lap</button>
+        <a class="btn btn-white-tonal" id="to-account">My submissions</a>
+      </div>
+    </div>
   </section>
 </Base>
 
@@ -109,7 +144,7 @@ const PLATFORMS = [
      stays visible even though its `hidden` attribute/property is true. */
   [hidden] { display: none !important; }
 
-  .submit-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); max-width: 40rem; }
+  .submit-wrap { padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4.5rem); max-width: 40rem; }
   .submit-title { margin: .4rem 0 .8rem; font-size: clamp(2rem, 4vw, 2.8rem); }
   .submit-lede { color: var(--gh-muted); max-width: 56ch; margin: 0 0 1.5rem; }
   .submit-lede code { color: var(--gh-text); }
@@ -121,24 +156,72 @@ const PLATFORMS = [
   .auth-box { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
   .auth-box p { margin: 0; font-size: .88rem; }
 
-  .submit-form { display: flex; flex-direction: column; gap: 1.3rem; padding: var(--gh-pad-card); }
-  .field { display: flex; flex-direction: column; gap: .4rem; }
-  .field label { font-weight: 700; font-size: .85rem; }
+  .submit-form { display: flex; flex-direction: column; gap: 1.4rem; padding: var(--gh-pad-card); }
+  .field { display: flex; flex-direction: column; gap: .45rem; }
+  .field-label { font-weight: 800; font-size: .82rem; letter-spacing: .02em; text-transform: uppercase; color: var(--gh-text); }
   .field select, .field input[type="text"], .field input[type="url"] {
-    padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line);
-    background: var(--gh-bg); color: var(--gh-text); font-size: .9rem; font-family: var(--gh-font-body);
+    width: 100%; padding: .8rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line);
+    background: var(--gh-bg); color: var(--gh-text); font-family: var(--gh-font-body);
+    font-size: 16px; /* >=16px: iOS Safari would otherwise zoom the page on focus */
   }
-  .field input[type="file"] { color: var(--gh-muted); font-size: .85rem; }
+  .field select option, .field select optgroup { background: var(--gh-surface); }
+  #lap_time { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.35rem; letter-spacing: .03em; }
   .field select:focus, .field input:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
-  .hint { margin: 0; color: var(--gh-muted); font-size: .76rem; }
-  .field-checkbox label { display: flex; align-items: flex-start; gap: .6rem; font-weight: 400; font-size: .85rem; }
-  .field-checkbox input { margin-top: .2rem; }
+  .field input[aria-invalid="true"], .field select[aria-invalid="true"] { border-color: var(--gh-red); }
+  .hint { margin: 0; color: var(--gh-muted); font-size: .78rem; line-height: 1.5; }
+  .hint strong { color: var(--gh-text); font-weight: 700; }
 
-  .form-errors { padding: .8rem 1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-red); background: rgba(237,37,61,.1); color: var(--gh-text); font-size: .82rem; }
+  /* ---- screenshot drop zone: fixed 16:9 box, so nothing below moves when
+     the preview appears (no layout jump on phones) ---- */
+  .visually-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); }
+  .dropzone { position: relative; display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9; border: 2px dashed rgba(160,160,198,.35); border-radius: var(--gh-radius-lg); background: var(--gh-bg); cursor: pointer; overflow: hidden; transition: border-color .15s, background .15s; -webkit-tap-highlight-color: transparent; }
+  .dropzone:hover, .dropzone:focus-within { border-color: var(--gh-muted); }
+  .dropzone.is-over { border-color: var(--gh-yellow); background: rgba(255,215,76,.06); }
+  .dropzone.has-file { border-style: solid; border-color: var(--gh-line); }
+  .dropzone[aria-invalid="true"] { border-color: var(--gh-red); }
+  .dz-empty { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 1rem; text-align: center; color: var(--gh-muted); }
+  .dz-title { color: var(--gh-text); font-size: 1rem; }
+  .dz-sub { font-size: .8rem; }
+  .dz-sub kbd { font-family: var(--gh-font-body); font-size: .72rem; padding: .05rem .35rem; border: 1px solid var(--gh-line); border-radius: 3px; }
+  .dz-desk { display: none; }
+  @media (hover: hover) and (pointer: fine) { .dz-desk { display: inline; } .dz-touch { display: none; } }
+  :global(html.is-touch) .dz-desk { display: none; }
+  :global(html.is-touch) .dz-touch { display: inline; }
+  .dz-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .dz-busy { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(20,20,26,.8); color: var(--gh-text); font-size: .85rem; font-weight: 700; }
+  .dz-meta { display: flex; align-items: center; justify-content: space-between; gap: .75rem; font-size: .78rem; color: var(--gh-muted); }
+  .dz-actions { display: flex; gap: .9rem; }
+  .link-btn { background: none; border: none; padding: .3rem 0; color: var(--gh-text); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+
+  /* ---- platform segmented control: one tap instead of a dropdown ---- */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .seg-opt { position: relative; }
+  .seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg-opt span { display: flex; align-items: center; justify-content: center; min-height: 2.9rem; padding: .5rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-muted); font-weight: 700; font-size: .9rem; text-align: center; }
+  .seg-opt input:checked + span { border-color: var(--gh-yellow); color: var(--gh-text); background: rgba(255,215,76,.08); box-shadow: inset 0 0 0 1px var(--gh-yellow); }
+  .seg-opt input:focus-visible + span { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
+
+  .more { border-top: 1px solid var(--gh-line); padding-top: 1rem; }
+  .more summary { cursor: pointer; font-weight: 700; font-size: .88rem; list-style: none; }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary::before { content: '+ '; color: var(--gh-yellow); }
+  .more[open] summary::before { content: '– '; }
+  .more summary span { color: var(--gh-muted); font-weight: 400; font-size: .8rem; }
+  .more .field { margin-top: .9rem; }
+
+  .consent { display: flex; align-items: flex-start; gap: .7rem; font-size: .9rem; cursor: pointer; }
+  .consent input { width: 1.25rem; height: 1.25rem; margin: .05rem 0 0; flex: none; accent-color: var(--gh-red); }
+
+  .form-errors { padding: .8rem 1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-red); background: rgba(237,37,61,.1); color: var(--gh-text); font-size: .85rem; }
   .form-errors ul { margin: .3rem 0 0; padding-left: 1.1rem; }
-  .form-success { padding: .8rem 1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-yellow); background: rgba(255,215,76,.08); color: var(--gh-text); font-size: .85rem; }
 
-  .submit-btn { align-self: flex-start; }
+  .submit-btn { width: 100%; min-height: 3.2rem; font-size: 1.05rem; }
+  .submit-btn:disabled { opacity: .7; cursor: progress; }
+
+  .success { padding: var(--gh-pad-card); border-color: var(--gh-yellow); }
+  .success-title { margin: .4rem 0 .6rem; font-size: 1.8rem; }
+  .success-text { margin: 0 0 1.3rem; color: var(--gh-muted); }
+  .success-actions { display: flex; flex-wrap: wrap; gap: .7rem; }
 </style>
 
 <script>
@@ -167,6 +250,9 @@ const PLATFORMS = [
   function renderAuthState() {
     if (!backendConfigured) return;
     if (currentSession) {
+      // Signed in: no extra box above the form -- logout is in the header's
+      // avatar menu, and every pixel above the upload field counts on phones.
+      authBoxEl.hidden = true;
       authSignedOutEl.hidden = true;
       authSignedInEl.hidden = false;
       authUserLabelEl.textContent =
@@ -174,11 +260,14 @@ const PLATFORMS = [
         currentSession.user.user_metadata?.name ??
         currentSession.user.email ??
         currentSession.user.id;
-      formEl.hidden = false;
+      // keep the success panel up (token refreshes also fire this)
+      formEl.hidden = !document.getElementById('form-success').hidden;
     } else {
+      authBoxEl.hidden = false;
       authSignedOutEl.hidden = false;
       authSignedInEl.hidden = true;
       formEl.hidden = true;
+      document.getElementById('form-success').hidden = true;
     }
   }
 
@@ -212,82 +301,213 @@ const PLATFORMS = [
     });
   }
 
+  // Touch devices whose browser still reports a fine pointer get the phone
+  // wording in the drop zone ("Tap to pick…" instead of drag/paste).
+  if (navigator.maxTouchPoints > 0 && !window.matchMedia('(pointer: fine)').matches) document.documentElement.classList.add('is-touch');
+
+  // ------------------------------------------------------------ lap time
+  // Accepts "1:24.683" or just digits ("124683" = 1:24.683). Phones show a
+  // digits-only keypad for inputmode=numeric (no ":" on iOS), so digits must
+  // be enough.
+  function normalizeLapTime(text) {
+    const t = String(text).trim();
+    if (/^\d{1,2}:\d{2}\.\d{1,3}$/.test(t)) return t;
+    const digits = t.replace(/\D/g, '');
+    if (digits.length < 5 || digits.length > 7) return null;
+    const ms = digits.slice(-3), sec = digits.slice(-5, -3), min = digits.slice(0, -5) || '0';
+    if (parseInt(sec, 10) > 59) return null;
+    return `${parseInt(min, 10)}:${sec}.${ms}`;
+  }
   function parseLapTimeToMs(text) {
-    const m = /^(\d{1,2}):(\d{2})\.(\d{1,3})$/.exec(text.trim());
+    const norm = normalizeLapTime(text);
+    if (!norm) return null;
+    const m = /^(\d{1,2}):(\d{2})\.(\d{1,3})$/.exec(norm);
     if (!m) return null;
     const [, min, sec, msRaw] = m;
-    const ms = msRaw.padEnd(3, '0');
-    return (parseInt(min, 10) * 60 + parseInt(sec, 10)) * 1000 + parseInt(ms, 10);
+    if (parseInt(sec, 10) > 59) return null;
+    return (parseInt(min, 10) * 60 + parseInt(sec, 10)) * 1000 + parseInt(msRaw.padEnd(3, '0'), 10);
+  }
+  const lapInput = document.getElementById('lap_time');
+  lapInput.addEventListener('blur', () => {
+    const n = normalizeLapTime(lapInput.value);
+    if (n) lapInput.value = n;
+  });
+
+  // ------------------------------------------------------------ screenshot
+  const MAX_BYTES = 8 * 1024 * 1024;           // bucket limit (lap-evidence)
+  const MAX_EDGE = 2560;                         // plenty for reading names/times
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('screenshot');
+  const previewEl = document.getElementById('dz-preview');
+  const emptyEl = document.getElementById('dz-empty');
+  const busyEl = document.getElementById('dz-busy');
+  const metaEl = document.getElementById('dz-meta');
+  const infoEl = document.getElementById('dz-info');
+  let screenshot = null; // { blob, name, type, size }
+  let previewUrl = null;
+
+  const fmtSize = (n) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+  const safeName = (n) => (n || 'screenshot').toLowerCase().normalize('NFKD').replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(-60) || 'screenshot';
+
+  function loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => resolve({ img, url });
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('unreadable')); };
+      img.src = url;
+    });
   }
 
+  // Keeps the original when it is already a normal, small-enough image;
+  // otherwise re-encodes to JPEG (too big, 4K PNG, HEIC on iPhone, ...).
+  async function prepareImage(file) {
+    if (!file.type.startsWith('image/') && !/\.(heic|heif)$/i.test(file.name)) throw new Error('That file is not an image. Please choose your screenshot (JPG or PNG).');
+    let loaded;
+    try { loaded = await loadImage(file); }
+    catch { throw new Error('This image format cannot be read by your browser. Please use a JPG or PNG screenshot.'); }
+    const { img, url } = loaded;
+    const common = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+    const big = Math.max(img.naturalWidth, img.naturalHeight) > MAX_EDGE;
+    if (common && file.size <= MAX_BYTES && !(big && file.size > 3 * 1024 * 1024)) {
+      return { blob: file, name: file.name, type: file.type, size: file.size, url, converted: false };
+    }
+    const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    let blob = null;
+    for (const q of [0.92, 0.85, 0.75]) {
+      blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
+      if (blob && blob.size <= MAX_BYTES) break;
+    }
+    if (!blob || blob.size > MAX_BYTES) throw new Error('Could not shrink this image below 8 MB. Please use a normal screenshot.');
+    const base = (file.name || 'screenshot').replace(/\.[^.]+$/, '');
+    return { blob, name: `${base}.jpg`, type: 'image/jpeg', size: blob.size, url, converted: true };
+  }
+
+  async function setScreenshot(file) {
+    if (!file) return;
+    clearErrors();
+    busyEl.hidden = false;
+    try {
+      const prepared = await prepareImage(file);
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = prepared.url;
+      screenshot = prepared;
+      previewEl.src = prepared.url;
+      previewEl.hidden = false;
+      emptyEl.hidden = true;
+      dropzone.classList.add('has-file');
+      dropzone.removeAttribute('aria-invalid');
+      metaEl.hidden = false;
+      infoEl.textContent = `${prepared.name} · ${fmtSize(prepared.size)}${prepared.converted ? ' (optimized)' : ''}`;
+    } catch (err) {
+      showErrors([err instanceof Error ? err.message : String(err)]);
+    } finally {
+      busyEl.hidden = true;
+      fileInput.value = ''; // allow re-picking the same file
+    }
+  }
+  function clearScreenshot() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = null; screenshot = null;
+    previewEl.hidden = true; previewEl.removeAttribute('src');
+    emptyEl.hidden = false; metaEl.hidden = true;
+    dropzone.classList.remove('has-file');
+  }
+
+  fileInput.addEventListener('change', () => setScreenshot(fileInput.files?.[0]));
+  document.getElementById('dz-replace').addEventListener('click', () => fileInput.click());
+  document.getElementById('dz-remove').addEventListener('click', clearScreenshot);
+
+  // Drag & drop: the whole page accepts a dropped image (no precise aiming
+  // needed), and the browser must never navigate away to the raw file.
+  const formVisible = () => !document.getElementById('submit-form').hidden;
+  let dragDepth = 0;
+  window.addEventListener('dragenter', (e) => { if (e.dataTransfer?.types?.includes('Files')) { dragDepth++; dropzone.classList.add('is-over'); } });
+  window.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth - 1); if (!dragDepth) dropzone.classList.remove('is-over'); });
+  window.addEventListener('dragover', (e) => { if (e.dataTransfer?.types?.includes('Files')) e.preventDefault(); });
+  window.addEventListener('drop', (e) => {
+    if (!e.dataTransfer?.files?.length) return;
+    e.preventDefault();
+    dragDepth = 0; dropzone.classList.remove('is-over');
+    if (formVisible()) setScreenshot(e.dataTransfer.files[0]);
+  });
+
+  // Paste (Ctrl+V / long-press "Paste"): only takes over when the clipboard
+  // actually holds an image, so pasting text into the lap time still works.
+  document.addEventListener('paste', (e) => {
+    if (!formVisible()) return;
+    const item = [...(e.clipboardData?.items ?? [])].find((i) => i.kind === 'file' && i.type.startsWith('image/'));
+    if (!item) return;
+    e.preventDefault();
+    const f = item.getAsFile();
+    if (f) setScreenshot(new File([f], `pasted-${Date.now()}.${(f.type.split('/')[1] || 'png').replace('jpeg', 'jpg')}`, { type: f.type }));
+  });
+
+  // ------------------------------------------------------------ submit
   const form = document.getElementById('submit-form');
   const errorsEl = document.getElementById('form-errors');
   const successEl = document.getElementById('form-success');
+  const submitBtn = form.querySelector('.submit-btn');
+  const submitLabel = document.getElementById('submit-label');
+
+  function clearErrors() {
+    errorsEl.hidden = true; errorsEl.innerHTML = '';
+    form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+  }
+  function showErrors(list) {
+    errorsEl.hidden = false;
+    errorsEl.innerHTML = list.length === 1 ? list[0] : '<strong>Please fix:</strong><ul>' + list.map((e) => `<li>${e}</li>`).join('') + '</ul>';
+    errorsEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+  form.addEventListener('input', (e) => e.target.removeAttribute?.('aria-invalid'));
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    errorsEl.hidden = true;
-    successEl.hidden = true;
-    errorsEl.innerHTML = '';
+    clearErrors();
 
     const data = new FormData(form);
     const platform = data.get('platform');
     const vehicleId = data.get('vehicle_id');
-    const lapTimeText = String(data.get('lap_time') ?? '');
-    const lapTimeMs = parseLapTimeToMs(lapTimeText);
+    const lapTimeMs = parseLapTimeToMs(String(data.get('lap_time') ?? ''));
     const videoUrl = String(data.get('video_url') ?? '').trim();
     const consent = data.get('display_name_consent') === 'on';
-    const screenshotFile = form.querySelector('#screenshot').files[0];
 
     const errors = [];
-    if (!vehicleId) errors.push('Select a vehicle.');
-    if (lapTimeMs === null) errors.push('Lap time must look like 1:24.683.');
-    if (!screenshotFile) errors.push('A screenshot is required.');
-    if (screenshotFile && screenshotFile.size > 8 * 1024 * 1024) errors.push('Screenshot must be 8 MB or smaller.');
-    if (!consent) errors.push('You must consent to publishing your display name to submit a screenshot-backed time.');
+    if (!screenshot) { errors.push('Add your results screenshot.'); dropzone.setAttribute('aria-invalid', 'true'); }
+    if (!vehicleId) { errors.push('Select the vehicle.'); form.vehicle_id.setAttribute('aria-invalid', 'true'); }
+    if (lapTimeMs === null) { errors.push('Enter the lap time, e.g. 124683 or 1:24.683.'); lapInput.setAttribute('aria-invalid', 'true'); }
+    if (videoUrl && !/^https:\/\//.test(videoUrl)) errors.push('The video link must start with https://');
+    if (!consent) errors.push('Tick the box to show your display name with this time.');
+    if (errors.length) { showErrors(errors); return; }
 
-    if (errors.length > 0) {
-      errorsEl.hidden = false;
-      errorsEl.innerHTML = '<strong>Please fix the following:</strong><ul>' + errors.map((e) => `<li>${e}</li>`).join('') + '</ul>';
-      return;
-    }
+    const n = normalizeLapTime(lapInput.value); if (n) lapInput.value = n;
 
     if (!backendConfigured) {
-      errorsEl.hidden = false;
-      errorsEl.innerHTML = '<strong>Form is valid.</strong> The backend is not connected yet, so nothing was actually submitted — see the notice above.';
+      showErrors(['<strong>Form is valid.</strong> The backend is not connected in this build, so nothing was submitted.']);
       return;
     }
 
-    const submitBtn = form.querySelector('.submit-btn');
     submitBtn.disabled = true;
-
     try {
-      // 1. Get the current session's access token (set by the sign-in
-      //    widget above).
       const sb = getSupabase();
       const accessToken = currentSession?.access_token;
-      if (!accessToken) {
-        throw new Error('You need to sign in with Discord first (use the button above).');
-      }
+      if (!accessToken) throw new Error('Please sign in with Discord first (button above).');
 
-      // 2. Upload the screenshot to the private evidence bucket.
-      const path = `${currentSession.user.id}/${Date.now()}-${screenshotFile.name}`;
-      const { error: uploadError } = await sb.storage
-        .from('lap-evidence')
-        .upload(path, screenshotFile, { contentType: screenshotFile.type });
-      if (uploadError) throw uploadError;
+      submitLabel.textContent = 'Uploading screenshot…';
+      const path = `${currentSession.user.id}/${Date.now()}-${safeName(screenshot.name)}`;
+      const { error: uploadError } = await sb.storage.from('lap-evidence').upload(path, screenshot.blob, { contentType: screenshot.type });
+      if (uploadError) throw new Error(`Upload failed: ${uploadError.message}. Check your connection and try again.`);
 
-      // 3. Call submit-lap with the real request shape.
-      const evidence = [{ type: 'screenshot', storage_reference: path, mime_type: screenshotFile.type, byte_size: screenshotFile.size }];
+      submitLabel.textContent = 'Submitting…';
+      const evidence = [{ type: 'screenshot', storage_reference: path, mime_type: screenshot.type, byte_size: screenshot.size }];
       if (videoUrl) evidence.push({ type: 'video_link', storage_reference: videoUrl });
-
       const res = await fetch(SUBMIT_LAP_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-          apikey: SUPABASE_ANON_KEY,
-        },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}`, apikey: SUPABASE_ANON_KEY },
         body: JSON.stringify({
           track_id: 'gellhorn-international-raceway',
           vehicle_id: vehicleId,
@@ -299,17 +519,31 @@ const PLATFORMS = [
           evidence,
         }),
       });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error ?? `submit-lap returned ${res.status}`);
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body.error ?? `The server answered ${res.status}. Please try again.`);
 
+      const vehicleName = form.vehicle_id.selectedOptions[0]?.textContent ?? '';
+      document.getElementById('success-text').textContent =
+        `${lapInput.value} in the ${vehicleName}. ` +
+        (body.publication_status === 'provisional' || body.publication_status === 'official'
+          ? 'It is on the leaderboard now (provisional).'
+          : 'A moderator checks it before it appears on the leaderboard.') +
+        (videoUrl ? ' Your video will be reviewed for Video verified.' : '');
+      document.getElementById('to-account').setAttribute('href', `${import.meta.env.BASE_URL}account/`);
+      form.hidden = true;
       successEl.hidden = false;
-      successEl.textContent = `Submitted. Status: ${body.publication_status} / ${body.verification_tier}.`;
-      form.reset();
+      successEl.scrollIntoView({ block: 'start', behavior: 'smooth' });
     } catch (err) {
-      errorsEl.hidden = false;
-      errorsEl.innerHTML = `<strong>Submission failed:</strong> ${err instanceof Error ? err.message : String(err)}`;
+      showErrors([`<strong>Not submitted:</strong> ${err instanceof Error ? err.message : String(err)}`]);
     } finally {
       submitBtn.disabled = false;
+      submitLabel.textContent = 'Submit Lap';
     }
+  });
+
+  document.getElementById('submit-another').addEventListener('click', () => {
+    form.reset(); clearScreenshot(); clearErrors();
+    successEl.hidden = true; form.hidden = false;
+    form.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
 </script>
