@@ -1,6 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
-import HubHero from '../../../components/HubHero.astro';
+import PageHero from '../../../components/PageHero.astro';
 import HubSubnav from '../../../components/HubSubnav.astro';
 import '../../../styles/hub.css';
 import { sampleCrews, crewCardHtml, focusLabels, platformLabels } from '../../../data/hub';
@@ -13,7 +13,7 @@ const initialHtml = sampleCrews.map(crewCardHtml).join('');
   section="hub"
   noindex={true /* until real crews/events replace the sample data (RS-0022) */}
 >
-  <HubHero eyebrow="The Hub" title="Crews" lede="Racing crews, leagues and car meet communities from across the GTA VI scene. Find a crew that races the way you do." />
+  <PageHero image="hub" eyebrow="The Hub" title="Crews" lede="Racing crews, leagues and car meet communities from across the GTA VI scene. Find a crew that races the way you do." />
 
   <HubSubnav active="crews" />
 

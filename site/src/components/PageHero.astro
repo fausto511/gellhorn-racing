@@ -1,0 +1,55 @@
+---
+// Shared image header for section pages (The Hub, Time Attack subpages).
+// Rule (Fausto, 2026-09-25): on every page the header image has the same
+// height, the section subnav sits directly below it, and the text block is
+// always eyebrow + title + short lede in the same sizes. Height, veil and
+// type are kept in sync, literally, with the Garage and Gellhorn heroes
+// (.hero-grid min-height 21rem / 35rem below 860px).
+// Images: <name>-640/1080/1672.webp + <name>-1672.jpg under /images/.
+interface Props {
+  image: 'hub' | 'gellhorn';
+  eyebrow: string;
+  title: string;
+  lede: string;
+}
+const { image, eyebrow, title, lede } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const images = {
+  // Visual/Cars/carmeet1.png (chosen by Fausto, 2026-09-25), 1672x940
+  hub: { path: `${base}images/hub/hub-carmeet`, w: 1672, h: 940, pos: '60% 45%', posMobile: '58% 70%' },
+  // same image as the Gellhorn track page hero
+  gellhorn: { path: `${base}images/gellhorn-raceway`, w: 1672, h: 941, pos: '50% 50%', posMobile: '50% 50%' },
+};
+const img = images[image];
+---
+<section class="hero">
+  <picture>
+    <source type="image/webp" srcset={`${img.path}-640.webp 640w, ${img.path}-1080.webp 1080w, ${img.path}-1672.webp 1672w`} sizes="100vw" />
+    <img src={`${img.path}-1672.jpg`} alt="" width={img.w} height={img.h} loading="eager" fetchpriority="high" style={`--pos:${img.pos};--pos-m:${img.posMobile}`} />
+  </picture>
+  <div class="hero-veil" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">{eyebrow}</p>
+      <h1 class="display hero-title">{title}</h1>
+      <p class="hero-lede">{lede}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { position: relative; overflow: hidden; }
+  .hero picture, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* Crop per image (see `images` above). Car meet: faces of the group on
+     the left + both wrapped cars stay in view; sky/tarmac get cut. */
+  .hero img { object-position: var(--pos); }
+  .hero-veil { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(20,20,26,.97) 15%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.85)); }
+  .hero-grid { position: relative; display: grid; grid-template-columns: 1fr; /* no right-hand aside on hub pages */ align-items: center; gap: 2rem; min-height: 21rem; padding-block: 2rem; }
+  .hero-copy { max-width: 46rem; align-self: start; }
+  .hero-title { font-size: 2.5rem; margin: .5rem 0 .8rem; }
+  .hero-lede { color: var(--gh-muted); font-size: 1rem; margin: 0; max-width: 56ch; }
+  @media (max-width: 860px) {
+    .hero-grid { min-height: 35rem; padding-block: 2.5rem; }
+    .hero img { object-position: var(--pos-m); }
+  }
+</style>

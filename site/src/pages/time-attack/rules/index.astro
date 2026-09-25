@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
 import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 const base = import.meta.env.BASE_URL;
 
@@ -15,14 +16,8 @@ const submitSteps = [
   description="How lap submissions are verified for Gellhorn Time Attack: screenshot entry vs. video verification, what counts as a valid lap, and how your evidence is handled."
   section="time-attack"
 >
+  <PageHero image="gellhorn" eyebrow="Gellhorn Standard — Draft" title="Rules & Verification" lede="The Standard stays in draft until we've tested it against real Gellhorn gameplay after launch, then locks in with a short provisional window. Nothing below is a final GTA VI ruling yet." />
   <TimeAttackSubnav active="rules" />
-  <section class="page-head">
-    <div class="wrap">
-      <p class="eyebrow">Gellhorn Standard — Draft</p>
-      <h1 class="display page-title">Rules &amp; Verification</h1>
-      <p class="page-lede">The Standard stays in draft until we've tested it against real Gellhorn gameplay after launch, then locks in with a short provisional window. Nothing below is a final GTA VI ruling yet.</p>
-    </div>
-  </section>
 
   <section class="tiers">
     <div class="wrap tiers-grid">
@@ -99,9 +94,6 @@ const submitSteps = [
 </Base>
 
 <style>
-  .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
-  .page-title { margin: .6rem 0 .9rem; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
-  .page-lede { max-width: 52ch; color: var(--gh-muted); font-size: 1.02rem; }
 
   .eyebrow-muted { color: var(--gh-muted); }
 

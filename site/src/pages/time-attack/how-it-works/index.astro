@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
 import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 const base = import.meta.env.BASE_URL;
 
@@ -35,14 +36,8 @@ const steps = [
   description="How to submit a lap for Gellhorn Time Attack: drive your lap, save proof, get it onto your phone, and submit it on the site."
   section="time-attack"
 >
+  <PageHero image="gellhorn" eyebrow="Gellhorn Time Attack" title="How It Works" lede="From a fast lap to a listed time in four steps. GTA 6 hasn't launched yet — this is the path the submission flow already supports, ready for release day." />
   <TimeAttackSubnav active="how-it-works" />
-  <section class="page-head">
-    <div class="wrap">
-      <p class="eyebrow">Gellhorn Time Attack</p>
-      <h1 class="display page-title">How It Works</h1>
-      <p class="page-lede">From a fast lap to a listed time in four steps. GTA 6 hasn't launched yet — this is the path the submission flow already supports, ready for release day.</p>
-    </div>
-  </section>
 
   <section class="steps">
     <div class="wrap steps-grid">
@@ -74,9 +69,6 @@ const steps = [
 </Base>
 
 <style>
-  .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
-  .page-title { margin: .6rem 0 .9rem; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
-  .page-lede { max-width: 46ch; color: var(--gh-muted); font-size: 1.02rem; }
 
   .steps { padding-bottom: var(--gh-gap-section); }
   .steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }

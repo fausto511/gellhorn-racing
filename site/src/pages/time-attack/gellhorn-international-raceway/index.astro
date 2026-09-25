@@ -103,7 +103,7 @@ const base = import.meta.env.BASE_URL;
   /* Fixed hero height -- kept in sync, literally, with garage/index.astro's .hero-grid so the header band is identical on every page that has one. Not viewport-fluid (clamp/vw) on purpose: it must not vary by content or screen width the way the old per-page clamp() values did. */
   .hero-grid { position: relative; display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: 2rem; min-height: 21rem; padding-block: 2rem; }
   .hero-title { font-size: 2.5rem; margin: .5rem 0 .8rem; }
-  .hero-lede { max-width: 38ch; color: var(--gh-muted); font-size: .92rem; margin: 0 0 1.1rem; }
+  .hero-lede { max-width: 38ch; color: var(--gh-muted); font-size: 1rem; margin: 0 0 1.1rem; } /* 1rem = same lede size as every other page hero (PageHero, Garage) */
   .hero-copy { align-self: start; }
   .hero-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
   .hero-actions .btn { gap: .5rem; }
