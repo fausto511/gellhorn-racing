@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import ModeratorNav from '../../components/ModeratorNav.astro';
 ---
 <Base
   title="Moderator — Gellhorn Time Attack"
@@ -8,6 +9,7 @@ import Base from '../../layouts/Base.astro';
   noindex
 >
   <section class="wrap mod-wrap">
+    <ModeratorNav active="laps" />
     <p class="eyebrow">Time Attack Operations</p>
     <h1 class="display mod-title">Lap Review</h1>
     <p class="mod-lede">Private evidence and moderation actions. No bulk approval for record-capable runs. Every action is logged.</p>
