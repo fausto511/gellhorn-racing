@@ -1,5 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
+import HubHero from '../../../components/HubHero.astro';
 import HubSubnav from '../../../components/HubSubnav.astro';
 import '../../../styles/hub.css';
 import { sampleEvents, eventRowHtml, eventTypeLabels, platformLabels, monthLabel } from '../../../data/hub';
@@ -20,13 +21,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   section="hub"
   noindex={true /* until real crews/events replace the sample data (RS-0022) */}
 >
-  <section class="hub-head">
-    <div class="wrap">
-      <p class="eyebrow">The Hub</p>
-      <h1 class="display hub-title">Event Calendar</h1>
-      <p class="hub-lede">Races, league rounds, time attack sessions, car meets and cruises from the GTA VI racing community. All times are shown in your local time zone.</p>
-    </div>
-  </section>
+  <HubHero eyebrow="The Hub" title="Event Calendar" lede="Races, league rounds, time attack sessions, car meets and cruises from the GTA VI racing community. All times are shown in your local time zone." />
 
   <HubSubnav active="events" />
 
