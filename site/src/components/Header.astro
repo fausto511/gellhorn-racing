@@ -40,6 +40,8 @@ const globalLinks = [
                cosmetic -- the moderator pages and the database (RLS) do
                their own access check. -->
           <a href={`${base}moderator/`} role="menuitem" id="account-menu-moderator" hidden>Moderator</a>
+          <!-- Crew leaders / event hosts without moderator rights (RS-0023). -->
+          <a href={`${base}moderator/hub/`} role="menuitem" id="account-menu-hub" hidden>Hub Content</a>
           <button type="button" id="account-menu-logout" role="menuitem">Logout</button>
         </div>
       </div>
@@ -146,6 +148,7 @@ const globalLinks = [
     const avatarFallbackEl = document.getElementById('account-avatar-fallback');
     const logoutBtnEl = document.getElementById('account-menu-logout');
     const moderatorLinkEl = document.getElementById('account-menu-moderator');
+    const hubLinkEl = document.getElementById('account-menu-hub');
     const discordBtnEl = document.getElementById('discord-btn');
     const discordBtnLabelEl = document.getElementById('discord-btn-label');
 
@@ -164,11 +167,16 @@ const globalLinks = [
     // row coming back means "this user is a moderator".
     let moderatorCheckedFor = null;
     async function updateModeratorLink(session) {
-      if (!session) { moderatorLinkEl.hidden = true; moderatorCheckedFor = null; return; }
+      if (!session) { moderatorLinkEl.hidden = true; hubLinkEl.hidden = true; moderatorCheckedFor = null; return; }
       if (moderatorCheckedFor === session.user.id) return;
       moderatorCheckedFor = session.user.id;
       const { data, error } = await supabase.from('moderators').select('driver_id').limit(1);
-      moderatorLinkEl.hidden = !(!error && Array.isArray(data) && data.length > 0);
+      const isMod = !error && Array.isArray(data) && data.length > 0;
+      moderatorLinkEl.hidden = !isMod;
+      if (isMod) { hubLinkEl.hidden = true; return; }
+      // hub_roles: non-moderators only see their own rows (RLS).
+      const roles = await supabase.from('hub_roles').select('role_id').limit(1);
+      hubLinkEl.hidden = !(!roles.error && Array.isArray(roles.data) && roles.data.length > 0);
     }
 
     function renderAuthState(session) {
