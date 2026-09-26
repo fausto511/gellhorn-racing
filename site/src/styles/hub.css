@@ -54,6 +54,7 @@
 /* "Hosted by <PSN> <TAG>" behind the title (DEC-0077) */
 .ev-by { display: inline-flex; align-items: center; gap: .35rem; color: var(--gh-muted); font-size: .76rem; font-weight: 600; }
 .ev-by strong { color: var(--gh-text); font-weight: 700; }
+.ev-psn { padding: .05rem .3rem; border-radius: 3px; border: 1px solid var(--gh-line); font-size: .58rem; font-weight: 800; letter-spacing: .05em; color: var(--gh-muted); }
 .ev-by .crew-tag { vertical-align: 0; }
 .ev-facts { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin: 0; color: var(--gh-muted); font-size: .8rem; }
 .ev-facts > span { display: inline-flex; align-items: center; gap: .35rem; }

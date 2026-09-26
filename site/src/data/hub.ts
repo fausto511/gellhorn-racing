@@ -44,6 +44,8 @@ export interface HubEvent {
   location: string | null;
   description: string | null;
   join_url: string | null;
+  /** fallback for "Hosted by" when no PSN name is given: creator's site display name */
+  host_account?: string | null;
   /** Discord invite where the event takes place (RS-0034) */
   discord_url?: string | null;
   status: 'scheduled' | 'cancelled';
@@ -226,8 +228,13 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
   const join = safeUrl(e.join_url);
   const cancelled = e.status === 'cancelled';
   // "Hosted by <PSN name> <crew tag>" right after the title (DEC-0077)
-  const hostedBy = e.host_name || e.host
-    ? `<span class="ev-by">Hosted by ${e.host_name ? `<strong>${esc(e.host_name)}</strong>` : ''}${e.host ? ` ${crewTagHtml(e.host.tag, e.host.color, 'sm')}` : ''}</span>`
+  // PSN name (marked "PSN" so players know whom to add on PlayStation), else
+  // the creator's site display name as fallback (DEC-0077).
+  const who = e.host_name
+    ? `<strong title="PSN name — add the host on PlayStation">${esc(e.host_name)}</strong><span class="ev-psn">PSN</span>`
+    : e.host_account ? `<strong>${esc(e.host_account)}</strong>` : '';
+  const hostedBy = who || e.host
+    ? `<span class="ev-by">Hosted by ${who}${e.host ? ` ${crewTagHtml(e.host.tag, e.host.color, 'sm')}` : ''}</span>`
     : '';
   return `<article class="ev-row${cancelled ? ' is-cancelled' : ''}" data-type="${esc(e.event_type)}" data-platforms="${esc(e.platforms.join('|'))}" data-start="${esc(e.starts_at)}">
   <div class="ev-date" data-ts="${esc(e.starts_at)}">
