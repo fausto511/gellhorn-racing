@@ -108,10 +108,10 @@ const base = import.meta.env.BASE_URL;
                   ? <label class="check"><input type="checkbox" name="platforms" value={p.id} checked data-locked /> {p.label}</label>
                   : <label class="check is-soon" title={comingLater(p)}><input type="checkbox" disabled /> {p.label} <span class="soon">Coming later</span></label>)}
               </fieldset>
-              <label>Host crew <small>shown with the event</small><select name="host_crew_id"><option value="">— none —</option></select></label>
-              <label>Host name <small>if not a listed crew</small><input type="text" name="host_name" maxlength="60" /></label>
+              <label>Host PSN name * <small>shown as “Hosted by …”</small><input type="text" name="host_name" maxlength="16" required placeholder="e.g. Racer_01" autocomplete="off" /></label>
+              <label>Host crew <small>optional — its tag is shown next to your name</small><select name="host_crew_id"><option value="">— none —</option></select></label>
               <label>Location<input type="text" name="location" maxlength="80" placeholder="e.g. Vice Beach" /></label>
-              <label class="span2">Discord invite <small>where participants meet you — if empty, your host crew's Discord is used</small><input type="url" name="discord_url" placeholder="https://discord.gg/…" /></label>
+              <label class="span2">Discord invite <small>required unless your host crew has a Discord — where participants meet you</small><input type="url" name="discord_url" placeholder="https://discord.gg/…" /></label>
               <label>Details link <small>optional, any https page</small><input type="url" name="join_url" placeholder="https://…" /></label>
               <label>Max. participants <small>optional, e.g. lobby size</small><input type="number" name="max_participants" min="2" max="500" step="1" /></label>
               <label class="span2">Description <small><span id="event-desc-count">0</span>/600</small><textarea name="description" maxlength="600" rows="3"></textarea></label>
@@ -604,10 +604,14 @@ const base = import.meta.env.BASE_URL;
     if (e.ends_at && e.starts_at && new Date(e.ends_at) <= new Date(e.starts_at)) bad.push('ends_at');
     if (e.join_url && !/^https:\/\//.test(e.join_url)) bad.push('join_url');
     if (e.discord_url && !/^https:\/\/(discord\.gg|discord\.com\/invite)\/[A-Za-z0-9-]+$/.test(e.discord_url)) bad.push('discord_url');
+    // DEC-0077: PSN name required; at least one Discord (own invite and/or host crew with a Discord)
+    if (!/^[A-Za-z][A-Za-z0-9_-]{2,15}$/.test(e.host_name ?? '')) bad.push('host_name');
+    const hostCrew = crews.find((c) => c.crew_id === e.host_crew_id);
+    if (!e.discord_url && !hostCrew?.discord_url) bad.push('discord_required');
     if (e.max_participants != null && (!Number.isInteger(e.max_participants) || e.max_participants < 2 || e.max_participants > 500)) bad.push('max_participants');
     return bad;
   }
-  const eventFieldHelp: Record<string, string> = { title: 'title (3–80 characters)', starts_at: 'start date/time', ends_at: 'end must be after start', join_url: 'details link must start with https://', discord_url: 'Discord invite (https://discord.gg/… or https://discord.com/invite/…)', max_participants: 'max. participants between 2 and 500' };
+  const eventFieldHelp: Record<string, string> = { title: 'title (3–80 characters)', starts_at: 'start date/time', ends_at: 'end must be after start', join_url: 'details link must start with https://', discord_url: 'Discord invite (https://discord.gg/… or https://discord.com/invite/…)', host_name: 'host PSN name (3–16 characters, starts with a letter; letters, digits, - and _)', discord_required: 'a Discord invite — or pick a host crew that has one', max_participants: 'max. participants between 2 and 500' };
 
   function renderEventPreview() {
     const e = eventFromForm();

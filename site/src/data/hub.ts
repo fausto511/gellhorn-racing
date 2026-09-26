@@ -96,12 +96,12 @@ const sampleHost = (slug: string) => {
 // are moved to upcoming dates (sampleEventsUpcoming) so they stay joinable
 // after release until real events replace them.
 export const sampleEvents: HubEvent[] = [
-  { event_id: 's1', title: 'Launch Night Grid Run', event_type: 'race', starts_at: '2026-11-21T19:00:00Z', ends_at: '2026-11-21T21:00:00Z', platforms: ['ps5'], host_name: null, location: 'Vice City Downtown', description: 'Open lobby, clean racing, stock vehicles. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-apex-syndicate'), max_participants: 16, sample_going: ['Racer_01', 'KerbHopper', 'ViceRacer', 'LateApex', 'SpeedyNomad', 'Nightshift', 'TurnInEarly'] },
-  { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet'), sample_going: ['GhostPedal', 'Nightshift', 'NeonDrift', 'CoastalRun'] },
-  { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['ps5'], host_name: null, location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club'), max_participants: 12, sample_going: ['SpeedyNomad', 'ApexLimit', 'LateApex', 'Racer_01', 'Hillclimb', 'SolarFlare', 'MintyTires', 'ShadowLine', 'TarmacTom'] },
-  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: null, description: 'Qualifying plus two races. Registration required. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
-  { event_id: 's5', title: 'Everglades Sunday Cruise', event_type: 'cruise', starts_at: '2026-11-29T16:00:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: 'Leonida Keys', description: 'Slow convoy, no racing. Sample event.', join_url: null, status: 'cancelled', host: sampleHost('sample-nordring-crew'), sample_going: ['LatteBrake', 'Hillclimb'] },
-  { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'Open community event', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null, sample_going: ['SolarFlare', 'NeonDrift', 'VelvetClutch'] },
+  { event_id: 's1', title: 'Launch Night Grid Run', event_type: 'race', starts_at: '2026-11-21T19:00:00Z', ends_at: '2026-11-21T21:00:00Z', platforms: ['ps5'], host_name: 'Racer_01', location: 'Vice City Downtown', description: 'Open lobby, clean racing, stock vehicles. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-apex-syndicate'), max_participants: 16, sample_going: ['Racer_01', 'KerbHopper', 'ViceRacer', 'LateApex', 'SpeedyNomad', 'Nightshift', 'TurnInEarly'] },
+  { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'GhostPedal', location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet'), sample_going: ['GhostPedal', 'Nightshift', 'NeonDrift', 'CoastalRun'] },
+  { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['ps5'], host_name: 'SpeedyNomad', location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club'), max_participants: 12, sample_going: ['SpeedyNomad', 'ApexLimit', 'LateApex', 'Racer_01', 'Hillclimb', 'SolarFlare', 'MintyTires', 'ShadowLine', 'TarmacTom'] },
+  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'TurnInEarly', location: null, description: 'Qualifying plus two races. Registration required. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
+  { event_id: 's5', title: 'Everglades Sunday Cruise', event_type: 'cruise', starts_at: '2026-11-29T16:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'LatteBrake', location: 'Leonida Keys', description: 'Slow convoy, no racing. Sample event.', join_url: null, status: 'cancelled', host: sampleHost('sample-nordring-crew'), sample_going: ['LatteBrake', 'Hillclimb'] },
+  { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'VelvetClutch', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null, sample_going: ['SolarFlare', 'NeonDrift', 'VelvetClutch'] },
 ];
 
 /** Sample events moved into the near future (first one 3 days from today,
@@ -139,12 +139,13 @@ export function eventDiscord(e: HubEvent): string | null {
   return u && DISCORD_RX.test(u) ? u : null;
 }
 const iconDiscord = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>';
-/** Discord button for an event row; sample events get a disabled demo button. */
+/** Discord link in the event's info line (DEC-0077); sample events get a
+ *  greyed-out demo link. */
 export function eventDiscordHtml(e: HubEvent, sample = false): string {
   if (e.status === 'cancelled') return '';
-  if (sample) return `<span class="btn ev-discord is-disabled" title="Sample event — no real Discord server">${iconDiscord}Host Discord</span>`;
+  if (sample) return `<span class="ev-dc is-disabled" title="Sample event — no real Discord server">${iconDiscord}Join the host's Discord</span>`;
   const u = eventDiscord(e);
-  return u ? `<a class="btn ev-discord" href="${esc(u)}" target="_blank" rel="noopener" title="Join the host's Discord server">${iconDiscord}Host Discord</a>` : '';
+  return u ? `<a class="ev-dc" href="${esc(u)}" target="_blank" rel="noopener" title="Opens the host's Discord server">${iconDiscord}Join the host's Discord</a>` : '';
 }
 
 /** Social-Club-style crew tag: white plate, black tag, thin crew-colour bar at the bottom. */
@@ -224,9 +225,10 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
   const endTime = end ? end.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' }) : '';
   const join = safeUrl(e.join_url);
   const cancelled = e.status === 'cancelled';
-  const host = e.host
-    ? `<span class="ev-host">${crewTagHtml(e.host.tag, e.host.color, 'sm')}<span>${esc(e.host.name)}</span></span>`
-    : e.host_name ? `<span class="ev-host"><span>${esc(e.host_name)}</span></span>` : '';
+  // "Hosted by <PSN name> <crew tag>" right after the title (DEC-0077)
+  const hostedBy = e.host_name || e.host
+    ? `<span class="ev-by">Hosted by ${e.host_name ? `<strong>${esc(e.host_name)}</strong>` : ''}${e.host ? ` ${crewTagHtml(e.host.tag, e.host.color, 'sm')}` : ''}</span>`
+    : '';
   return `<article class="ev-row${cancelled ? ' is-cancelled' : ''}" data-type="${esc(e.event_type)}" data-platforms="${esc(e.platforms.join('|'))}" data-start="${esc(e.starts_at)}">
   <div class="ev-date" data-ts="${esc(e.starts_at)}">
     <span class="ev-wd" data-fmt="wd">${esc(wd)}</span>
@@ -240,17 +242,16 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
       ${opts.sample ? '<span class="chip chip-sample" title="Example event — it will not take place">Sample</span>' : ''}
       ${platformChips(e.platforms)}
     </div>
-    <h3 class="ev-title">${esc(e.title)}</h3>
+    <h3 class="ev-title"><span class="ev-title-text">${esc(e.title)}</span>${hostedBy}</h3>
     <p class="ev-facts">
       <span class="ev-time">${iconClock}<span data-ts="${esc(e.starts_at)}" data-fmt="time">${esc(time)}</span>${end ? `–<span data-ts="${esc(e.ends_at)}" data-fmt="time">${esc(endTime)}</span>` : ''} <span class="ev-tz" data-tz="${esc(e.starts_at)}">UTC</span></span>
       ${e.location ? `<span class="ev-loc">${iconPin}${esc(e.location)}</span>` : ''}
+      ${eventDiscordHtml(e, Boolean(opts.sample))}
+      ${join && !cancelled ? `<a class="ev-info" href="${esc(join)}" target="_blank" rel="noopener">Event info ↗</a>` : ''}
     </p>
     ${e.description ? `<p class="ev-desc">${esc(e.description)}</p>` : ''}
   </div>
   <div class="ev-side">
-    ${host}
-    ${eventDiscordHtml(e, Boolean(opts.sample))}
-    ${join && !cancelled ? `<a class="btn btn-white-tonal ev-join" href="${esc(join)}" target="_blank" rel="noopener">Details</a>` : ''}
     ${opts.rsvp ? `<div class="ev-rsvp" data-rsvp="${esc(e.event_id)}"></div>` : ''}
   </div>
 </article>`;

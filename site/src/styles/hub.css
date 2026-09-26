@@ -42,20 +42,24 @@
 .ev-month { margin: 2rem 0 .75rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1rem; letter-spacing: .02em; color: var(--gh-muted); }
 .ev-month:first-child { margin-top: 0; }
 .ev-list { display: flex; flex-direction: column; gap: .75rem; }
-.ev-row { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 1.1rem; align-items: center; padding: 1rem 1.1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); }
+.ev-row { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: 1.1rem; align-items: stretch; padding: 1rem 1.1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); }
 .ev-row.is-cancelled { opacity: .55; }
 .ev-row.is-cancelled .ev-title { text-decoration: line-through; }
-.ev-date { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .5rem 0; border-radius: var(--gh-radius); background: rgba(252,250,247,.05); border: 1px solid var(--gh-line); line-height: 1; }
+.ev-date { align-self: center; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .5rem 0; border-radius: var(--gh-radius); background: rgba(252,250,247,.05); border: 1px solid var(--gh-line); line-height: 1; }
 .ev-wd, .ev-mon { font-size: .62rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--gh-muted); }
 .ev-day { margin: .2rem 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.7rem; color: var(--gh-text); }
-.ev-main { min-width: 0; }
+.ev-main { min-width: 0; align-self: center; }
 .ev-top { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .45rem; }
-.ev-title { margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; }
+.ev-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .7rem; margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; }
+/* "Hosted by <PSN> <TAG>" behind the title (DEC-0077) */
+.ev-by { display: inline-flex; align-items: center; gap: .35rem; color: var(--gh-muted); font-size: .76rem; font-weight: 600; }
+.ev-by strong { color: var(--gh-text); font-weight: 700; }
+.ev-by .crew-tag { vertical-align: 0; }
 .ev-facts { display: flex; flex-wrap: wrap; gap: .35rem 1.1rem; margin: 0; color: var(--gh-muted); font-size: .8rem; }
 .ev-facts > span { display: inline-flex; align-items: center; gap: .35rem; }
 .ev-tz { color: var(--gh-muted); font-size: .7rem; }
 .ev-desc { margin: .45rem 0 0; color: var(--gh-muted); font-size: .82rem; line-height: 1.5; }
-.ev-side { display: flex; flex-direction: column; align-items: flex-end; gap: .6rem; }
+.ev-side { display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: .6rem; min-width: 8rem; }
 .ev-host { display: inline-flex; align-items: center; gap: .45rem; color: var(--gh-text); font-size: .78rem; font-weight: 600; white-space: nowrap; }
 .ev-join { padding: .5rem .9rem; font-size: .8rem; }
 
@@ -113,7 +117,8 @@
 .tab-count { display: inline-block; margin-left: .35rem; padding: 0 .4rem; border-radius: 999px; background: var(--gh-yellow); color: #111; font-style: normal; font-size: .7rem; }
 
 /* ---- Event sign-ups (RS-0027) ---------------------------------------------- */
-.ev-rsvp { display: flex; flex-direction: column; align-items: flex-end; gap: .4rem; font-size: .8rem; }
+/* count top-right, button bottom-right (DEC-0077) */
+.ev-rsvp { flex: 1; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: .5rem; font-size: .8rem; }
 .ev-going summary { cursor: pointer; color: var(--gh-text); font-weight: 700; list-style: none; }
 .ev-going summary::-webkit-details-marker { display: none; }
 .ev-going summary::after { content: ' ▾'; color: var(--gh-muted); font-size: .7rem; }
@@ -135,9 +140,14 @@
 .chip-sample { color: var(--gh-red); background: rgba(237,37,61,.14); border-color: transparent; }
 .ev-rsvp-note { max-width: 16rem; color: var(--gh-muted); font-size: .72rem; text-align: right; }
 
-/* Host Discord button on events (RS-0034) */
+/* Host Discord link in the info line (RS-0034, DEC-0077) */
+.ev-facts > .ev-dc, .ev-facts > .ev-info { display: inline-flex; align-items: center; gap: .35rem; font-weight: 700; text-decoration: none; }
+.ev-dc { color: #8b95ff; }
+a.ev-dc:hover { color: #aab2ff; text-decoration: underline; text-underline-offset: 3px; }
+.ev-dc.is-disabled { opacity: .5; cursor: not-allowed; }
+.ev-info { color: var(--gh-muted); }
+.ev-info:hover { color: var(--gh-text); }
+/* account list keeps a compact Discord button */
 .ev-discord { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .9rem; font-size: .8rem; background: #5865f2; border: 1px solid #5865f2; color: #fff; text-decoration: none; }
 .ev-discord:hover { background: #4752c4; border-color: #4752c4; }
-.ev-discord.is-disabled { opacity: .45; cursor: not-allowed; }
-.ev-discord.is-disabled:hover { background: #5865f2; }
 .ev-rsvp-msg a { color: inherit; text-decoration: underline; }
