@@ -1,12 +1,14 @@
 ---
-// My Account > Settings (RS-0032): display name, hide name, sign-out.
-// Moved out of the Time Attack tab so it is easy to find.
+// My Account > Settings (RS-0032, RS-0037): display name, sign-out and
+// "Delete my account" (DEC-0079). There is no "hide my name" option any
+// more: changing the display name is the way to stay unrecognised; deleting
+// the account removes all personal data, reviewed times stay as "Deleted driver".
 import Base from '../../../layouts/Base.astro';
 import AccountSubnav from '../../../components/AccountSubnav.astro';
 ---
 <Base
   title="Settings — My Account"
-  description="Your account settings: display name, name visibility and sign-out."
+  description="Your account settings: display name, sign-out and account deletion."
   section="account"
   noindex
 >
@@ -25,13 +27,9 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
         <label class="field">
           <span>Display Name</span>
           <input id="display-name-input" type="text" maxlength="40" />
+          <small class="field-hint">Shown on leaderboards, crews and events. Don't want to be recognised? Just pick a different name.</small>
         </label>
         <button type="button" id="save-name-btn" class="btn btn-outline">Save</button>
-
-        <label class="field field-checkbox">
-          <input id="hide-name-input" type="checkbox" />
-          <span>Hide my name publicly (your lap times stay visible, just without your name attached)<em class="hide-locked" id="hide-locked" hidden></em></span>
-        </label>
 
         <div class="field account-status">
           <span>Account</span>
@@ -43,6 +41,29 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
 
         <p id="settings-msg" class="settings-msg" hidden></p>
       </div>
+
+      <details class="panel danger" id="danger">
+        <summary>Delete my account</summary>
+        <div class="danger-body">
+          <p class="danger-alt"><strong>Just want to stay unrecognised?</strong> You don't need to delete anything — <a href="#display-name-input" id="to-name">change your display name</a> and your times show under the new name.</p>
+          <p>Deleting your account is permanent:</p>
+          <ul>
+            <li><strong>Deleted:</strong> your display name, Discord link and login, your garage, crew membership and roles, events you host, event sign-ups, reports you sent, screenshots and video links.</li>
+            <li><strong>Stays:</strong> your reviewed lap times remain on the leaderboard as <em>Deleted driver</em> — without your name.</li>
+            <li>Submissions still waiting for review are deleted.</li>
+            <li><strong>No way back:</strong> signing in with Discord again creates a new, empty account. Your old times and data cannot be restored.</li>
+          </ul>
+          <label class="danger-confirm"><span>Type <code>DELETE</code> to confirm</span>
+            <input type="text" id="del-confirm" autocomplete="off" spellcheck="false" />
+          </label>
+          <button type="button" class="btn btn-danger" id="del-btn" disabled>Delete my account</button>
+          <p class="settings-msg" id="del-msg" hidden></p>
+        </div>
+      </details>
+    </div>
+
+    <div class="panel deleted-box" id="deleted-box" hidden>
+      <p><strong>Your account has been deleted.</strong> Your personal data is gone; reviewed lap times stay on the leaderboard as “Deleted driver”.</p>
     </div>
   </section>
 </Base>
@@ -55,58 +76,67 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
   .acc-auth p { margin: 0; font-size: .88rem; }
   .settings-card { padding: var(--gh-pad-card); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.5rem; }
   .settings-card .field { display: flex; flex-direction: column; gap: .4rem; flex: 1 1 16rem; }
-  .settings-card .field span { font-weight: 700; font-size: .85rem; }
+  .settings-card .field > span { font-weight: 700; font-size: .85rem; }
+  .field-hint { color: var(--gh-muted); font-size: .76rem; }
   .account-status { padding-left: 1.75rem; border-left: 1px solid var(--gh-line); }
   .account-status-row { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem; padding-block: .05rem; }
   .account-status-row p { margin: 0; font-size: .88rem; }
-  .settings-card input[type="text"] { padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font-size: .9rem; font-family: var(--gh-font-body); }
-  .settings-card input:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  .settings-card input[type="text"], .danger input { padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font-size: .9rem; font-family: var(--gh-font-body); }
+  .settings-card input:focus, .danger input:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
   .settings-msg { flex-basis: 100%; margin: 0; font-size: .82rem; }
   .settings-msg.is-error { color: var(--gh-red); }
   .settings-msg.is-ok { color: #4fd1c5; }
-  .field-checkbox { flex-direction: row !important; align-items: flex-start; gap: .6rem; }
-  .field-checkbox input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--gh-yellow); }
-  .hide-locked { display: block; margin-top: .35rem; color: var(--gh-yellow); font-style: normal; font-size: .8rem; }
-  .hide-locked[hidden] { display: none; }
-  .field-checkbox input:disabled + span { color: rgba(160,160,198,.6); }
-  .field-checkbox span { font-size: .85rem; color: var(--gh-muted); font-weight: 400 !important; }
+  .danger { margin-top: 2rem; padding: 0; border-color: rgba(237,37,61,.35); }
+  .danger summary { cursor: pointer; padding: 1rem 1.2rem; color: var(--gh-red); font-weight: 800; font-size: .88rem; list-style: none; }
+  .danger summary::-webkit-details-marker { display: none; }
+  .danger summary::after { content: ' ▾'; font-size: .75rem; }
+  .danger[open] summary::after { content: ' ▴'; }
+  .danger-body { padding: 0 1.2rem 1.2rem; font-size: .86rem; color: var(--gh-muted); max-width: 46rem; }
+  .danger-body p { margin: 0 0 .7rem; }
+  .danger-body ul { margin: 0 0 1rem; padding-left: 1.1rem; display: grid; gap: .35rem; }
+  .danger-body strong { color: var(--gh-text); }
+  .danger-alt { padding: .75rem .9rem; border-radius: var(--gh-radius); background: rgba(255,215,76,.07); border: 1px solid rgba(255,215,76,.3); }
+  .danger-alt a { color: var(--gh-text); }
+  .danger-confirm { display: flex; flex-direction: column; gap: .4rem; margin-bottom: .9rem; max-width: 18rem; color: var(--gh-text); font-weight: 700; font-size: .82rem; }
+  .danger-confirm code { color: var(--gh-red); }
+  .btn-danger { background: var(--gh-red); border: 1px solid var(--gh-red); color: #fff; }
+  .btn-danger:disabled { opacity: .4; cursor: not-allowed; }
+  .deleted-box { padding: 1rem 1.2rem; }
+  .deleted-box p { margin: 0; font-size: .9rem; }
   @media (max-width: 700px) { .account-status { padding-left: 0; border-left: none; } }
 </style>
 
 <script>
-  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  import { backendConfigured, getSupabase, SUPABASE_URL } from '../../../scripts/supabase-client';
   const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
   const nameEl = $<HTMLInputElement>('display-name-input');
-  const hideEl = $<HTMLInputElement>('hide-name-input');
   const msgEl = $('settings-msg');
+  const confirmEl = $<HTMLInputElement>('del-confirm');
+  const delBtn = $<HTMLButtonElement>('del-btn');
+  const delMsg = $('del-msg');
+  const DELETE_URL = SUPABASE_URL ? `${SUPABASE_URL}/functions/v1/delete-account` : '';
   let session: any = null;
+  let deleting = false;
 
-  function msg(text: string, ok: boolean) {
-    msgEl.hidden = false;
-    msgEl.className = `settings-msg ${ok ? 'is-ok' : 'is-error'}`;
-    msgEl.textContent = text;
+  function msg(el: HTMLElement, text: string, ok: boolean) {
+    el.hidden = false;
+    el.className = `settings-msg ${ok ? 'is-ok' : 'is-error'}`;
+    el.textContent = text;
   }
 
   async function init(s: any) {
+    if (deleting) return;
     session = s;
     $('acc-auth').hidden = Boolean(s);
     $('acc-body').hidden = !s;
     if (!s) return;
     $('auth-user-label').textContent = s.user.user_metadata?.full_name ?? s.user.user_metadata?.name ?? s.user.email ?? s.user.id;
-    const { data } = await getSupabase().from('drivers').select('driver_id, display_name, hide_display_name').eq('auth_user_id', s.user.id).maybeSingle();
-    if (data) { nameEl.value = data.display_name ?? ''; hideEl.checked = Boolean(data.hide_display_name); }
-    // DEC-0078: crew leaders and event hosts cannot hide their name
-    if (data?.driver_id) {
-      const { data: roles } = await getSupabase().from('hub_roles').select('role').eq('driver_id', data.driver_id).in('role', ['crew_leader', 'event_host']);
-      const list = [...new Set(((roles ?? []) as { role: string }[]).map((r) => (r.role === 'crew_leader' ? 'Crew Leader' : 'Event Host')))];
-      if (list.length) {
-        hideEl.checked = false;
-        hideEl.disabled = true;
-        $('hide-locked').hidden = false;
-        $('hide-locked').textContent = `Not available as ${list.join(' and ')} — crew leaders and event hosts are always shown with their name.`;
-      }
-    }
+    const { data } = await getSupabase().from('drivers').select('display_name').eq('auth_user_id', s.user.id).maybeSingle();
+    if (data) nameEl.value = data.display_name ?? '';
   }
+
+  confirmEl.addEventListener('input', () => { delBtn.disabled = confirmEl.value.trim() !== 'DELETE'; });
+  $('to-name').addEventListener('click', (e) => { e.preventDefault(); ($('danger') as HTMLDetailsElement).open = false; nameEl.focus(); nameEl.select(); });
 
   if (backendConfigured) {
     const sb = getSupabase();
@@ -119,16 +149,35 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
     $('save-name-btn').addEventListener('click', async () => {
       if (!session) return;
       const name = nameEl.value.trim();
-      if (!name) return msg('Display name cannot be empty.', false);
+      if (!name) return msg(msgEl, 'Display name cannot be empty.', false);
       const { error } = await sb.from('drivers').update({ display_name: name }).eq('auth_user_id', session.user.id);
-      msg(error ? 'Could not save — please try again.' : 'Saved.', !error);
+      msg(msgEl, error ? 'Could not save — please try again.' : 'Saved.', !error);
     });
-    hideEl.addEventListener('change', async () => {
-      if (!session) return;
-      const want = hideEl.checked;
-      const { error } = await sb.from('drivers').update({ hide_display_name: want }).eq('auth_user_id', session.user.id);
-      if (error) { hideEl.checked = !want; return msg(/role_requires_name/.test(error.message) ? 'Crew leaders and event hosts are always shown with their name.' : 'Could not save — please try again.', false); }
-      msg(want ? 'Saved. Your name is now hidden on public pages — your times stay visible.' : 'Saved. Your name is shown on public pages again.', true);
+
+    delBtn.addEventListener('click', async () => {
+      if (!session || confirmEl.value.trim() !== 'DELETE' || !DELETE_URL) return;
+      delBtn.disabled = true;
+      delBtn.textContent = 'Deleting…';
+      try {
+        const { data: fresh } = await sb.auth.getSession();
+        const token = fresh?.session?.access_token ?? session.access_token;
+        const res = await fetch(DELETE_URL, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ confirm: 'DELETE' }),
+        });
+        const body = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(body?.error || `HTTP ${res.status}`);
+        deleting = true;
+        await sb.auth.signOut().catch(() => {});
+        $('acc-body').hidden = true;
+        $('acc-auth').hidden = true;
+        $('deleted-box').hidden = false;
+      } catch (err) {
+        delBtn.disabled = false;
+        delBtn.textContent = 'Delete my account';
+        msg(delMsg, `Could not delete the account: ${(err as Error).message}`, false);
+      }
     });
   }
 </script>

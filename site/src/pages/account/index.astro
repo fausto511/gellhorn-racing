@@ -292,7 +292,7 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
 
     const { data: driverRow, error: driverErr } = await sb
       .from('drivers')
-      .select('driver_id, display_name, hide_display_name')
+      .select('driver_id, display_name')
       .eq('auth_user_id', currentSession.user.id)
       .maybeSingle();
 
@@ -368,10 +368,9 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
         const isPublished = run.publication_status === 'provisional' || run.publication_status === 'official';
         let rankCell = '—';
         if (isPublished) {
-          // Group by driver_id, not the `driver` display label -- once a
-          // driver can hide their name (hide_display_name), more than one
-          // person can show as "Anonymous Driver" and grouping by the
-          // label would merge different people into one bucket.
+          // Group by driver_id, not the `driver` display label -- several
+          // deleted accounts all show as "Deleted driver" (DEC-0079), and
+          // display names are not unique either.
           const { data: lbRows } = await sb
             .from('public_leaderboard')
             .select('driver_id, lap_time_ms')
