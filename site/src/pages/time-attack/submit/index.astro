@@ -335,7 +335,11 @@ const byMake = new Map<string, typeof vehicleOptions>();
 
   // ------------------------------------------------------------ screenshot
   const MAX_BYTES = 8 * 1024 * 1024;           // bucket limit (lap-evidence)
-  const MAX_EDGE = 2560;                         // plenty for reading names/times
+  // Storage (DEC-0070): every screenshot is stored at most 1920 px on the
+  // long edge as JPEG, target <= 600 KB -- names and times stay readable,
+  // the 1 GB free storage lasts ~3,000 submissions per 60-day window.
+  const MAX_EDGE = 1920;
+  const TARGET_BYTES = 600 * 1024;
   const dropzone = document.getElementById('dropzone');
   const fileInput = document.getElementById('screenshot');
   const previewEl = document.getElementById('dz-preview');
@@ -359,17 +363,16 @@ const byMake = new Map<string, typeof vehicleOptions>();
     });
   }
 
-  // Keeps the original when it is already a normal, small-enough image;
-  // otherwise re-encodes to JPEG (too big, 4K PNG, HEIC on iPhone, ...).
+  // Keeps the original only when it is already a small JPEG/WebP within
+  // 1920 px; everything else (PNG, 4K, HEIC, big JPEGs) is re-encoded.
   async function prepareImage(file) {
     if (!file.type.startsWith('image/') && !/\.(heic|heif)$/i.test(file.name)) throw new Error('That file is not an image. Please choose your screenshot (JPG or PNG).');
     let loaded;
     try { loaded = await loadImage(file); }
     catch { throw new Error('This image format cannot be read by your browser. Please use a JPG or PNG screenshot.'); }
     const { img, url } = loaded;
-    const common = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
-    const big = Math.max(img.naturalWidth, img.naturalHeight) > MAX_EDGE;
-    if (common && file.size <= MAX_BYTES && !(big && file.size > 3 * 1024 * 1024)) {
+    const small = ['image/jpeg', 'image/webp'].includes(file.type) && file.size <= TARGET_BYTES && Math.max(img.naturalWidth, img.naturalHeight) <= MAX_EDGE;
+    if (small) {
       return { blob: file, name: file.name, type: file.type, size: file.size, url, converted: false };
     }
     const scale = Math.min(1, MAX_EDGE / Math.max(img.naturalWidth, img.naturalHeight));
@@ -378,9 +381,9 @@ const byMake = new Map<string, typeof vehicleOptions>();
     canvas.height = Math.round(img.naturalHeight * scale);
     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
     let blob = null;
-    for (const q of [0.92, 0.85, 0.75]) {
+    for (const q of [0.86, 0.8, 0.72, 0.64]) {
       blob = await new Promise((r) => canvas.toBlob(r, 'image/jpeg', q));
-      if (blob && blob.size <= MAX_BYTES) break;
+      if (blob && blob.size <= TARGET_BYTES) break;
     }
     if (!blob || blob.size > MAX_BYTES) throw new Error('Could not shrink this image below 8 MB. Please use a normal screenshot.');
     const base = (file.name || 'screenshot').replace(/\.[^.]+$/, '');
