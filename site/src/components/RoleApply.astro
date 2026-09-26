@@ -11,17 +11,21 @@ const { focus } = Astro.props;
   <div id="ra-form-wrap" class="panel ra-panel" hidden>
     {focus === 'crew_leader' ? (
       <Fragment>
-        <h2 class="ra-title">Lead a crew?</h2>
-        <p class="ra-lede">Crew leaders list their crew in The Hub, keep the crew card up to date and accept join requests. A moderator reviews your request.</p>
+        <p class="ra-kicker">You are not a crew leader yet</p>
+        <h2 class="ra-title">Apply to become a Crew Leader</h2>
+        <p class="ra-lede">Crew leaders list their crew in The Hub, keep the crew card up to date and accept join requests. Send an application — once a moderator approves it, your crew goes live and you can manage it here.</p>
       </Fragment>
     ) : (
       <Fragment>
-        <h2 class="ra-title">Host events?</h2>
-        <p class="ra-lede">Event hosts publish their own races, meets and cruises in the Hub calendar. A moderator reviews your request.</p>
+        <p class="ra-kicker">You are not an event host yet</p>
+        <h2 class="ra-title">Apply to become an Event Host</h2>
+        <p class="ra-lede">Event hosts publish their own races, meets and cruises in the Hub calendar. Send an application — once a moderator approves it, you can create your events here.</p>
       </Fragment>
     )}
 
-    <form id="ra-form" novalidate>
+    <button type="button" class="btn btn-outline" id="ra-open">{focus === 'crew_leader' ? 'Start crew leader application' : 'Start event host application'}</button>
+    <form id="ra-form" novalidate hidden>
+      <p class="ra-form-note">Application — nothing is published until a moderator approves it.</p>
       <div class="ra-choices" hidden>
         <label class="ra-choice" id="ra-choice-leader"><input type="checkbox" name="want_leader" /> <span><strong>Crew Leader</strong><small>list and manage your crew</small></span></label>
         <label class="ra-choice" id="ra-choice-host"><input type="checkbox" name="want_host" /> <span><strong>Event Host</strong><small>publish your own events</small></span></label>
@@ -53,7 +57,7 @@ const { focus } = Astro.props;
       </fieldset>
 
       <div class="ra-actions">
-        <button type="submit" class="btn btn-primary" id="ra-submit">{focus === 'crew_leader' ? 'Apply as crew leader' : 'Apply as event host'}</button>
+        <button type="submit" class="btn btn-primary" id="ra-submit">Send application</button>
         <p class="ra-msg" id="ra-msg" aria-live="polite"></p>
       </div>
     </form>
@@ -65,6 +69,8 @@ const { focus } = Astro.props;
   .ra { margin-top: 2.5rem; }
   .ra-panel { padding: var(--gh-pad-card); }
   .ra-title { margin: 0 0 .4rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
+  .ra-kicker { margin: 0 0 .35rem; color: var(--gh-yellow); font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+  .ra-form-note { margin: 0 0 1rem; padding: .6rem .8rem; border-left: 3px solid var(--gh-yellow); background: rgba(255,215,76,.06); font-size: .84rem; color: var(--gh-text); }
   .ra-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; max-width: 44rem; }
   .ra-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-bottom: 1.2rem; }
   @media (max-width: 560px) { .ra-choices { grid-template-columns: 1fr; } }
@@ -116,6 +122,8 @@ const { focus } = Astro.props;
   const form = document.getElementById('ra-form') as HTMLFormElement;
   const f = form.elements as any;
   const formWrap = document.getElementById('ra-form-wrap')!;
+  const openBtn = document.getElementById('ra-open') as HTMLButtonElement;
+  openBtn.addEventListener('click', () => { form.hidden = false; openBtn.hidden = true; (form.querySelector('input[type=text], textarea') as HTMLElement | null)?.focus(); });
   const reqBox = document.getElementById('ra-requests')!;
   const msgEl = document.getElementById('ra-msg')!;
   const leaderBox = document.getElementById('ra-leader')!;
@@ -149,9 +157,9 @@ const { focus } = Astro.props;
     reqBox.innerHTML = shown.map((r) => {
       const crew = r.role === 'crew_leader' ? (r.crew ? `${crewTagHtml(r.crew.tag, r.crew.color, 'sm')} ${esc(r.crew.name)}` : `${crewTagHtml(r.new_crew_tag, r.new_crew_color, 'sm')} ${esc(r.new_crew_name)}`) : '';
       if (r.status === 'pending') {
-        return `<div class="ra-req is-pending"><div class="ra-req-main"><strong>${roleLabel(r.role)} request pending</strong> ${crew}<small>Sent ${esc(new Date(r.requested_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))} — a moderator will review it.</small></div><button type="button" class="btn btn-outline" data-withdraw="${esc(r.request_id)}">Withdraw</button></div>`;
+        return `<div class="ra-req is-pending"><div class="ra-req-main"><strong>${roleLabel(r.role)} application pending</strong> ${crew}<small>Sent ${esc(new Date(r.requested_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))} — a moderator will review it.</small></div><button type="button" class="btn btn-outline" data-withdraw="${esc(r.request_id)}">Withdraw</button></div>`;
       }
-      return `<div class="ra-req"><div class="ra-req-main"><strong>${roleLabel(r.role)} request not approved</strong> ${crew}<small>${r.decision_note ? 'Moderator note: ' + esc(r.decision_note) : 'You can send a new request below.'}</small></div></div>`;
+      return `<div class="ra-req"><div class="ra-req-main"><strong>${roleLabel(r.role)} application not approved</strong> ${crew}<small>${r.decision_note ? 'Moderator note: ' + esc(r.decision_note) : 'You can send a new application below.'}</small></div></div>`;
     }).join('');
   }
 
@@ -211,11 +219,11 @@ const { focus } = Astro.props;
     const { error } = await getSupabase().from('hub_role_requests').insert(rows);
     btn.disabled = false;
     if (error) { msg(/duplicate|one_open/i.test(error.message) ? 'You already have an open request for this role.' : 'Could not send the request — please try again.', true); return; }
-    form.reset(); syncGroups();
+    form.reset(); syncGroups(); form.hidden = true; openBtn.hidden = false;
     await load();
     msg('');
     reqBox.hidden = false; root.hidden = false;
-    reqBox.insertAdjacentHTML('afterbegin', '<p class="ra-msg is-ok">Request sent — a moderator will review it. You’ll see the result here.</p>');
+    reqBox.insertAdjacentHTML('afterbegin', '<p class="ra-msg is-ok">Application sent — a moderator will review it. You’ll see the result here.</p>');
   });
 
   async function load() {
