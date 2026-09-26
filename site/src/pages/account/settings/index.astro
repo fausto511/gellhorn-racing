@@ -46,12 +46,11 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
         <summary>Delete my account</summary>
         <div class="danger-body">
           <p class="danger-alt"><strong>Just want to stay unrecognised?</strong> You don't need to delete anything — <a href="#display-name-input" id="to-name">change your display name</a> and your times show under the new name.</p>
+          <p class="danger-alt"><strong>Just taking a break?</strong> You can also remove Gellhorn Time Attack from the authorized apps in your Discord settings. Your account stays exactly as it is, and you can pick up where you left off whenever you sign in again.</p>
           <p>Deleting your account is permanent:</p>
           <ul>
-            <li><strong>Deleted:</strong> your display name, Discord link and login, your garage, crew membership and roles, events you host, event sign-ups, reports you sent, screenshots and video links.</li>
-            <li><strong>Stays:</strong> your reviewed lap times remain on the leaderboard as <em>Deleted driver</em> — without your name.</li>
-            <li>Submissions still waiting for review are deleted.</li>
-            <li><strong>No way back:</strong> signing in with Discord again creates a new, empty account. Your old times and data cannot be restored.</li>
+            <li><strong>Your data is deleted:</strong> your display name and login, your garage, crew membership and roles, events you host, event sign-ups, submissions still in review, screenshots and video links. Nothing stays linked to you.</li>
+            <li><strong>No way back:</strong> signing in with Discord again creates a new, empty account. Nothing from your old account can be restored.</li>
           </ul>
           <label class="danger-confirm"><span>Type <code>DELETE</code> to confirm</span>
             <input type="text" id="del-confirm" autocomplete="off" spellcheck="false" />
@@ -86,10 +85,11 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
   .settings-msg { flex-basis: 100%; margin: 0; font-size: .82rem; }
   .settings-msg.is-error { color: var(--gh-red); }
   .settings-msg.is-ok { color: #4fd1c5; }
-  .danger { margin-top: 2rem; padding: 0; border-color: rgba(237,37,61,.35); }
-  .danger summary { cursor: pointer; padding: 1rem 1.2rem; color: var(--gh-red); font-weight: 800; font-size: .88rem; list-style: none; }
+  .danger { margin-top: 2rem; padding: 0; }
+  .danger summary { cursor: pointer; padding: 1rem 1.2rem; color: var(--gh-text); font-weight: 700; font-size: .88rem; list-style: none; }
+  .danger summary:hover { color: var(--gh-text); }
   .danger summary::-webkit-details-marker { display: none; }
-  .danger summary::after { content: ' ▾'; font-size: .75rem; }
+  .danger summary::after { content: ' ▾'; font-size: .75rem; color: var(--gh-muted); }
   .danger[open] summary::after { content: ' ▴'; }
   .danger-body { padding: 0 1.2rem 1.2rem; font-size: .86rem; color: var(--gh-muted); max-width: 46rem; }
   .danger-body p { margin: 0 0 .7rem; }
@@ -97,6 +97,7 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
   .danger-body strong { color: var(--gh-text); }
   .danger-alt { padding: .75rem .9rem; border-radius: var(--gh-radius); background: rgba(255,215,76,.07); border: 1px solid rgba(255,215,76,.3); }
   .danger-alt a { color: var(--gh-text); }
+  .danger-alt + .danger-alt { margin-top: -.2rem; }
   .danger-confirm { display: flex; flex-direction: column; gap: .4rem; margin-bottom: .9rem; max-width: 18rem; color: var(--gh-text); font-weight: 700; font-size: .82rem; }
   .danger-confirm code { color: var(--gh-red); }
   .btn-danger { background: var(--gh-red); border: 1px solid var(--gh-red); color: #fff; }
