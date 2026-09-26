@@ -92,7 +92,7 @@ const base = import.meta.env.BASE_URL;
           <form id="event-form" class="hc-form" hidden novalidate>
             <div class="form-head">
               <h2 id="event-form-title">New event</h2>
-              <label class="pub-toggle"><input type="checkbox" name="is_published" /> <span>Published</span></label>
+              <label class="pub-toggle" data-mod-only><input type="checkbox" name="is_published" checked /> <span>Published</span></label>
             </div>
             <div class="grid">
               <label class="span2">Title *<input type="text" name="title" maxlength="80" required /></label>
@@ -103,13 +103,15 @@ const base = import.meta.env.BASE_URL;
               <fieldset class="span2"><legend>Platforms</legend>
                 {Object.entries(platformLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="platforms" value={k} /> {v}</label>)}
               </fieldset>
-              <label>Host crew<select name="host_crew_id"><option value="">— none —</option></select></label>
+              <label>Host crew <small>shown with the event</small><select name="host_crew_id"><option value="">— none —</option></select></label>
               <label>Host name <small>if not a listed crew</small><input type="text" name="host_name" maxlength="60" /></label>
               <label>Location<input type="text" name="location" maxlength="80" placeholder="e.g. Vice Beach" /></label>
               <label>Details link<input type="url" name="join_url" placeholder="https://…" /></label>
+              <label>Max. participants <small>optional, e.g. lobby size</small><input type="number" name="max_participants" min="2" max="500" step="1" /></label>
               <label class="span2">Description <small><span id="event-desc-count">0</span>/600</small><textarea name="description" maxlength="600" rows="3"></textarea></label>
             </div>
             <div class="preview-wrap"><p class="preview-label">Preview</p><div class="ev-list preview" id="event-preview"></div></div>
+            <div class="rsvp-panel" id="rsvp-panel" hidden><p class="preview-label">Sign-ups</p><div id="rsvp-list"></div></div>
             <div class="form-actions">
               <button type="submit" class="btn btn-primary">Save</button>
               <button type="button" class="btn btn-outline-red" data-action="delete" hidden>Delete</button>
@@ -142,8 +144,8 @@ const base = import.meta.env.BASE_URL;
               </label>
               <div class="span2 driver-results" id="role-driver-results"></div>
               <fieldset class="span2"><legend>Role</legend>
-                <label class="check"><input type="radio" name="role" value="crew_leader" checked /> Crew Leader — manages one crew and its events</label>
-                <label class="check"><input type="radio" name="role" value="event_host" /> Event Host — creates own events</label>
+                <label class="check"><input type="radio" name="role" value="crew_leader" checked /> Crew Leader — manages one crew (card, join requests, members)</label>
+                <label class="check"><input type="radio" name="role" value="event_host" /> Event Host — publishes own events in the calendar</label>
               </fieldset>
               <label class="span2" id="role-crew-wrap">Crew<select id="role-crew"></select></label>
             </div>
@@ -230,6 +232,9 @@ const base = import.meta.env.BASE_URL;
   .preview-wrap { margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px solid var(--gh-line); }
   .preview-label { margin: 0 0 .7rem; color: var(--gh-muted); font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
   .crew-grid.preview { grid-template-columns: minmax(0, 24rem); }
+  .rsvp-panel { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px solid var(--gh-line); }
+  :global(.rsvp-count) { margin: 0 0 .3rem; font-size: .9rem; }
+  :global(.rsvp-names) { margin: 0; color: var(--gh-muted); font-size: .84rem; }
   .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; margin-top: 1.4rem; }
   .form-msg { margin: 0; font-size: .84rem; }
   .form-msg.is-error { color: var(--gh-red); }
@@ -281,12 +286,14 @@ const base = import.meta.env.BASE_URL;
   let isMod = false;
   let isHost = false;
   let leaderCrewIds = new Set<string>();
+  let memberCrewIds = new Set<string>(); // crews I'm an active member of (host crew choice)
   let roles: any[] = [];
   let members: any[] = []; // crew_membership_overview rows visible to me
   const pendingFor = (crewId: string) => members.filter((m) => m.crew_id === crewId && m.status === 'pending').length;
   const visibleCrews = () => (isMod ? crews : crews.filter((c) => leaderCrewIds.has(c.crew_id)));
-  const visibleEvents = () => (isMod ? events : events.filter((e) => e.created_by === ownDriverId || (e.host_crew_id && leaderCrewIds.has(e.host_crew_id))));
-  const canCreateEvent = () => isMod || isHost || leaderCrewIds.size > 0;
+  // RS-0027: events belong to event hosts only (crew leaders need the host role too).
+  const visibleEvents = () => (isMod ? events : events.filter((e) => e.created_by === ownDriverId));
+  const canCreateEvent = () => isMod || isHost;
   function applyRoleVisibility() {
     document.querySelectorAll<HTMLElement>('[data-mod-only]').forEach((el) => (el.hidden = !isMod));
     document.querySelectorAll<HTMLElement>('[data-leader-only]').forEach((el) => (el.hidden = isMod));
@@ -377,10 +384,9 @@ const base = import.meta.env.BASE_URL;
   function fillHostSelect() {
     const sel = eventForm.elements.namedItem('host_crew_id') as HTMLSelectElement;
     const current = sel.value;
-    // Hosts may run events without a crew; crew leaders only for their own
-    // crew(s); moderators for anyone.
-    const allowNone = isMod || isHost;
-    sel.innerHTML = (allowNone ? '<option value="">— none —</option>' : '') + visibleCrews().map((c) => `<option value="${esc(c.crew_id)}">${esc(c.tag)} · ${esc(c.name)}${c.is_published ? '' : ' (draft)'}</option>`).join('');
+    // Moderators: any crew. Hosts: no crew, or a crew they are an active member of.
+    const options = isMod ? crews : crews.filter((c) => memberCrewIds.has(c.crew_id));
+    sel.innerHTML = '<option value="">— none —</option>' + options.map((c) => `<option value="${esc(c.crew_id)}">${esc(c.tag)} · ${esc(c.name)}${c.is_published ? '' : ' (draft)'}</option>`).join('');
     sel.value = current;
   }
 
@@ -565,7 +571,8 @@ const base = import.meta.env.BASE_URL;
       location: blank(fd.get('location')),
       description: blank(fd.get('description')),
       join_url: blank(fd.get('join_url')),
-      is_published: fd.get('is_published') === 'on',
+      max_participants: fd.get('max_participants') ? Number(fd.get('max_participants')) : null,
+      is_published: isMod ? fd.get('is_published') === 'on' : true,
     };
   }
   function validateEvent(e: ReturnType<typeof eventFromForm>): string[] {
@@ -574,9 +581,10 @@ const base = import.meta.env.BASE_URL;
     if (!e.starts_at) bad.push('starts_at');
     if (e.ends_at && e.starts_at && new Date(e.ends_at) <= new Date(e.starts_at)) bad.push('ends_at');
     if (e.join_url && !/^https:\/\//.test(e.join_url)) bad.push('join_url');
+    if (e.max_participants != null && (!Number.isInteger(e.max_participants) || e.max_participants < 2 || e.max_participants > 500)) bad.push('max_participants');
     return bad;
   }
-  const eventFieldHelp: Record<string, string> = { title: 'title (3–80 characters)', starts_at: 'start date/time', ends_at: 'end must be after start', join_url: 'details link must start with https://' };
+  const eventFieldHelp: Record<string, string> = { title: 'title (3–80 characters)', starts_at: 'start date/time', ends_at: 'end must be after start', join_url: 'details link must start with https://', max_participants: 'max. participants between 2 and 500' };
 
   function renderEventPreview() {
     const e = eventFromForm();
@@ -603,7 +611,8 @@ const base = import.meta.env.BASE_URL;
     ef.starts_at.value = toLocalInput(r.starts_at ?? null);
     ef.ends_at.value = toLocalInput(r.ends_at ?? null);
     ef.host_crew_id.value = r.host_crew_id ?? '';
-    ef.is_published.checked = Boolean(r.is_published);
+    ef.is_published.checked = row ? Boolean(r.is_published) : true;
+    ef.max_participants.value = r.max_participants ?? '';
     eventForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value)));
     resetDelete(eventForm, Boolean(row));
     markInvalid(eventForm, []);
@@ -611,6 +620,22 @@ const base = import.meta.env.BASE_URL;
     showForm('events');
     renderEventPreview();
     renderList();
+    loadRsvps();
+  }
+
+  // Sign-ups for the open event (same data the public page shows).
+  async function loadRsvps() {
+    const panel = $('rsvp-panel');
+    panel.hidden = !selectedId;
+    if (!selectedId) return;
+    const { data } = await getSupabase().from('public_event_rsvps').select('display_name, created_at').eq('event_id', selectedId).order('created_at');
+    const rows = (data ?? []) as any[];
+    const named = rows.filter((r) => r.display_name).map((r) => esc(r.display_name));
+    const anon = rows.length - named.length;
+    const max = Number(ef.max_participants.value) || null;
+    $('rsvp-list').innerHTML = rows.length
+      ? `<p class="rsvp-count"><strong>${rows.length}${max ? ' / ' + max : ''}</strong> going</p><p class="rsvp-names">${named.join(', ')}${anon ? `${named.length ? ' + ' : ''}${anon} anonymous` : ''}</p>`
+      : `<p class="rsvp-count">No sign-ups yet${max ? ` (max. ${max})` : ''}.</p>`;
   }
   eventForm.addEventListener('input', renderEventPreview);
   eventForm.addEventListener('change', renderEventPreview);
@@ -629,7 +654,7 @@ const base = import.meta.env.BASE_URL;
     if (error) { msg(eventForm, dbError(error), true); return; }
     await loadAll();
     openEvent(data);
-    msg(eventForm, e.is_published ? 'Saved — live on the site.' : 'Saved as draft (not visible publicly).');
+    msg(eventForm, data.is_published ? 'Saved — live in the calendar.' : 'Saved — hidden (moderator setting).');
   });
 
   // ------------------------------------------------------------ delete (two-step, no browser dialog)
@@ -862,7 +887,11 @@ const base = import.meta.env.BASE_URL;
     const myRoles = (roleRes.data ?? []) as any[];
     isHost = myRoles.some((r) => r.role === 'event_host');
     leaderCrewIds = new Set(myRoles.filter((r) => r.role === 'crew_leader').map((r) => r.crew_id));
-    const hasAccess = MODE === 'moderator' ? realMod : MODE === 'crew' ? leaderCrewIds.size > 0 : isHost || leaderCrewIds.size > 0;
+    if (ownDriverId) {
+      const mem = await sb.from('crew_memberships').select('crew_id').eq('driver_id', ownDriverId).eq('status', 'active');
+      memberCrewIds = new Set(((mem.data ?? []) as any[]).map((m) => m.crew_id));
+    }
+    const hasAccess = MODE === 'moderator' ? realMod : MODE === 'crew' ? leaderCrewIds.size > 0 : isHost;
     if (notModEl) notModEl.hidden = hasAccess;
     contentEl.hidden = !hasAccess;
     rootEl.dispatchEvent(new CustomEvent('hc-access', { bubbles: true, detail: { hasAccess, isHost, leaderCrewIds: [...leaderCrewIds], isMod: realMod, ownDriverId } }));

@@ -46,6 +46,7 @@ export interface HubEvent {
   join_url: string | null;
   status: 'scheduled' | 'cancelled';
   host?: { name: string; tag: string; color: string } | null;
+  max_participants?: number | null;
 }
 
 export const platformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbox Series X|S' };
@@ -174,7 +175,8 @@ export function crewCardHtml(c: HubCrew, roster?: string[]): string {
 // Build time renders these in UTC (the server has no idea where the visitor
 // is); the runtime script re-formats every [data-ts] element into the
 // visitor's local time zone right after load.
-export function eventRowHtml(e: HubEvent): string {
+/** opts.rsvp: live events get an empty sign-up slot the page script fills. */
+export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean } = {}): string {
   const start = new Date(e.starts_at);
   const end = e.ends_at ? new Date(e.ends_at) : null;
   const day = start.toLocaleDateString('en-GB', { day: '2-digit', timeZone: 'UTC' });
@@ -209,6 +211,7 @@ export function eventRowHtml(e: HubEvent): string {
   <div class="ev-side">
     ${host}
     ${join && !cancelled ? `<a class="btn btn-white-tonal ev-join" href="${esc(join)}" target="_blank" rel="noopener">Details</a>` : ''}
+    ${opts.rsvp ? `<div class="ev-rsvp" data-rsvp="${esc(e.event_id)}"></div>` : ''}
   </div>
 </article>`;
 }

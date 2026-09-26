@@ -31,9 +31,12 @@ const base = import.meta.env.BASE_URL;
         <a class="btn btn-primary" href={`${base}hub/events/`}>Find events</a>
       </div>
 
+      <h2 class="section-heading">Events I'm going to</h2>
+      <div id="my-rsvps" class="my-rsvps"></div>
+
       <div id="host-block" hidden>
         <h2 class="section-heading">My Events</h2>
-        <p class="section-lede">Create and edit the events you run. Published events show up in the calendar right away.</p>
+        <p class="section-lede">Create and edit the events you run. Every event is public and shows up in the calendar right away — you can see who signed up in each event.</p>
         <HubEditor mode="events" />
       </div>
 
@@ -53,16 +56,44 @@ const base = import.meta.env.BASE_URL;
   .ev-cta strong { color: var(--gh-text); }
   .section-heading { margin: 2.5rem 0 .3rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
   .section-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; }
+  :global(.rsvp-row) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .75rem 1rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface); margin-bottom: .5rem; font-size: .88rem; }
+  :global(.rsvp-row .rsvp-when) { color: var(--gh-muted); min-width: 10rem; }
+  :global(.rsvp-row .rsvp-title) { flex: 1 1 12rem; font-weight: 700; }
+  :global(.rsvp-row .btn) { font-size: .76rem; padding: .4rem .8rem; }
+  :global(.rsvp-empty) { margin: 0; color: var(--gh-muted); font-size: .88rem; }
 </style>
 
 <script>
   import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  import { esc } from '../../../data/hub';
   document.addEventListener('hc-access', (e: any) => {
     document.getElementById('host-block')!.hidden = !e.detail.hasAccess;
   });
-  function init(session: any) {
+  const base = import.meta.env.BASE_URL;
+  const listEl = document.getElementById('my-rsvps')!;
+  let me: string | null = null;
+  async function loadMine() {
+    const since = new Date(Date.now() - 6 * 3600e3).toISOString();
+    const { data } = await getSupabase().from('hub_event_rsvps').select('event_id, event:hub_events(title, starts_at, status)').eq('driver_id', me!);
+    const rows = ((data ?? []) as any[]).filter((r) => r.event && r.event.starts_at >= since).sort((a, b) => a.event.starts_at.localeCompare(b.event.starts_at));
+    listEl.innerHTML = rows.length
+      ? rows.map((r) => `<div class="rsvp-row"><span class="rsvp-when">${esc(new Date(r.event.starts_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }))}</span><span class="rsvp-title">${r.event.status === 'cancelled' ? '✕ ' : ''}${esc(r.event.title)}</span><button type="button" class="btn btn-outline" data-cancel="${esc(r.event_id)}">Cancel</button></div>`).join('')
+      : `<p class="rsvp-empty">You haven't signed up for any upcoming event. <a href="${base}hub/events/">Browse the calendar</a>.</p>`;
+  }
+  listEl.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cancel]');
+    if (!b || !me) return;
+    b.disabled = true;
+    await getSupabase().from('hub_event_rsvps').delete().eq('event_id', b.dataset.cancel!).eq('driver_id', me);
+    await loadMine();
+  });
+  async function init(session: any) {
     document.getElementById('acc-auth')!.hidden = Boolean(session);
     document.getElementById('acc-body')!.hidden = !session;
+    if (!session) return;
+    const own = await getSupabase().from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    if (me) await loadMine();
   }
   if (backendConfigured) {
     const sb = getSupabase();

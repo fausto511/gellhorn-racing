@@ -43,13 +43,14 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
     <div id="ev-root" set:html={initialHtml} />
     <p class="hub-empty" id="ev-empty" hidden>No events match these filters.</p>
 
-    <p class="hub-note">Hosting an event? Event listings are curated for now — send the details on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Self-service event hosting for verified hosts is planned.</p>
+    <p class="hub-note">Hosting events? Apply as event host in <a href={`${import.meta.env.BASE_URL}account/events/`}>My Account</a> — once a moderator approves it, you publish your events here yourself. Every event is open to everyone.</p>
   </section>
 </Base>
 
 <script>
-  import { sampleEvents, eventRowHtml, localizeTimes, monthLabel, type HubEvent } from '../../../data/hub';
+  import { sampleEvents, eventRowHtml, localizeTimes, monthLabel, esc, type HubEvent } from '../../../data/hub';
   import { fetchLiveEvents } from '../../../scripts/hub-live';
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
 
   const root = document.getElementById('ev-root')!;
   const emptyEl = document.getElementById('ev-empty')!;
@@ -58,6 +59,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   const platSel = document.getElementById('ev-platform') as HTMLSelectElement;
 
   let events: HubEvent[] = sampleEvents;
+  let live = false;
 
   function render() {
     const t = typeSel.value;
@@ -72,22 +74,118 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
         html += `<h2 class="ev-month">${label}</h2><div class="ev-list">`;
         current = label;
       }
-      html += eventRowHtml(e);
+      html += eventRowHtml(e, { rsvp: live });
     }
     if (current) html += '</div>';
     root.innerHTML = html;
     localizeTimes(root);
     emptyEl.hidden = list.length > 0;
+    if (live) renderRsvps();
   }
+
+  // ---------------------------------------------------------------------
+  // Sign-ups (RS-0027): everyone sees who is going; logged-in drivers can
+  // join / cancel. Rules (capacity, cancelled, past) are enforced by the DB.
+  // ---------------------------------------------------------------------
+  let going = new Map<string, (string | null)[]>(); // event_id -> names (null = anonymous)
+  let mine = new Set<string>();
+  let session: any = null;
+  let me: string | null = null;
+  let note: { id: string; text: string; err?: boolean } | null = null;
+
+  const isOver = (e: HubEvent) => new Date(e.ends_at ?? new Date(new Date(e.starts_at).getTime() + 3 * 3600e3).toISOString()) < new Date();
+
+  function renderRsvps() {
+    root.querySelectorAll<HTMLElement>('[data-rsvp]').forEach((slot) => {
+      const id = slot.dataset.rsvp!;
+      const e = events.find((x) => x.event_id === id);
+      if (!e) return;
+      const names = going.get(id) ?? [];
+      const n = names.length;
+      const max = e.max_participants ?? null;
+      const full = max != null && n >= max;
+      const closed = e.status === 'cancelled' || isOver(e);
+      const named = names.filter(Boolean).map((x) => esc(x));
+      const anon = n - named.length;
+      const countTxt = `${n}${max ? ' / ' + max : ''} going`;
+      const list = n ? `<details class="ev-going"><summary>${countTxt}</summary><p>${named.join(', ')}${anon ? `${named.length ? ' + ' : ''}${anon} anonymous` : ''}</p></details>` : `<span class="ev-going-none">${max ? `0 / ${max} going` : 'Be the first to join'}</span>`;
+      let action = '';
+      if (mine.has(id)) action = `<button type="button" class="btn btn-sm ev-rsvp-btn is-in" data-leave="${esc(id)}" title="Click to cancel">Going ✓</button>`;
+      else if (closed) action = '';
+      else if (full) action = '<span class="ev-full">Full</span>';
+      else action = `<button type="button" class="btn btn-sm btn-primary ev-rsvp-btn" data-join="${esc(id)}">I'm in</button>`;
+      const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}</span>` : '';
+      slot.innerHTML = `${list}${action}${msg}`;
+    });
+  }
+
+  async function loadRsvps() {
+    const sb = getSupabase();
+    const ids = events.map((e) => e.event_id);
+    if (!ids.length) return;
+    const [pub, own] = await Promise.all([
+      sb.from('public_event_rsvps').select('event_id, display_name, created_at').in('event_id', ids).order('created_at'),
+      me ? sb.from('hub_event_rsvps').select('event_id').eq('driver_id', me) : Promise.resolve({ data: [] as any[] }),
+    ]);
+    going = new Map();
+    for (const r of (pub.data ?? []) as any[]) {
+      if (!going.has(r.event_id)) going.set(r.event_id, []);
+      going.get(r.event_id)!.push(r.display_name);
+    }
+    mine = new Set(((own.data ?? []) as any[]).map((r) => r.event_id));
+    renderRsvps();
+  }
+
+  async function join(id: string) {
+    if (!session) {
+      const url = new URL(window.location.href); url.hash = ''; url.searchParams.set('rsvp', id);
+      getSupabase().auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: url.toString(), scopes: 'identify email guilds.join' } });
+      return;
+    }
+    if (!me) return;
+    const { error } = await getSupabase().from('hub_event_rsvps').insert({ event_id: id, driver_id: me });
+    note = error ? { id, text: 'Could not sign up — the event may be full or already over.', err: true } : { id, text: 'You\u2019re in!' };
+    await loadRsvps();
+  }
+  async function leave(id: string) {
+    if (!me) return;
+    const { error } = await getSupabase().from('hub_event_rsvps').delete().eq('event_id', id).eq('driver_id', me);
+    note = error ? { id, text: 'That did not work — please try again.', err: true } : { id, text: 'Cancelled.' };
+    await loadRsvps();
+  }
+  root.addEventListener('click', (ev) => {
+    const t = ev.target as HTMLElement;
+    const j = t.closest<HTMLButtonElement>('[data-join]');
+    const l = t.closest<HTMLButtonElement>('[data-leave]');
+    if (j) { j.disabled = true; join(j.dataset.join!); }
+    if (l) { l.disabled = true; leave(l.dataset.leave!); }
+  });
 
   typeSel.addEventListener('change', render);
   platSel.addEventListener('change', render);
   render();
 
-  fetchLiveEvents().then((live) => {
-    if (!live) return;
-    events = live;
+  fetchLiveEvents().then(async (data) => {
+    if (!data) return;
+    events = data;
+    live = true;
     flagEl.hidden = true;
     render();
+    if (!backendConfigured) return;
+    const sb = getSupabase();
+    session = (await sb.auth.getSession()).data?.session ?? null;
+    if (session) {
+      const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+      me = own.data?.driver_id ?? null;
+    }
+    await loadRsvps();
+    // Came back from the sign-in started by "I'm in"
+    const url = new URL(window.location.href);
+    const pending = url.searchParams.get('rsvp');
+    if (pending) {
+      url.searchParams.delete('rsvp');
+      history.replaceState(null, '', url.pathname + url.search + url.hash);
+      if (session && !mine.has(pending) && events.some((e) => e.event_id === pending)) join(pending);
+    }
   });
 </script>

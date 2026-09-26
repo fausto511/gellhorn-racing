@@ -111,3 +111,22 @@
 .mem-empty { color: var(--gh-muted); font-size: .82rem; margin: .3rem 0; }
 .li-pill.req { color: #111; background: var(--gh-yellow); border-color: var(--gh-yellow); }
 .tab-count { display: inline-block; margin-left: .35rem; padding: 0 .4rem; border-radius: 999px; background: var(--gh-yellow); color: #111; font-style: normal; font-size: .7rem; }
+
+/* ---- Event sign-ups (RS-0027) ---------------------------------------------- */
+.ev-rsvp { display: flex; flex-direction: column; align-items: flex-end; gap: .4rem; font-size: .8rem; }
+.ev-going summary { cursor: pointer; color: var(--gh-text); font-weight: 700; list-style: none; }
+.ev-going summary::-webkit-details-marker { display: none; }
+.ev-going summary::after { content: ' ▾'; color: var(--gh-muted); font-size: .7rem; }
+.ev-going[open] summary::after { content: ' ▴'; }
+.ev-going p { margin: .35rem 0 0; max-width: 16rem; color: var(--gh-muted); text-align: right; }
+.ev-going-none { color: var(--gh-muted); }
+.ev-rsvp-btn { padding: .45rem .9rem; font-size: .8rem; }
+.ev-rsvp-btn.is-in { background: rgba(79,209,197,.14); color: #4fd1c5; border: 1px solid rgba(79,209,197,.5); }
+.ev-rsvp-btn.is-in:hover { background: rgba(237,37,61,.12); color: var(--gh-red); border-color: var(--gh-red); }
+.ev-full { padding: .3rem .7rem; border-radius: 999px; border: 1px solid var(--gh-line); color: var(--gh-muted); font-weight: 800; text-transform: uppercase; font-size: .7rem; letter-spacing: .05em; }
+.ev-rsvp-msg { color: #4fd1c5; font-size: .76rem; }
+.ev-rsvp-msg.is-error { color: var(--gh-red); }
+@media (max-width: 760px) {
+  .ev-rsvp { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .ev-going p { text-align: left; }
+}
