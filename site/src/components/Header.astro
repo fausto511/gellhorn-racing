@@ -176,8 +176,13 @@ const globalLinks = [
       accountLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}account/`);
       // Moderators: open Crew Leader / Event Host requests (RS-0026).
       if (isMod) {
-        const { count } = await supabase.from('hub_role_requests').select('request_id', { count: 'exact', head: true }).eq('status', 'pending');
+        const [rq, rp] = await Promise.all([
+          supabase.from('hub_role_requests').select('request_id', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('run_reports').select('report_id', { count: 'exact', head: true }).eq('status', 'open'),
+        ]);
+        const count = (rq.count ?? 0) + (rp.count ?? 0);
         if (count) moderatorLinkEl.textContent = `Moderator (${count} new)`;
+        if (!rq.count && rp.count) moderatorLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}moderator/reports/`);
       }
       // Crew leaders: open join requests -> straight to My Account > Crew.
       const own = await supabase.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();

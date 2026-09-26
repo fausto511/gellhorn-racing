@@ -191,6 +191,7 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
   let currentSession = null;
   let queueRuns = [];
   let selectedRunId = null;
+  let deepLinkRunId = new URLSearchParams(window.location.search).get('run');
   let currentFilter = 'pending';
   let currentModeratorDriverId = null;
   let allVehicles = [];
@@ -401,6 +402,20 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
       selectedRunId = null;
       reviewPlaceholderEl.hidden = false;
       reviewBodyEl.hidden = true;
+    }
+    // Deep link from Moderator > Reports (RS-0029): ?run=<run_id>
+    const wanted = deepLinkRunId;
+    deepLinkRunId = null;
+    if (wanted) {
+      const target = queueRuns.find((r) => r.run_id === wanted);
+      if (target) {
+        const filter = target.review_status === 'accepted' ? 'accepted' : 'pending';
+        if (filter !== currentFilter) queueTabEls.find((t) => t.dataset.filter === filter)?.click();
+        selectRun(wanted);
+        return;
+      }
+      queueErrorEl.hidden = false;
+      queueErrorEl.textContent = 'The reported time is not in the review queue (it may have been rejected or invalidated already).';
     }
     if (!selectedRunId) {
       const firstVisible = filteredQueue()[0];

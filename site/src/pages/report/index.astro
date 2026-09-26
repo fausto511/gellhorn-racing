@@ -1,0 +1,205 @@
+---
+// Report a time (RS-0029, DEC-0071). Deliberately only reachable from the
+// footer -- no report button in the leaderboard (fewer joke reports).
+// Login required; the database enforces: published runs only, one report per
+// person and run, max. 5 open reports per person, reason text >= 20 chars.
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Report a time — Gellhorn Time Attack"
+  description="Report a lap time you believe is wrong. Reports go to the moderators only."
+  noindex
+>
+  <section class="wrap rep-wrap">
+    <p class="eyebrow">Time Attack</p>
+    <h1 class="display rep-title">Report a time</h1>
+    <p class="rep-lede">Think a published lap time is wrong — impossible, wrong car, wrong track or rules? Tell the moderators. Reports are private: only moderators see them, and the driver is not notified by us.</p>
+
+    <div id="rep-backend" class="notice" hidden><strong>Backend not connected.</strong><span>Reports cannot be sent from this build.</span></div>
+
+    <div id="rep-auth" class="panel rep-auth" hidden>
+      <p>Sign in with Discord to report a time. This keeps reports accountable and lets us follow up if needed.</p>
+      <button type="button" id="rep-signin" class="btn btn-outline">Sign in with Discord</button>
+    </div>
+
+    <div id="rep-body" hidden>
+      <div id="rep-mine" class="rep-mine" hidden></div>
+
+      <form id="rep-form" class="panel rep-form" novalidate>
+        <div class="rep-step">
+          <p class="rep-step-title"><span>1</span> Which time?</p>
+          <label class="ui-search rep-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="rep-q" placeholder="Search driver or vehicle" autocomplete="off" />
+          </label>
+          <div id="rep-results" class="rep-results" role="listbox" aria-label="Published times"></div>
+          <p id="rep-picked" class="rep-picked" hidden></p>
+        </div>
+
+        <div class="rep-step">
+          <p class="rep-step-title"><span>2</span> What is wrong?</p>
+          <div class="rep-reasons">
+            <label><input type="radio" name="reason" value="unrealistic_time" /> Unrealistic time</label>
+            <label><input type="radio" name="reason" value="wrong_vehicle" /> Wrong vehicle</label>
+            <label><input type="radio" name="reason" value="wrong_track_or_conditions" /> Wrong track / rules not met</label>
+            <label><input type="radio" name="reason" value="other" /> Something else</label>
+          </div>
+          <label class="rep-details">Explain briefly <small>at least 20 characters — what makes you think so?</small>
+            <textarea name="details" maxlength="1000" rows="4" placeholder="e.g. The screenshot shows a different car than the one listed."></textarea>
+          </label>
+        </div>
+
+        <div class="rep-actions">
+          <button type="submit" class="btn btn-primary" id="rep-send">Send report</button>
+          <p id="rep-msg" class="rep-msg" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .rep-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); max-width: 52rem; }
+  .rep-title { margin: .4rem 0 .8rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .rep-lede { margin: 0 0 1.8rem; color: var(--gh-muted); font-size: .92rem; }
+  .notice { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 1px solid var(--gh-yellow); background: rgba(255,215,76,.08); border-radius: var(--gh-radius); font-size: .85rem; }
+  .rep-auth { padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .rep-auth p { margin: 0; font-size: .88rem; }
+  .rep-form { padding: var(--gh-pad-card); display: grid; gap: 1.6rem; }
+  .rep-step { display: grid; gap: .8rem; }
+  .rep-step-title { margin: 0; display: flex; align-items: center; gap: .6rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.05rem; }
+  .rep-step-title span { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--gh-yellow); color: #111; font-style: normal; font-size: .8rem; }
+  .rep-search input { font-size: 16px; }
+  @media (min-width: 761px) { .rep-search input { font-size: .85rem; } }
+  .rep-results { display: grid; gap: .35rem; max-height: 17rem; overflow-y: auto; }
+  :global(.rep-item) { display: flex; align-items: center; gap: .8rem; width: 100%; text-align: left; padding: .6rem .8rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface-soft); color: var(--gh-text); font: inherit; font-size: .86rem; cursor: pointer; }
+  :global(.rep-item:hover) { border-color: var(--gh-muted); }
+  :global(.rep-item.is-picked) { border-color: var(--gh-yellow); background: rgba(255,215,76,.08); }
+  :global(.rep-item .ri-driver) { font-weight: 700; flex: 1 1 8rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :global(.rep-item .ri-car) { color: var(--gh-muted); flex: 1 1 9rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  :global(.rep-item .ri-time) { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; }
+  :global(.rep-none) { margin: 0; color: var(--gh-muted); font-size: .85rem; }
+  .rep-picked { margin: 0; font-size: .86rem; color: var(--gh-yellow); }
+  .rep-reasons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  @media (max-width: 560px) { .rep-reasons { grid-template-columns: 1fr; } }
+  .rep-reasons label { display: flex; align-items: center; gap: .55rem; padding: .7rem .85rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); font-size: .88rem; font-weight: 600; cursor: pointer; }
+  .rep-reasons label:has(input:checked) { border-color: var(--gh-yellow); background: rgba(255,215,76,.06); }
+  .rep-reasons input { accent-color: var(--gh-yellow); }
+  .rep-details { display: flex; flex-direction: column; gap: .35rem; font-size: .72rem; color: var(--gh-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .rep-details small { text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .rep-details textarea { padding: .65rem .75rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font: inherit; font-size: 16px; text-transform: none; letter-spacing: normal; font-weight: 400; resize: vertical; }
+  @media (min-width: 761px) { .rep-details textarea { font-size: .9rem; } }
+  .rep-details textarea:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  .rep-details textarea[aria-invalid="true"] { border-color: var(--gh-red); }
+  .rep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+  .rep-msg { margin: 0; font-size: .86rem; }
+  .rep-msg.is-error { color: var(--gh-red); }
+  .rep-msg.is-ok { color: #4fd1c5; }
+  .rep-mine { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+  :global(.rep-mine-row) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .7rem 1rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface); font-size: .86rem; }
+  :global(.rep-mine-row .rm-main) { flex: 1 1 16rem; min-width: 0; }
+  :global(.rep-mine-row small) { display: block; color: var(--gh-muted); font-size: .78rem; margin-top: .1rem; }
+  :global(.rep-status) { padding: .15rem .55rem; border-radius: 999px; font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--gh-line); color: var(--gh-muted); }
+  :global(.rep-status.open) { color: var(--gh-yellow); border-color: rgba(255,215,76,.45); }
+  :global(.rep-status.resolved) { color: #4fd1c5; border-color: rgba(79,209,197,.45); }
+  :global(.rep-mine-title) { margin: 0 0 .2rem; font-size: .72rem; color: var(--gh-muted); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../scripts/supabase-client';
+  import { esc } from '../../data/hub';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const form = $('rep-form') as HTMLFormElement;
+  const qEl = $('rep-q') as HTMLInputElement;
+  const resultsEl = $('rep-results');
+  const pickedEl = $('rep-picked');
+  const msgEl = $('rep-msg');
+  const mineEl = $('rep-mine');
+  const detailsEl = form.elements.namedItem('details') as HTMLTextAreaElement;
+
+  const fmt = (ms: number) => `${Math.floor(ms / 60000)}:${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}.${String(ms % 1000).padStart(3, '0')}`;
+  const reasonLabel: Record<string, string> = { unrealistic_time: 'Unrealistic time', wrong_vehicle: 'Wrong vehicle', wrong_track_or_conditions: 'Wrong track / rules', other: 'Something else' };
+  function msg(t: string, err = false) { msgEl.textContent = t; msgEl.className = `rep-msg ${t ? (err ? 'is-error' : 'is-ok') : ''}`; }
+
+  type Entry = { run_id: string; driver: string; make: string; model: string; lap_time_ms: number };
+  let entries: Entry[] = [];
+  let picked: Entry | null = null;
+  let me: string | null = null;
+
+  function renderResults() {
+    const q = qEl.value.trim().toLowerCase();
+    const list = entries.filter((e) => !q || `${e.driver} ${e.make} ${e.model}`.toLowerCase().includes(q)).slice(0, 40);
+    resultsEl.innerHTML = list.length
+      ? list.map((e) => `<button type="button" class="rep-item${picked?.run_id === e.run_id ? ' is-picked' : ''}" data-run="${esc(e.run_id)}"><span class="ri-driver">${esc(e.driver)}</span><span class="ri-car">${esc(e.make)} ${esc(e.model)}</span><span class="ri-time">${fmt(e.lap_time_ms)}</span></button>`).join('')
+      : `<p class="rep-none">${entries.length ? 'No published time matches your search.' : 'There are no published times yet.'}</p>`;
+  }
+  qEl.addEventListener('input', renderResults);
+  resultsEl.addEventListener('click', (ev) => {
+    const b = (ev.target as HTMLElement).closest<HTMLElement>('[data-run]');
+    if (!b) return;
+    picked = entries.find((e) => e.run_id === b.dataset.run) ?? null;
+    pickedEl.hidden = !picked;
+    if (picked) pickedEl.textContent = `Selected: ${picked.driver} · ${picked.make} ${picked.model} · ${fmt(picked.lap_time_ms)}`;
+    renderResults();
+    msg('');
+  });
+  detailsEl.addEventListener('input', () => detailsEl.removeAttribute('aria-invalid'));
+
+  async function loadMine() {
+    const { data } = await getSupabase().from('run_reports').select('report_id, run_id, reason, status, created_at, moderator_note').eq('reporter_driver_id', me!).order('created_at', { ascending: false }).limit(10);
+    const rows = (data ?? []) as any[];
+    mineEl.hidden = rows.length === 0;
+    mineEl.innerHTML = rows.length ? '<p class="rep-mine-title">Your reports</p>' + rows.map((r) => {
+      const e = entries.find((x) => x.run_id === r.run_id);
+      const what = e ? `${esc(e.driver)} · ${esc(e.make)} ${esc(e.model)} · ${fmt(e.lap_time_ms)}` : 'Time no longer listed';
+      const status = r.status === 'open' ? 'In review' : r.status === 'resolved' ? 'Handled' : 'Closed';
+      return `<div class="rep-mine-row"><div class="rm-main">${what}<small>${esc(reasonLabel[r.reason] ?? r.reason)} · ${esc(new Date(r.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))}${r.moderator_note ? ' · Moderator: ' + esc(r.moderator_note) : ''}</small></div><span class="rep-status ${esc(r.status)}">${status}</span></div>`;
+    }).join('') : '';
+  }
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const reason = (form.querySelector('input[name="reason"]:checked') as HTMLInputElement | null)?.value;
+    const details = detailsEl.value.trim();
+    if (!picked) { msg('Pick the time you want to report first.', true); return; }
+    if (!reason) { msg('Choose what is wrong.', true); return; }
+    if (details.length < 20) { detailsEl.setAttribute('aria-invalid', 'true'); msg('Please explain in at least 20 characters.', true); return; }
+    const btn = $('rep-send') as HTMLButtonElement; btn.disabled = true;
+    const { error } = await getSupabase().from('run_reports').insert({ run_id: picked.run_id, reporter_driver_id: me, reason, details });
+    btn.disabled = false;
+    if (error) {
+      msg(/duplicate|unique/i.test(error.message) ? 'You already reported this time.' : /row-level/i.test(error.message) ? 'You have 5 open reports already — please wait until they are handled.' : 'Could not send the report. Please try again.', true);
+      return;
+    }
+    form.reset(); picked = null; pickedEl.hidden = true; qEl.value = ''; renderResults();
+    msg('Thanks — the moderators will take a look.');
+    await loadMine();
+  });
+
+  async function init(session: any) {
+    $('rep-auth').hidden = Boolean(session);
+    $('rep-body').hidden = !session;
+    if (!session) return;
+    const sb = getSupabase();
+    const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    const { data } = await sb.from('public_leaderboard').select('run_id, driver, make, model, lap_time_ms').order('make').order('model').order('lap_time_ms');
+    entries = (data ?? []) as Entry[];
+    renderResults();
+    if (me) await loadMine();
+  }
+
+  if (!backendConfigured) {
+    $('rep-backend').hidden = false;
+  } else {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((e, s) => { if (e === 'SIGNED_IN' || e === 'SIGNED_OUT') init(s); });
+    $('rep-signin').addEventListener('click', () => {
+      sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname, scopes: 'identify email guilds.join' } });
+    });
+  }
+</script>

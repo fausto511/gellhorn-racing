@@ -1,0 +1,169 @@
+---
+// Moderator: reported lap times (RS-0029, DEC-0071). Reports come from the
+// footer page /report/. Open reports first; "Open in Lap Review" jumps to the
+// run (moderator/?run=<id>), where the actual decision is made. Here the
+// report itself is closed: Resolved (something was wrong and has been acted
+// on) or Dismissed (time is fine), with an optional internal note.
+import Base from '../../../layouts/Base.astro';
+import ModeratorNav from '../../../components/ModeratorNav.astro';
+---
+<Base
+  title="Reports — Moderator"
+  description="Internal: lap times reported by drivers."
+  section="moderator"
+  noindex
+>
+  <section class="wrap mod-wrap">
+    <ModeratorNav active="reports" />
+    <p class="eyebrow">Time Attack Operations</p>
+    <h1 class="display mod-title">Reported Times</h1>
+    <p class="mod-lede">Drivers can report a published time from the footer ("Report a time"). Check the run in Lap Review, change it there if needed, then close the report here. Reporters see only the status (In review / Handled / Closed), not your note.</p>
+
+    <div id="rp-backend" class="notice" hidden><strong>Backend not connected.</strong><span>Reports cannot be loaded from this build.</span></div>
+    <div id="rp-auth" class="panel rp-box" hidden><p>Sign in as a moderator to see reports.</p></div>
+    <div id="rp-notmod" class="panel rp-box" hidden><p>This page is for moderators only.</p></div>
+
+    <div id="rp-body" hidden>
+      <div class="rp-tabs" role="tablist">
+        <button type="button" class="rp-tab is-active" data-f="open" role="tab" aria-selected="true">Open</button>
+        <button type="button" class="rp-tab" data-f="closed" role="tab" aria-selected="false">Closed</button>
+      </div>
+      <p id="rp-error" class="rp-error" hidden></p>
+      <div id="rp-list"></div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .mod-wrap { padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4.5rem); }
+  .mod-title { margin: .4rem 0 .6rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .mod-lede { margin: 0 0 1.5rem; color: var(--gh-muted); font-size: .92rem; max-width: 46rem; }
+  .rp-box { padding: 1rem 1.2rem; }
+  .rp-box p { margin: 0; font-size: .88rem; }
+  .rp-tabs { display: flex; gap: .4rem; margin-bottom: 1rem; max-width: 22rem; }
+  .rp-tab { flex: 1; padding: .5rem .6rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .74rem; cursor: pointer; font-family: var(--gh-font-body); }
+  .rp-tab.is-active { background: var(--gh-surface-soft); color: var(--gh-text); border-color: var(--gh-muted); }
+  .rp-error { color: var(--gh-red, #ff5a4f); font-size: .85rem; }
+  :global(.rp-card) { border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface); padding: 1rem 1.1rem; margin-bottom: .75rem; }
+  :global(.rp-card h3) { margin: 0 0 .25rem; font-size: 1rem; }
+  :global(.rp-meta) { margin: 0 0 .6rem; color: var(--gh-muted); font-size: .8rem; }
+  :global(.rp-reason) { display: inline-block; margin-bottom: .5rem; padding: .15rem .55rem; border-radius: 999px; border: 1px solid var(--gh-line); font-size: .72rem; font-weight: 700; }
+  :global(.rp-details) { margin: 0 0 .8rem; font-size: .88rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+  :global(.rp-actions) { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+  :global(.rp-actions input) { flex: 1 1 14rem; min-width: 0; padding: .45rem .6rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font: inherit; font-size: .85rem; }
+  :global(.rp-actions .btn) { font-size: .76rem; padding: .45rem .85rem; }
+  :global(.rp-note) { margin: .4rem 0 0; color: var(--gh-muted); font-size: .82rem; }
+  :global(.rp-empty) { color: var(--gh-muted); font-size: .88rem; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  import { esc } from '../../../data/hub';
+
+  const base = import.meta.env.BASE_URL;
+  const $ = (id: string) => document.getElementById(id)!;
+  const REASONS: Record<string, string> = {
+    unrealistic_time: 'Unrealistic time',
+    wrong_vehicle: 'Wrong vehicle',
+    wrong_track_or_conditions: 'Wrong track / conditions',
+    other: 'Other',
+  };
+  const STATUS: Record<string, string> = { open: 'Open', resolved: 'Resolved', dismissed: 'Dismissed' };
+  let me: string | null = null;
+  let filter: 'open' | 'closed' = 'open';
+  let rows: any[] = [];
+
+  const lap = (ms: number) => {
+    const m = Math.floor(ms / 60000), s = Math.floor((ms % 60000) / 1000), t = ms % 1000;
+    return `${m}:${String(s).padStart(2, '0')}.${String(t).padStart(3, '0')}`;
+  };
+  const when = (iso: string) => new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+
+  function render() {
+    const list = rows.filter((r) => (filter === 'open' ? r.status === 'open' : r.status !== 'open'));
+    const openCount = rows.filter((r) => r.status === 'open').length;
+    document.querySelector<HTMLElement>('.rp-tab[data-f="open"]')!.textContent = `Open (${openCount})`;
+    // Several reports on the same run are a signal -> show the count.
+    const perRun = new Map<string, number>();
+    rows.forEach((r) => perRun.set(r.run_id, (perRun.get(r.run_id) ?? 0) + 1));
+    $('rp-list').innerHTML = list.length
+      ? list.map((r) => {
+          const run = r.run ?? {};
+          const veh = run.vehicle ? `${run.vehicle.make} ${run.vehicle.model}` : 'Unknown vehicle';
+          const n = perRun.get(r.run_id) ?? 1;
+          const actions = r.status === 'open'
+            ? `<div class="rp-actions">
+                 <a class="btn btn-outline" href="${base}moderator/?run=${esc(r.run_id)}">Open in Lap Review</a>
+                 <input type="text" maxlength="500" placeholder="Internal note (optional)" data-note="${esc(r.report_id)}" />
+                 <button type="button" class="btn btn-primary" data-act="resolved" data-id="${esc(r.report_id)}">Resolved</button>
+                 <button type="button" class="btn btn-outline" data-act="dismissed" data-id="${esc(r.report_id)}">Dismiss</button>
+               </div>`
+            : `<div class="rp-actions"><a class="btn btn-outline" href="${base}moderator/?run=${esc(r.run_id)}">Open in Lap Review</a><span class="rp-meta">${STATUS[r.status]} · ${r.handled_at ? esc(when(r.handled_at)) : ''}${r.handler?.display_name ? ` · by ${esc(r.handler.display_name)}` : ''}</span></div>
+               ${r.moderator_note ? `<p class="rp-note">Note: ${esc(r.moderator_note)}</p>` : ''}`;
+          return `<article class="rp-card">
+            <h3>${esc(veh)} — ${esc(run.driver?.display_name ?? 'Unknown driver')} · ${run.lap_time_ms ? lap(run.lap_time_ms) : '—'}</h3>
+            <p class="rp-meta">Reported ${esc(when(r.created_at))} by ${esc(r.reporter?.display_name ?? 'unknown')}${n > 1 ? ` · <strong>${n} reports on this time</strong>` : ''} · Run: ${esc(run.review_status ?? '?')} / ${esc(run.publication_status ?? '?')}</p>
+            <span class="rp-reason">${esc(REASONS[r.reason] ?? r.reason)}</span>
+            <p class="rp-details">${esc(r.details)}</p>
+            ${actions}
+          </article>`;
+        }).join('')
+      : `<p class="rp-empty">${filter === 'open' ? 'No open reports.' : 'No closed reports yet.'}</p>`;
+  }
+
+  async function load() {
+    $('rp-error').hidden = true;
+    const { data, error } = await getSupabase()
+      .from('run_reports')
+      .select(`report_id, run_id, reason, details, status, created_at, handled_at, moderator_note,
+        run:runs(lap_time_ms, review_status, publication_status, driver:drivers(display_name), vehicle:vehicles(make, model)),
+        reporter:drivers!run_reports_reporter_driver_id_fkey(display_name),
+        handler:drivers!run_reports_handled_by_fkey(display_name)`)
+      .order('created_at', { ascending: false })
+      .limit(300);
+    if (error) { $('rp-error').hidden = false; $('rp-error').textContent = `Could not load reports: ${error.message}`; rows = []; }
+    else rows = data ?? [];
+    render();
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.rp-tab').forEach((t) => t.addEventListener('click', () => {
+    filter = t.dataset.f as any;
+    document.querySelectorAll('.rp-tab').forEach((x) => { x.classList.toggle('is-active', x === t); x.setAttribute('aria-selected', String(x === t)); });
+    render();
+  }));
+
+  $('rp-list').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-act]');
+    if (!b) return;
+    const id = b.dataset.id!;
+    const note = document.querySelector<HTMLInputElement>(`[data-note="${id}"]`)?.value.trim() || null;
+    b.disabled = true;
+    const { error } = await getSupabase().from('run_reports')
+      .update({ status: b.dataset.act, handled_at: new Date().toISOString(), handled_by: me, moderator_note: note })
+      .eq('report_id', id);
+    if (error) { $('rp-error').hidden = false; $('rp-error').textContent = `Could not update the report: ${error.message}`; b.disabled = false; return; }
+    await load();
+  });
+
+  async function init(session: any) {
+    $('rp-auth').hidden = Boolean(session);
+    $('rp-body').hidden = true;
+    $('rp-notmod').hidden = true;
+    if (!session) return;
+    const sb = getSupabase();
+    const mod = await sb.from('moderators').select('driver_id').limit(1);
+    if (mod.error || !mod.data?.length) { $('rp-notmod').hidden = false; return; }
+    const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    $('rp-body').hidden = false;
+    await load();
+  }
+
+  if (!backendConfigured) $('rp-backend').hidden = false;
+  else {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+  }
+</script>

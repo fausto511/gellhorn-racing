@@ -25,7 +25,7 @@ export default defineConfig({
       // Forwarding pages (/time-attack/, /tracks/…) are not content either.
       filter: (page) =>
         !page.includes('/account/') && !page.includes('/moderator/') && !page.includes('/hub/') &&
-        !page.endsWith('/time-attack/') && !page.includes('/tracks/'),
+        !page.endsWith('/time-attack/') && !page.includes('/tracks/') && !page.includes('/report/'),
     }),
   ],
   // Forwarding URLs (/time-attack/ and the old /tracks/gellhorn-international-raceway/)
