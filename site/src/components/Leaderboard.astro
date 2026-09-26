@@ -1,95 +1,51 @@
 ---
-import { sampleLaps, vehiclesNeeded, leaderboardStats, makeLogo } from '../data/leaderboard';
-import { vehicleOptions } from '../data/vehicles';
-const base = import.meta.env.BASE_URL;
-// Vehicle names link to their Garage page (2026-09-26). Live rows carry the
-// vehicle_id (identical to the Garage slug); sample rows only have make +
-// model, so they are matched by name -- sample vehicles that are not in the
-// Garage stay plain text instead of pointing at a missing page.
-const norm = (t: string) => t.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-const garageId = (make: string, model: string) =>
-  vehicleOptions.find((v) => norm(v.make) === norm(make) && norm(v.model) === norm(model))?.id ?? null;
-const garageHref = (make: string, model: string) => {
-  const id = garageId(make, model);
-  return id ? `${base}garage/vehicles/${id}/` : null;
-};
+// Gellhorn leaderboard (2026-09-26): Overall / Vehicle Records (+ one board
+// per vehicle), driver + vehicle search, All times / Verified only.
+// The build renders the sample data with the same renderer the browser uses
+// (data/leaderboard.ts); the browser takes over and swaps in live rows as
+// soon as at least one real run is published.
+import { sampleEntries, initialState, render, vehiclesNeededHtml } from '../data/leaderboard';
+const first = render(sampleEntries, initialState, true);
+const needed = vehiclesNeededHtml(sampleEntries);
 ---
 <section id="leaderboard" class="lb">
   <div class="wrap">
     <div class="lb-head">
       <div>
-        <span class="sample-flag" id="lb-flag">Sample data — no real community records yet</span>
+        <span class="sample-flag" id="lb-flag">Sample data — fictional drivers, crews and times</span>
         <h2 class="display lb-title">Leaderboard</h2>
-        <p class="lb-meta" id="lb-meta">Gellhorn International Raceway · PS5 · Current Standard · {leaderboardStats.drivers} drivers · {leaderboardStats.acceptedLaps} accepted laps</p>
+        <p class="lb-meta" id="lb-meta">{first.meta}</p>
       </div>
       <div class="lb-tabs" role="tablist" aria-label="Leaderboard view">
-        <button type="button" class="lb-tab is-active" role="tab" aria-selected="true">Overall</button>
-        <button type="button" class="lb-tab" role="tab" aria-selected="false">Vehicle Records</button>
+        <button type="button" class="lb-tab is-active" role="tab" aria-selected="true" data-view="overall">Overall</button>
+        <button type="button" class="lb-tab" role="tab" aria-selected="false" data-view="vehicles">Vehicle Records</button>
       </div>
     </div>
 
     <div class="lb-controls">
       <label class="ui-search lb-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" placeholder="Search driver" aria-label="Search driver" />
+        <input type="search" id="lb-q-driver" placeholder="Search driver or crew tag" aria-label="Search driver or crew tag" autocomplete="off" />
       </label>
       <label class="ui-search lb-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" placeholder="Search vehicle" aria-label="Search vehicle" />
+        <input type="search" id="lb-q-vehicle" placeholder="Search vehicle" aria-label="Search vehicle" autocomplete="off" />
       </label>
       <div class="lb-toggle" role="group" aria-label="Time filter">
-        <button type="button" class="is-active">All Times</button>
-        <button type="button">Verified Only</button>
+        <button type="button" class="is-active" aria-pressed="true" data-verified="0">All Times</button>
+        <button type="button" aria-pressed="false" data-verified="1">Verified Only</button>
       </div>
     </div>
 
+    <div id="lb-context" set:html={first.context} />
+
     <div class="panel lb-table-wrap">
       <table class="lb-table">
-        <thead>
-          <tr>
-            <th scope="col">#</th>
-            <th scope="col">Driver</th>
-            <th scope="col">Vehicle</th>
-            <th scope="col">Track Entries</th>
-            <th scope="col">Lap Time</th>
-            <th scope="col">Status</th>
-            <th scope="col">Video</th>
-          </tr>
-        </thead>
-        <tbody id="lb-tbody">
-          {sampleLaps.map((row) => (
-            <tr class:list={{ 'is-top3': row.rank <= 3 }}>
-              <td class="lb-rank">{row.rank}</td>
-              <td class="lb-driver">{row.driver}</td>
-              <td>
-                {garageHref(row.make, row.model) ? (
-                  <a class="lb-vehicle lb-vehicle-link" href={garageHref(row.make, row.model)} title={`${row.make} ${row.model} in The Garage`}>
-                    {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
-                    <span class="lb-vehicle-name"><span class="lb-make">{row.make}</span> {row.model}</span>
-                  </a>
-                ) : (
-                  <span class="lb-vehicle">
-                    {makeLogo(row.make) && <span class="logo-chip"><img src={makeLogo(row.make)} alt={`${row.make} logo`} width="20" height="20" loading="lazy" /></span>}
-                    <span class="lb-make">{row.make}</span> {row.model}
-                  </span>
-                )}
-              </td>
-              <td class="lb-num">{row.entries}</td>
-              <td class="lb-time">
-                {row.time}
-                {row.gapMs !== null && <span class="lb-gap">+{(row.gapMs / 1000).toFixed(3)}</span>}
-              </td>
-              <td>
-                {row.videoVerified
-                  ? <span class="status-ok"><span class="check-circle"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span> Video verified</span>
-                  : <span class="status-pending"><span class="status-dot" /> Not video verified</span>}
-              </td>
-              <td class="lb-video">{row.videoVerified ? <a class="watch-btn outline-hover" href="#" aria-label={`Watch ${row.driver}'s lap`}>Watch</a> : '—'}</td>
-            </tr>
-          ))}
-        </tbody>
+        <thead id="lb-thead" set:html={first.head} />
+        <tbody id="lb-tbody" set:html={first.body} aria-live="polite" />
       </table>
     </div>
+    <div class="lb-more" id="lb-more" set:html={first.more} />
 
     <div class="panel needed">
       <div class="needed-head">
@@ -99,19 +55,7 @@ const garageHref = (make: string, model: string) => {
         </div>
         <p>These vehicles don't have a verified record yet on Gellhorn. Be the first.</p>
       </div>
-      <ul>
-        {vehiclesNeeded.map((v) => (
-          <li>
-            {makeLogo(v.make) && <span class="logo-chip logo-chip-lg"><img src={makeLogo(v.make)} alt={`${v.make} logo`} width="30" height="30" loading="lazy" /></span>}
-            <span class="needed-text">
-              {garageHref(v.make, v.model)
-                ? <a class="needed-link" href={garageHref(v.make, v.model)}><strong>{v.make} {v.model}</strong></a>
-                : <strong>{v.make} {v.model}</strong>}
-              <span>No verified record</span>
-            </span>
-          </li>
-        ))}
-      </ul>
+      <ul id="lb-needed" set:html={needed} />
     </div>
   </div>
 </section>
@@ -139,7 +83,7 @@ const garageHref = (make: string, model: string) => {
 
   .lb-table-wrap { padding: 0; overflow-x: auto; }
   .lb-table { width: 100%; border-collapse: collapse; min-width: 46rem; }
-  .lb-table th { text-align: left; padding: .9rem 1.1rem; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--gh-line); }
+  :global(.lb-table th) { text-align: left; padding: .9rem 1.1rem; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; border-bottom: 1px solid var(--gh-line); }
   /* :global() throughout this block: #lb-tbody's real rows are inserted at
      runtime via innerHTML from live Supabase data (renderLiveRows() below),
      so Astro's scoped-CSS attribute never reaches them -- same bug class
@@ -161,8 +105,8 @@ const garageHref = (make: string, model: string) => {
   /* same spacing between make and model as the non-link rows (flex gap) */
   :global(.lb-vehicle-name) { display: inline-flex; align-items: baseline; gap: .5rem; }
   :global(.lb-vehicle-link:hover .lb-vehicle-name), :global(.lb-vehicle-link:focus-visible .lb-vehicle-name) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
-  .needed-link { color: inherit; text-decoration: none; }
-  .needed-link:hover strong { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
+  :global(.needed-link) { color: inherit; text-decoration: none; }
+  :global(.needed-link:hover strong) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
   :global(.lb-make) { color: var(--gh-muted); font-size: .78rem; }
   :global(.lb-num) { color: var(--gh-muted); }
   :global(.lb-time) { font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -173,7 +117,7 @@ const garageHref = (make: string, model: string) => {
 
   :global(.logo-chip) { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--gh-text); padding: 4px; }
   :global(.logo-chip img) { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .logo-chip-lg { width: 40px; height: 40px; padding: 5px; }
+  :global(.logo-chip-lg) { width: 40px; height: 40px; padding: 5px; }
 
   .needed { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; margin-top: 1.25rem; padding: var(--gh-pad-card); }
   .needed-title { display: flex; align-items: center; gap: .5rem; }
@@ -181,162 +125,155 @@ const garageHref = (make: string, model: string) => {
   .needed-head h3 { margin: 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
   .needed-head p { margin: .3rem 0 0; max-width: 30ch; color: var(--gh-muted); font-size: .82rem; }
   .needed ul { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 0; padding: 0; flex: 1; justify-content: flex-end; }
-  .needed li { display: flex; align-items: center; gap: .6rem; padding: .7rem .95rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); min-width: 13rem; }
-  .needed-text { display: flex; flex-direction: column; gap: .2rem; }
-  .needed-text strong { font-size: .82rem; }
-  .needed-text span { color: var(--gh-muted); font-size: .7rem; }
+  :global(.needed li) { display: flex; align-items: center; gap: .6rem; padding: .7rem .95rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); min-width: 13rem; }
+  :global(.needed-text) { display: flex; flex-direction: column; gap: .2rem; }
+  :global(.needed-text strong) { font-size: .82rem; }
+  :global(.needed-text span) { color: var(--gh-muted); font-size: .7rem; }
 
   @media (max-width: 700px) {
     .lb-head { align-items: flex-start; }
     .needed { justify-content: flex-start; }
     .needed ul { justify-content: flex-start; }
   }
+
+  :global(.sr-only) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :global(a.lb-crew-tag) { text-decoration: none; color: #111; }
+  :global(a.lb-crew-tag:hover) { filter: brightness(.9); }
+  :global(.watch-btn) { cursor: pointer; font-family: var(--gh-font-body); }
+  :global(.watch-btn.is-disabled) { opacity: .45; cursor: not-allowed; }
+  :global(.lb-empty-row td) { padding: 2rem 1.1rem; text-align: center; color: var(--gh-muted); }
+  .lb-tab:hover:not(.is-active), .lb-toggle button:hover:not(.is-active) { color: var(--gh-text); }
+  .lb-more { display: flex; justify-content: center; }
+  :global(.lb-more-btn) { margin-top: 1rem; }
+  :global(.lb-context) { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.2rem; margin-bottom: 1rem; }
+  :global(.lb-back) { display: inline-flex; align-items: center; gap: .3rem; padding: .45rem .8rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-text); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
+  :global(.lb-back:hover) { border-color: var(--gh-muted); }
+  :global(.lb-context-title) { display: flex; align-items: center; gap: .65rem; flex: 1 1 auto; }
+  :global(.lb-context-title h3) { margin: 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.25rem; }
+  :global(.lb-context-kicker) { margin: 0; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+  :global(.lb-context-link) { color: var(--gh-muted); font-size: .8rem; font-weight: 700; }
+  :global(.lb-context-link:hover) { color: var(--gh-text); }
+  :global(.lb-context-note) { margin: 0 0 1rem; color: var(--gh-muted); font-size: .82rem; }
 </style>
 
 <script>
-  // Live leaderboard feed. The template above renders sampleLaps (from
-  // ../data/leaderboard) at build time so the page always looks correct
-  // even with JS disabled or before this script runs. This script then
-  // tries to load real accepted runs from Supabase's public_leaderboard
-  // view (the only public read of run data, see its comment in the schema)
-  // and, only if at least one real row comes back, replaces the sample
-  // rows with the real ones and drops the "Sample data" flag. If there are
-  // zero real rows yet (pre-launch, no accepted submissions), the sample
-  // data stays exactly as it is today -- nothing to configure or flip
-  // later, this switches over on its own the first time a moderator
-  // accepts a run.
-  //
-  // TRACK_ID is hardcoded because there is currently only one track
-  // (Gellhorn). If a second track is ever added, this needs to become a
-  // prop passed in from the page, same as the static copy above already
-  // assumes a single track.
+  // Browser side: state + filters, and the live feed. The markup above is
+  // the sample data rendered at build time; this script re-renders with the
+  // same renderer. Live rows replace the sample as soon as public_leaderboard
+  // returns at least one row (pre-launch: zero rows -> sample stays, flagged).
+  // TRACK_ID is fixed while Gellhorn is the only track.
   import { createClient } from '@supabase/supabase-js';
+  import { sampleEntries, initialState, render, vehiclesNeededHtml, type LbEntry, type LbState } from '../data/leaderboard';
 
   const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
   const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
-  const backendConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
   const TRACK_ID = 'gellhorn-international-raceway';
+  const $ = (id: string) => document.getElementById(id)!;
 
-  function formatLapTime(ms: number): string {
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    const millis = ms % 1000;
-    return `${minutes}:${String(seconds).padStart(2, '0')}.${String(millis).padStart(3, '0')}`;
+  let data: LbEntry[] = sampleEntries;
+  let sample = true;
+  const state: LbState = { ...initialState };
+
+  // Shareable state: ?lb=vehicles&vehicle=<id>&verified=1
+  const params = new URLSearchParams(location.search);
+  if (params.get('lb') === 'vehicles') state.view = 'vehicles';
+  if (params.get('vehicle')) { state.view = 'vehicles'; state.vehicle = params.get('vehicle'); }
+  if (params.get('verified') === '1') state.verifiedOnly = true;
+
+  function syncUrl() {
+    const u = new URL(location.href);
+    ['lb', 'vehicle', 'verified'].forEach((k) => u.searchParams.delete(k));
+    if (state.view === 'vehicles') u.searchParams.set('lb', 'vehicles');
+    if (state.vehicle) u.searchParams.set('vehicle', state.vehicle);
+    if (state.verifiedOnly) u.searchParams.set('verified', '1');
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
   }
 
-  function logoUrl(slug: string | null): string | null {
-    if (!slug) return null;
-    const base = import.meta.env.BASE_URL;
-    return `${base}images/logos/${slug}-gta-6-logo.webp`;
+  function draw() {
+    const r = render(data, state, sample);
+    $('lb-thead').innerHTML = r.head;
+    $('lb-tbody').innerHTML = r.body;
+    $('lb-context').innerHTML = r.context;
+    $('lb-more').innerHTML = r.more;
+    $('lb-meta').textContent = r.meta;
+    document.querySelectorAll<HTMLButtonElement>('.lb-tab').forEach((t) => {
+      const on = t.dataset.view === state.view;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    document.querySelectorAll<HTMLButtonElement>('.lb-toggle button').forEach((b) => {
+      const on = (b.dataset.verified === '1') === state.verifiedOnly;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+    syncUrl();
   }
 
-  function escapeHtml(value: unknown): string {
-    return String(value ?? '')
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
+  const qDriver = $('lb-q-driver') as HTMLInputElement;
+  const qVehicle = $('lb-q-vehicle') as HTMLInputElement;
+  qDriver.addEventListener('input', () => { state.qDriver = qDriver.value; draw(); });
+  qVehicle.addEventListener('input', () => {
+    state.qVehicle = qVehicle.value;
+    if (state.vehicle && qVehicle.value) state.vehicle = null; // searching vehicles -> back to the list
+    draw();
+  });
+  document.querySelectorAll<HTMLButtonElement>('.lb-tab').forEach((t) => t.addEventListener('click', () => {
+    state.view = t.dataset.view as LbState['view'];
+    state.vehicle = null;
+    state.showAll = false;
+    draw();
+  }));
+  document.querySelectorAll<HTMLButtonElement>('.lb-toggle button').forEach((b) => b.addEventListener('click', () => {
+    state.verifiedOnly = b.dataset.verified === '1';
+    draw();
+  }));
+  $('leaderboard').addEventListener('click', (e) => {
+    const el = e.target as HTMLElement;
+    const veh = el.closest<HTMLElement>('[data-lb-vehicle]');
+    if (veh) {
+      state.view = 'vehicles'; state.vehicle = veh.dataset.lbVehicle!; state.showAll = false;
+      state.qVehicle = ''; qVehicle.value = '';
+      draw();
+      $('lb-context').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return;
+    }
+    if (el.closest('[data-lb-back]')) { state.vehicle = null; state.showAll = false; draw(); return; }
+    if (el.closest('[data-lb-more]')) { state.showAll = true; draw(); }
+  });
+
+  draw();
 
   interface LiveRow {
-    driver: string;
-    driver_id: string;
-    vehicle_id: string | null;
-    make: string;
-    model: string;
-    manufacturer_logo_slug: string | null;
-    lap_time_ms: number;
-    track_entries: number;
-    video_verified: boolean;
-    video_url: string | null;
+    driver: string; driver_id: string; vehicle_id: string; make: string; model: string;
+    manufacturer_logo_slug: string | null; lap_time_ms: number; track_entries: number;
+    video_verified: boolean; video_url: string | null;
   }
-
-  // Crew tag next to the driver (RS-0024). public_crew_roster only lists
-  // active members of published crews and never anonymised drivers.
-  type CrewTag = { tag: string; color: string };
-  function crewTag(t: CrewTag | undefined): string {
-    if (!t || !/^#[0-9a-fA-F]{6}$/.test(t.color)) return '';
-    return ` <span class="crew-tag crew-tag-sm lb-crew-tag" style="--crew-color:${t.color}" title="Crew tag ${escapeHtml(t.tag)}">${escapeHtml(t.tag)}</span>`;
-  }
-
-  function renderLiveRows(rows: LiveRow[], tags: Map<string, CrewTag> = new Map()) {
-    const tbodyEl = document.getElementById('lb-tbody');
-    if (!tbodyEl) return;
-
-    const flagEl = document.getElementById('lb-flag');
-    if (flagEl) flagEl.hidden = true;
-
-    const metaEl = document.getElementById('lb-meta');
-    if (metaEl) {
-      const driverCount = new Set(rows.map((r) => r.driver)).size;
-      metaEl.textContent = `Gellhorn International Raceway · PS5 · Current Standard · ${driverCount} driver${driverCount === 1 ? '' : 's'} · ${rows.length} accepted lap${rows.length === 1 ? '' : 's'}`;
-    }
-
-    const bestMs = rows[0].lap_time_ms;
-    tbodyEl.innerHTML = rows
-      .map((row, i) => {
-        const rank = i + 1;
-        const gapHtml =
-          rank === 1
-            ? ''
-            : `<span class="lb-gap">+${((row.lap_time_ms - bestMs) / 1000).toFixed(3)}</span>`;
-        const logo = logoUrl(row.manufacturer_logo_slug);
-        const logoHtml = logo
-          ? `<span class="logo-chip"><img src="${logo}" alt="${escapeHtml(row.make)} logo" width="20" height="20" loading="lazy" /></span>`
-          : '';
-        const statusHtml = row.video_verified
-          ? `<span class="status-ok"><span class="check-circle"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg></span> Video verified</span>`
-          : `<span class="status-pending"><span class="status-dot"></span> Not video verified</span>`;
-        const videoHtml =
-          row.video_verified && row.video_url
-            ? `<a class="watch-btn outline-hover" href="${escapeHtml(row.video_url)}" target="_blank" rel="noopener" aria-label="Watch ${escapeHtml(row.driver)}'s lap">Watch</a>`
-            : '—';
-
-        return `
-          <tr class="${rank <= 3 ? 'is-top3' : ''}">
-            <td class="lb-rank">${rank}</td>
-            <td class="lb-driver">${escapeHtml(row.driver)}${crewTag(tags.get(row.driver_id))}</td>
-            <td>
-              ${row.vehicle_id
-                ? `<a class="lb-vehicle lb-vehicle-link" href="${import.meta.env.BASE_URL}garage/vehicles/${encodeURIComponent(row.vehicle_id)}/" title="${escapeHtml(row.make)} ${escapeHtml(row.model)} in The Garage">${logoHtml}<span class="lb-vehicle-name"><span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}</span></a>`
-                : `<span class="lb-vehicle">${logoHtml}<span class="lb-make">${escapeHtml(row.make)}</span> ${escapeHtml(row.model)}</span>`}
-            </td>
-            <td class="lb-num">${row.track_entries}</td>
-            <td class="lb-time">${formatLapTime(row.lap_time_ms)}${gapHtml}</td>
-            <td>${statusHtml}</td>
-            <td class="lb-video">${videoHtml}</td>
-          </tr>`;
-      })
-      .join('');
-  }
-
-  async function loadLiveLeaderboard() {
+  async function loadLive() {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data, error } = await sb
+    const { data: rows, error } = await sb
       .from('public_leaderboard')
-      .select(
-        'driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url'
-      )
+      .select('driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url')
       .eq('track_id', TRACK_ID)
       .order('lap_time_ms', { ascending: true });
-
-    // Any error, or zero real rows (the normal pre-launch state): leave
-    // the build-time sample data exactly as rendered. Only swap in once
-    // there is at least one real accepted run to show.
-    if (error || !data || data.length === 0) return;
-
-    const rows = data as LiveRow[];
-    const tags = new Map<string, CrewTag>();
-    const ids = [...new Set(rows.map((r) => r.driver_id).filter(Boolean))];
+    if (error || !rows || rows.length === 0) return;
+    const live = rows as LiveRow[];
+    // Crew tag (RS-0024): active members of published crews, never anonymised drivers.
+    const tags = new Map<string, { tag: string; color: string }>();
+    const ids = [...new Set(live.map((r) => r.driver_id).filter(Boolean))];
     if (ids.length) {
       const roster = await sb.from('public_crew_roster').select('driver_id, tag, color').in('driver_id', ids.slice(0, 300));
       for (const r of (roster.data ?? []) as { driver_id: string; tag: string; color: string }[]) tags.set(r.driver_id, { tag: r.tag, color: r.color });
     }
-    renderLiveRows(rows, tags);
+    data = live.map((r) => ({
+      driver: r.driver, driver_id: r.driver_id, crew: tags.get(r.driver_id) ?? null,
+      vehicle_id: r.vehicle_id, make: r.make, model: r.model, logo: r.manufacturer_logo_slug,
+      lap_time_ms: r.lap_time_ms, entries: Number(r.track_entries) || 0,
+      verified: Boolean(r.video_verified), video_url: r.video_url,
+    }));
+    sample = false;
+    ($('lb-flag') as HTMLElement).hidden = true;
+    $('lb-needed').innerHTML = vehiclesNeededHtml(data);
+    draw();
   }
-
-  if (backendConfigured) {
-    loadLiveLeaderboard();
-  }
+  if (SUPABASE_URL && SUPABASE_ANON_KEY) loadLive();
 </script>
