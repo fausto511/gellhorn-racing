@@ -11,8 +11,8 @@ const groups: { label: string; rows: string[] }[] = [];
 for (const e of sampleEvents) {
   const label = monthLabel(e.starts_at, true);
   const last = groups[groups.length - 1];
-  if (last && last.label === label) last.rows.push(eventRowHtml(e));
-  else groups.push({ label, rows: [eventRowHtml(e)] });
+  if (last && last.label === label) last.rows.push(eventRowHtml(e, { sample: true }));
+  else groups.push({ label, rows: [eventRowHtml(e, { sample: true })] });
 }
 const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div class="ev-list">${g.rows.join('')}</div>`).join('');
 ---
@@ -48,7 +48,8 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
 </Base>
 
 <script>
-  import { sampleEvents, eventRowHtml, localizeTimes, monthLabel, esc, type HubEvent } from '../../../data/hub';
+  import { sampleEventsUpcoming, eventRowHtml, localizeTimes, monthLabel, esc, type HubEvent } from '../../../data/hub';
+  import { sampleRsvps, setSampleRsvp } from '../../../scripts/sample-rsvp';
   import { fetchLiveEvents } from '../../../scripts/hub-live';
   import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
 
@@ -58,7 +59,9 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   const typeSel = document.getElementById('ev-type') as HTMLSelectElement;
   const platSel = document.getElementById('ev-platform') as HTMLSelectElement;
 
-  let events: HubEvent[] = sampleEvents;
+  // Sample events (flagged) until real ones exist -- moved to upcoming dates so
+  // the sign-up demo keeps working after release (RS-0033).
+  let events: HubEvent[] = sampleEventsUpcoming();
   let live = false;
 
   function render() {
@@ -74,13 +77,13 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
         html += `<h2 class="ev-month">${label}</h2><div class="ev-list">`;
         current = label;
       }
-      html += eventRowHtml(e, { rsvp: live });
+      html += eventRowHtml(e, { rsvp: true, sample: !live });
     }
     if (current) html += '</div>';
     root.innerHTML = html;
     localizeTimes(root);
     emptyEl.hidden = list.length > 0;
-    if (live) renderRsvps();
+    renderRsvps();
   }
 
   // ---------------------------------------------------------------------
@@ -100,7 +103,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
       const id = slot.dataset.rsvp!;
       const e = events.find((x) => x.event_id === id);
       if (!e) return;
-      const names = going.get(id) ?? [];
+      const names = live ? (going.get(id) ?? []) : [...(e.sample_going ?? []), ...(mine.has(id) ? ['You'] : [])];
       const n = names.length;
       const max = e.max_participants ?? null;
       const full = max != null && n >= max;
@@ -137,6 +140,13 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   }
 
   async function join(id: string) {
+    if (!live) {
+      // sample event: demo only, stored in this browser
+      mine = setSampleRsvp(id, true);
+      note = { id, text: session ? 'You\u2019re in — shown in My Account > Events. Sample event: it won\u2019t take place.' : 'You\u2019re in (saved in this browser). Sample event: it won\u2019t take place.' };
+      renderRsvps();
+      return;
+    }
     if (!session) {
       const url = new URL(window.location.href); url.hash = ''; url.searchParams.set('rsvp', id);
       getSupabase().auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: url.toString(), scopes: 'identify email guilds.join' } });
@@ -148,6 +158,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
     await loadRsvps();
   }
   async function leave(id: string) {
+    if (!live) { mine = setSampleRsvp(id, false); note = { id, text: 'Cancelled.' }; renderRsvps(); return; }
     if (!me) return;
     const { error } = await getSupabase().from('hub_event_rsvps').delete().eq('event_id', id).eq('driver_id', me);
     note = error ? { id, text: 'That did not work — please try again.', err: true } : { id, text: 'Cancelled.' };
@@ -163,12 +174,15 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
 
   typeSel.addEventListener('change', render);
   platSel.addEventListener('change', render);
+  mine = sampleRsvps();
   render();
+  if (backendConfigured) getSupabase().auth.getSession().then(({ data }) => { if (!live) session = data?.session ?? null; });
 
   fetchLiveEvents().then(async (data) => {
     if (!data) return;
     events = data;
     live = true;
+    mine = new Set();
     flagEl.hidden = true;
     render();
     if (!backendConfigured) return;

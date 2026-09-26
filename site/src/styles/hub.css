@@ -130,3 +130,7 @@
   .ev-rsvp { flex-direction: row; flex-wrap: wrap; align-items: center; }
   .ev-going p { text-align: left; }
 }
+
+/* Sample events (RS-0033): clearly marked, but sign-up works as a demo */
+.chip-sample { color: var(--gh-red); background: rgba(237,37,61,.14); border-color: transparent; }
+.ev-rsvp-note { max-width: 16rem; color: var(--gh-muted); font-size: .72rem; text-align: right; }
