@@ -554,7 +554,8 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
           <label>Platform
             <select id="override-platform">
               <option value="ps5" ${run.platform === 'ps5' ? 'selected' : ''}>PS5</option>
-              ${run.platform === 'xbox_series' ? '<option value="xbox_series" selected>Xbox Series X|S</option>' : ''}
+              <option value="xbox_series" ${run.platform === 'xbox_series' ? 'selected' : 'disabled'}>Xbox Series X|S${run.platform === 'xbox_series' ? '' : ' — coming later'}</option>
+              <option value="pc" disabled>PC — coming later</option>
             </select>
           </label>
           <label>Game version

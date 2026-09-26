@@ -4,7 +4,7 @@ import PageHero from '../../../components/PageHero.astro';
 import HubSubnav from '../../../components/HubSubnav.astro';
 import '../../../styles/hub.css';
 import { sampleEvents, eventRowHtml, eventTypeLabels, platformLabels, monthLabel } from '../../../data/hub';
-import { SINGLE_PLATFORM } from '../../../data/platforms';
+import { PLATFORMS, ACTIVE_PLATFORMS } from '../../../data/platforms';
 
 // Build-time render (UTC) of the flagged sample events, grouped by month.
 const groups: { label: string; rows: string[] }[] = [];
@@ -33,9 +33,8 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
           <option value="">All event types</option>
           {Object.entries(eventTypeLabels).map(([k, v]) => <option value={k}>{v}</option>)}
         </select>
-        <select class="ui-select" id="ev-platform" hidden={SINGLE_PLATFORM} aria-label="Filter by platform">
-          <option value="">All platforms</option>
-          {Object.entries(platformLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        <select class="ui-select" id="ev-platform" aria-label="Filter by platform">
+          {PLATFORMS.map((p) => <option value={p.active && ACTIVE_PLATFORMS.length === 1 ? '' : p.id} disabled={!p.active} selected={p.id === 'ps5'}>{p.active ? p.label : `${p.label} — coming later`}</option>)}
         </select>
       </div>
       <span class="hub-sample-flag" id="ev-flag">Sample data — example events, not real</span>

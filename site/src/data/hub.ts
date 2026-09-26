@@ -49,12 +49,10 @@ export interface HubEvent {
   max_participants?: number | null;
 }
 
-import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from './platforms';
-const allPlatformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbox Series X|S' };
-/** Only platforms active on the site (DEC-0073: PS5 only at launch). */
-export const platformLabels = Object.fromEntries(Object.entries(allPlatformLabels).filter(([k]) => (ACTIVE_PLATFORMS as readonly string[]).includes(k))) as Record<string, string>;
-/** Platform chips: hidden while only one platform is active, inactive ones never shown. */
-const platformChips = (list: Platform[]) => (SINGLE_PLATFORM ? '' : list.filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p)).map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join(''));
+import { ACTIVE_PLATFORMS } from './platforms';
+export const platformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbox Series X|S' };
+/** Platform chips: only active platforms (DEC-0073: PS5 at launch). */
+const platformChips = (list: Platform[]) => list.filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p)).map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join('');
 export const platformShort: Record<Platform, string> = { ps5: 'PS5', xbox: 'XBOX' };
 export const focusLabels: Record<CrewFocus, string> = {
   racing: 'Racing',

@@ -5,7 +5,7 @@
 // the driver leads / the events they run. RLS enforces the same rules.
 import '../styles/hub.css';
 import { eventTypeLabels, focusLabels, platformLabels } from '../data/hub';
-import { SINGLE_PLATFORM } from '../data/platforms';
+import { PLATFORMS, comingLater } from '../data/platforms';
 interface Props { mode: 'moderator' | 'crew' | 'events'; }
 const { mode } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -59,8 +59,10 @@ const base = import.meta.env.BASE_URL;
               <label>Crew color *<span class="color-row"><input type="color" name="color_picker" value="#ed253d" /><input type="text" name="color" value="#ed253d" maxlength="7" /></span></label>
               <label data-mod-only>URL slug * <small>auto from name</small><input type="text" name="slug" maxlength="48" required /></label>
               <label>Members <small>optional, e.g. from Social Club</small><input type="number" name="member_count" min="0" step="1" /></label>
-              <fieldset class="span2" hidden={SINGLE_PLATFORM}><legend>Platforms</legend>
-                {Object.entries(platformLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="platforms" value={k} /> {v}</label>)}
+              <fieldset class="span2 platforms-set"><legend>Platforms</legend>
+                {PLATFORMS.map((p) => p.active
+                  ? <label class="check"><input type="checkbox" name="platforms" value={p.id} checked data-locked /> {p.label}</label>
+                  : <label class="check is-soon" title={comingLater(p)}><input type="checkbox" disabled /> {p.label} <span class="soon">Coming later</span></label>)}
               </fieldset>
               <fieldset class="span2"><legend>Focus</legend>
                 {Object.entries(focusLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="focus" value={k} /> {v}</label>)}
@@ -101,8 +103,10 @@ const base = import.meta.env.BASE_URL;
               <label>Status<select name="status"><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label>
               <label>Start * <small id="tz-hint">your local time</small><input type="datetime-local" name="starts_at" required /></label>
               <label>End <small>optional</small><input type="datetime-local" name="ends_at" /></label>
-              <fieldset class="span2" hidden={SINGLE_PLATFORM}><legend>Platforms</legend>
-                {Object.entries(platformLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="platforms" value={k} /> {v}</label>)}
+              <fieldset class="span2 platforms-set"><legend>Platforms</legend>
+                {PLATFORMS.map((p) => p.active
+                  ? <label class="check"><input type="checkbox" name="platforms" value={p.id} checked data-locked /> {p.label}</label>
+                  : <label class="check is-soon" title={comingLater(p)}><input type="checkbox" disabled /> {p.label} <span class="soon">Coming later</span></label>)}
               </fieldset>
               <label>Host crew <small>shown with the event</small><select name="host_crew_id"><option value="">— none —</option></select></label>
               <label>Host name <small>if not a listed crew</small><input type="text" name="host_name" maxlength="60" /></label>
@@ -221,6 +225,9 @@ const base = import.meta.env.BASE_URL;
   fieldset { border: 1px solid var(--gh-line); border-radius: var(--gh-radius); padding: .6rem .8rem .7rem; margin: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
   fieldset legend { padding: 0 .3rem; }
   fieldset[hidden] { display: none; }
+  .hc-form label.check.is-soon { color: var(--gh-muted); cursor: not-allowed; }
+  .check.is-soon input { cursor: not-allowed; }
+  .soon { padding: .1rem .45rem; border-radius: 999px; border: 1px solid var(--gh-line); font-size: .66rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--gh-muted); }
   .hc-form label.check { flex-direction: row; align-items: center; gap: .45rem; text-transform: none; letter-spacing: 0; font-size: .86rem; font-weight: 600; color: var(--gh-text); }
   .check input { width: 1rem; height: 1rem; accent-color: var(--gh-red); }
 
@@ -254,9 +261,17 @@ const base = import.meta.env.BASE_URL;
 <script>
   import { getSupabase, backendConfigured } from '../scripts/supabase-client';
   import { crewCardHtml, eventRowHtml, crewTagHtml, esc, localizeTimes, type HubCrew, type HubEvent } from '../data/hub';
-  import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from '../data/platforms';
-  // DEC-0073: with one active platform the checkboxes are hidden and it is set automatically.
-  const platformsFrom = (fd: FormData) => (SINGLE_PLATFORM ? [...ACTIVE_PLATFORMS] : (fd.getAll('platforms') as string[]));
+  import { ACTIVE_PLATFORMS } from '../data/platforms';
+  // DEC-0073: only active platforms can be saved; PS5 is always set while it is the only one.
+  const platformsFrom = (fd: FormData) => {
+    const picked = (fd.getAll('platforms') as string[]).filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p as never));
+    return picked.length ? picked : [...ACTIVE_PLATFORMS];
+  };
+  // The only active platform cannot be unticked (a crew/event without platform makes no sense).
+  document.addEventListener('click', (ev) => {
+    const box = (ev.target as HTMLElement).closest<HTMLInputElement>('input[data-locked]');
+    if (box && ACTIVE_PLATFORMS.length === 1) { ev.preventDefault(); box.checked = true; }
+  });
 
   type Kind = 'crews' | 'events' | 'roles' | 'requests';
   // 'moderator' = full admin view (/moderator/hub/); 'crew' / 'events' =
@@ -521,7 +536,7 @@ const base = import.meta.env.BASE_URL;
     cf.is_published.checked = Boolean(r.is_published);
     const ps = crewForm.querySelector<HTMLElement>('.pub-state')!;
     ps.textContent = r.is_published ? 'Live on the site' : 'Draft — a moderator publishes it';
-    crewForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value)));
+    crewForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value) || (ACTIVE_PLATFORMS.length === 1 && i.hasAttribute('data-locked'))));
     crewForm.querySelectorAll<HTMLInputElement>('input[name="focus"]').forEach((i) => (i.checked = (r.focus ?? []).includes(i.value)));
     resetDelete(crewForm, Boolean(row));
     markInvalid(crewForm, []);
@@ -618,7 +633,7 @@ const base = import.meta.env.BASE_URL;
     ef.host_crew_id.value = r.host_crew_id ?? '';
     ef.is_published.checked = row ? Boolean(r.is_published) : true;
     ef.max_participants.value = r.max_participants ?? '';
-    eventForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value)));
+    eventForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value) || (ACTIVE_PLATFORMS.length === 1 && i.hasAttribute('data-locked'))));
     resetDelete(eventForm, Boolean(row));
     markInvalid(eventForm, []);
     msg(eventForm, '');

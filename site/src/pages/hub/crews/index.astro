@@ -4,7 +4,7 @@ import PageHero from '../../../components/PageHero.astro';
 import HubSubnav from '../../../components/HubSubnav.astro';
 import '../../../styles/hub.css';
 import { sampleCrews, crewCardHtml, focusLabels, platformLabels } from '../../../data/hub';
-import { SINGLE_PLATFORM } from '../../../data/platforms';
+import { PLATFORMS, ACTIVE_PLATFORMS } from '../../../data/platforms';
 
 const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
 ---
@@ -26,9 +26,8 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
           <option value="">All focus areas</option>
           {Object.entries(focusLabels).map(([k, v]) => <option value={k}>{v}</option>)}
         </select>
-        <select class="ui-select" id="crew-platform" hidden={SINGLE_PLATFORM} aria-label="Filter by platform">
-          <option value="">All platforms</option>
-          {Object.entries(platformLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        <select class="ui-select" id="crew-platform" aria-label="Filter by platform">
+          {PLATFORMS.map((p) => <option value={p.active && ACTIVE_PLATFORMS.length === 1 ? '' : p.id} disabled={!p.active} selected={p.id === 'ps5'}>{p.active ? p.label : `${p.label} — coming later`}</option>)}
         </select>
       </div>
       <span class="hub-sample-flag" id="crew-flag">Sample data — example crews, not real</span>

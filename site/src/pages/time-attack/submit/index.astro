@@ -3,11 +3,8 @@ import Base from '../../../layouts/Base.astro';
 import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 import { vehicleOptions } from '../../../data/vehicles';
 
-import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from '../../../data/platforms';
-// DEC-0073: PS5 only at launch -> no platform step, PS5 is sent automatically.
-const PLATFORM_LABELS: Record<string, string> = { ps5: 'PS5', xbox_series: 'Xbox Series X|S' };
-const PLATFORMS = ACTIVE_PLATFORMS.map((value) => ({ value, label: PLATFORM_LABELS[value] ?? value }));
-const n = (i: number) => (SINGLE_PLATFORM && i > 2 ? i - 1 : i); // step numbers
+import { PLATFORMS, comingLater } from '../../../data/platforms';
+// DEC-0073: PS5 selectable; Xbox Series X|S and PC visible but greyed out (coming later).
 // Vehicle list grouped by manufacturer -- a 100+ entry flat list is hard to
 // scroll on a phone; the native picker shows the groups as headers.
 const byMake = new Map<string, typeof vehicleOptions>();
@@ -77,21 +74,20 @@ const byMake = new Map<string, typeof vehicleOptions>();
         <p class="hint">Must clearly show driver name, vehicle and lap time. Stored privately, never published. On PS5: share the screenshot to the PlayStation App, save it to your phone, then add it here.</p>
       </div>
 
-      {SINGLE_PLATFORM ? (
-        <input type="hidden" name="platform" value={PLATFORMS[0].value} />
-      ) : (
-        <div class="field">
-          <span class="field-label" id="platform-label">2 · Platform</span>
-          <div class="seg" role="radiogroup" aria-labelledby="platform-label">
-            {PLATFORMS.map((p, i) => (
-              <label class="seg-opt"><input type="radio" name="platform" value={p.value} checked={i === 0} /><span>{p.label}</span></label>
-            ))}
-          </div>
+      <div class="field">
+        <span class="field-label" id="platform-label">2 · Platform</span>
+        <div class="seg" role="radiogroup" aria-labelledby="platform-label">
+          {PLATFORMS.map((p) => p.active ? (
+            <label class="seg-opt"><input type="radio" name="platform" value={p.runValue} checked /><span>{p.label}</span></label>
+          ) : (
+            <label class="seg-opt is-soon" title={comingLater(p)}><input type="radio" name="platform" value={p.runValue} disabled /><span>{p.label}<small>Coming later</small></span></label>
+          ))}
         </div>
-      )}
+        <p class="hint">Gellhorn Time Attack runs on PS5 for now. Xbox Series X|S and PC will follow later.</p>
+      </div>
 
       <div class="field">
-        <label class="field-label" for="vehicle_id">{n(3)} · Vehicle</label>
+        <label class="field-label" for="vehicle_id">3 · Vehicle</label>
         <select id="vehicle_id" name="vehicle_id" required>
           <option value="" disabled selected>Select the vehicle you drove</option>
           {[...byMake.entries()].map(([make, list]) => (
@@ -103,7 +99,7 @@ const byMake = new Map<string, typeof vehicleOptions>();
       </div>
 
       <div class="field">
-        <label class="field-label" for="lap_time">{n(4)} · Lap time</label>
+        <label class="field-label" for="lap_time">4 · Lap time</label>
         <input id="lap_time" name="lap_time" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="1:24.683" required />
         <p class="hint">Just type the digits — <strong>124683</strong> becomes <strong>1:24.683</strong>.</p>
       </div>
@@ -199,11 +195,15 @@ const byMake = new Map<string, typeof vehicleOptions>();
   .link-btn { background: none; border: none; padding: .3rem 0; color: var(--gh-text); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
   /* ---- platform segmented control: one tap instead of a dropdown ---- */
-  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; }
   .seg-opt { position: relative; }
   .seg-opt input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
   .seg-opt span { display: flex; align-items: center; justify-content: center; min-height: 2.9rem; padding: .5rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-muted); font-weight: 700; font-size: .9rem; text-align: center; }
   .seg-opt input:checked + span { border-color: var(--gh-yellow); color: var(--gh-text); background: rgba(255,215,76,.08); box-shadow: inset 0 0 0 1px var(--gh-yellow); }
+  .seg-opt span small { display: block; margin-top: .15rem; font-size: .64rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--gh-muted); }
+  .seg-opt span { flex-direction: column; }
+  .seg-opt.is-soon span { opacity: .5; border-style: dashed; }
+  .seg-opt.is-soon, .seg-opt.is-soon input { cursor: not-allowed; }
   .seg-opt input:focus-visible + span { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
 
   .more { border-top: 1px solid var(--gh-line); padding-top: 1rem; }
