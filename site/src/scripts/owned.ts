@@ -12,11 +12,16 @@ export async function currentDriverId(): Promise<string | null> {
   return (own.data?.driver_id as string) ?? null;
 }
 
+/** owned vehicle ids, oldest first (= the order the driver added them) */
+export async function fetchOwnedList(): Promise<string[]> {
+  if (!backendConfigured) return [];
+  const { data, error } = await getSupabase().from('owned_vehicles').select('vehicle_id, created_at').order('created_at', { ascending: true });
+  if (error) return [];
+  return (data ?? []).map((r: { vehicle_id: string }) => r.vehicle_id);
+}
+
 export async function fetchOwned(): Promise<Set<string>> {
-  if (!backendConfigured) return new Set();
-  const { data, error } = await getSupabase().from('owned_vehicles').select('vehicle_id');
-  if (error) return new Set();
-  return new Set((data ?? []).map((r: { vehicle_id: string }) => r.vehicle_id));
+  return new Set(await fetchOwnedList());
 }
 
 /** true = now owned, false = now not owned; throws on error */
