@@ -410,7 +410,8 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
           const { data: lbRows } = await sb
             .from('public_leaderboard')
             .select('driver_id, lap_time_ms')
-            .eq('vehicle_id', run.vehicle_id);
+            .eq('vehicle_id', run.vehicle_id)
+            .eq('platform', 'ps5'); // DEC-0073: PS5 board only
           const bestPerDriver = new Map();
           for (const row of lbRows ?? []) {
             const prev = bestPerDriver.get(row.driver_id);

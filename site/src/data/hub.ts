@@ -49,7 +49,12 @@ export interface HubEvent {
   max_participants?: number | null;
 }
 
-export const platformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbox Series X|S' };
+import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from './platforms';
+const allPlatformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbox Series X|S' };
+/** Only platforms active on the site (DEC-0073: PS5 only at launch). */
+export const platformLabels = Object.fromEntries(Object.entries(allPlatformLabels).filter(([k]) => (ACTIVE_PLATFORMS as readonly string[]).includes(k))) as Record<string, string>;
+/** Platform chips: hidden while only one platform is active, inactive ones never shown. */
+const platformChips = (list: Platform[]) => (SINGLE_PLATFORM ? '' : list.filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p)).map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join(''));
 export const platformShort: Record<Platform, string> = { ps5: 'PS5', xbox: 'XBOX' };
 export const focusLabels: Record<CrewFocus, string> = {
   racing: 'Racing',
@@ -73,10 +78,10 @@ export const eventTypeLabels: Record<EventType, string> = {
 // ---------------------------------------------------------------------------
 export const sampleCrews: HubCrew[] = [
   { slug: 'sample-apex-syndicate', name: 'Apex Syndicate', tag: 'APEX', color: '#ed253d', platforms: ['ps5'], focus: ['racing', 'league'], region: 'Europe', language: 'English', description: 'Clean, competitive circuit racing with weekly league nights. Sample entry.', member_count: 142, discord_url: null, social_club_url: null, is_partner: true },
-  { slug: 'sample-vice-drift-union', name: 'Vice Drift Union', tag: 'VDRU', color: '#ff7ab6', platforms: ['ps5', 'xbox'], focus: ['drift', 'car-meet'], region: 'North America', language: 'English', description: 'Tandem drift sessions and themed car meets. Sample entry.', member_count: 88, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-leonida-lap-club', name: 'Leonida Lap Club', tag: 'LLAP', color: '#ffd74c', platforms: ['xbox'], focus: ['time-attack', 'racing'], region: 'Worldwide', language: 'English', description: 'Hotlap hunters chasing tenths on every board. Sample entry.', member_count: 37, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-vice-drift-union', name: 'Vice Drift Union', tag: 'VDRU', color: '#ff7ab6', platforms: ['ps5'], focus: ['drift', 'car-meet'], region: 'North America', language: 'English', description: 'Tandem drift sessions and themed car meets. Sample entry.', member_count: 88, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-leonida-lap-club', name: 'Leonida Lap Club', tag: 'LLAP', color: '#ffd74c', platforms: ['ps5'], focus: ['time-attack', 'racing'], region: 'Worldwide', language: 'English', description: 'Hotlap hunters chasing tenths on every board. Sample entry.', member_count: 37, discord_url: null, social_club_url: null, is_partner: false },
   { slug: 'sample-nordring-crew', name: 'Nordring Crew', tag: 'NRDC', color: '#3fa7ff', platforms: ['ps5'], focus: ['racing', 'cruise'], region: 'Europe', language: 'German', description: 'German-speaking racing crew with relaxed Sunday cruises. Sample entry.', member_count: 64, discord_url: null, social_club_url: null, is_partner: false },
-  { slug: 'sample-gulf-coast-racing', name: 'Gulf Coast Racing', tag: 'GCRX', color: '#27c281', platforms: ['ps5', 'xbox'], focus: ['league'], region: 'North America', language: 'English', description: 'Season-based league with fixed grids and stewarding. Sample entry.', member_count: 210, discord_url: null, social_club_url: null, is_partner: false },
+  { slug: 'sample-gulf-coast-racing', name: 'Gulf Coast Racing', tag: 'GCRX', color: '#27c281', platforms: ['ps5'], focus: ['league'], region: 'North America', language: 'English', description: 'Season-based league with fixed grids and stewarding. Sample entry.', member_count: 210, discord_url: null, social_club_url: null, is_partner: false },
   { slug: 'sample-midnight-meet', name: 'Midnight Meet', tag: 'MNMT', color: '#9b6bff', platforms: ['ps5'], focus: ['car-meet', 'cruise'], region: 'Europe', language: 'English', description: 'Late-night meets, photo spots and convoy cruises. Sample entry.', member_count: 51, discord_url: null, social_club_url: null, is_partner: false },
 ];
 
@@ -88,11 +93,11 @@ const sampleHost = (slug: string) => {
 // Dated after the GTA VI release (2026-11-19) on purpose.
 export const sampleEvents: HubEvent[] = [
   { event_id: 's1', title: 'Launch Night Grid Run', event_type: 'race', starts_at: '2026-11-21T19:00:00Z', ends_at: '2026-11-21T21:00:00Z', platforms: ['ps5'], host_name: null, location: 'Vice City Downtown', description: 'Open lobby, clean racing, stock vehicles. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-apex-syndicate') },
-  { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5', 'xbox'], host_name: null, location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet') },
-  { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['xbox'], host_name: null, location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club') },
-  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5', 'xbox'], host_name: null, location: null, description: 'Qualifying plus two races. Registration required. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing') },
+  { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet') },
+  { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['ps5'], host_name: null, location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club') },
+  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: null, description: 'Qualifying plus two races. Registration required. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing') },
   { event_id: 's5', title: 'Everglades Sunday Cruise', event_type: 'cruise', starts_at: '2026-11-29T16:00:00Z', ends_at: null, platforms: ['ps5'], host_name: null, location: 'Leonida Keys', description: 'Slow convoy, no racing. Sample event.', join_url: null, status: 'cancelled', host: sampleHost('sample-nordring-crew') },
-  { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5', 'xbox'], host_name: 'Open community event', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null },
+  { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'Open community event', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null },
 ];
 
 // ---------------------------------------------------------------------------
@@ -157,7 +162,7 @@ export function crewCardHtml(c: HubCrew, roster?: string[]): string {
   </div>
   ${c.description ? `<p class="crew-desc">${esc(c.description)}</p>` : ''}
   <div class="crew-chips">
-    ${c.platforms.map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join('')}
+    ${platformChips(c.platforms)}
     ${c.focus.map((f) => `<span class="chip">${esc(focusLabels[f] ?? f)}</span>`).join('')}
   </div>
   ${roster && roster.length ? `<details class="crew-roster"><summary>Roster · ${roster.length} driver${roster.length === 1 ? '' : 's'}</summary><ul>${roster.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></details>` : ''}
@@ -199,7 +204,7 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean } = {}): string
     <div class="ev-top">
       <span class="chip chip-type chip-${esc(e.event_type)}">${esc(eventTypeLabels[e.event_type] ?? e.event_type)}</span>
       ${cancelled ? '<span class="chip chip-cancelled">Cancelled</span>' : ''}
-      ${e.platforms.map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join('')}
+      ${platformChips(e.platforms)}
     </div>
     <h3 class="ev-title">${esc(e.title)}</h3>
     <p class="ev-facts">

@@ -3,10 +3,11 @@ import Base from '../../../layouts/Base.astro';
 import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
 import { vehicleOptions } from '../../../data/vehicles';
 
-const PLATFORMS = [
-  { value: 'ps5', label: 'PS5' },
-  { value: 'xbox_series', label: 'Xbox Series X|S' },
-];
+import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from '../../../data/platforms';
+// DEC-0073: PS5 only at launch -> no platform step, PS5 is sent automatically.
+const PLATFORM_LABELS: Record<string, string> = { ps5: 'PS5', xbox_series: 'Xbox Series X|S' };
+const PLATFORMS = ACTIVE_PLATFORMS.map((value) => ({ value, label: PLATFORM_LABELS[value] ?? value }));
+const n = (i: number) => (SINGLE_PLATFORM && i > 2 ? i - 1 : i); // step numbers
 // Vehicle list grouped by manufacturer -- a 100+ entry flat list is hard to
 // scroll on a phone; the native picker shows the groups as headers.
 const byMake = new Map<string, typeof vehicleOptions>();
@@ -16,7 +17,7 @@ const byMake = new Map<string, typeof vehicleOptions>();
 ---
 <Base
   title="Submit a Lap — Gellhorn Time Attack"
-  description="Submit your Gellhorn International Raceway lap time: vehicle, platform, lap time, and proof."
+  description="Submit your Gellhorn International Raceway PS5 lap time: vehicle, lap time and proof."
   section="time-attack"
 >
   <TimeAttackSubnav />
@@ -76,17 +77,21 @@ const byMake = new Map<string, typeof vehicleOptions>();
         <p class="hint">Must clearly show driver name, vehicle and lap time. Stored privately, never published. On PS5: share the screenshot to the PlayStation App, save it to your phone, then add it here.</p>
       </div>
 
-      <div class="field">
-        <span class="field-label" id="platform-label">2 · Platform</span>
-        <div class="seg" role="radiogroup" aria-labelledby="platform-label">
-          {PLATFORMS.map((p, i) => (
-            <label class="seg-opt"><input type="radio" name="platform" value={p.value} checked={i === 0} /><span>{p.label}</span></label>
-          ))}
+      {SINGLE_PLATFORM ? (
+        <input type="hidden" name="platform" value={PLATFORMS[0].value} />
+      ) : (
+        <div class="field">
+          <span class="field-label" id="platform-label">2 · Platform</span>
+          <div class="seg" role="radiogroup" aria-labelledby="platform-label">
+            {PLATFORMS.map((p, i) => (
+              <label class="seg-opt"><input type="radio" name="platform" value={p.value} checked={i === 0} /><span>{p.label}</span></label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div class="field">
-        <label class="field-label" for="vehicle_id">3 · Vehicle</label>
+        <label class="field-label" for="vehicle_id">{n(3)} · Vehicle</label>
         <select id="vehicle_id" name="vehicle_id" required>
           <option value="" disabled selected>Select the vehicle you drove</option>
           {[...byMake.entries()].map(([make, list]) => (
@@ -98,7 +103,7 @@ const byMake = new Map<string, typeof vehicleOptions>();
       </div>
 
       <div class="field">
-        <label class="field-label" for="lap_time">4 · Lap time</label>
+        <label class="field-label" for="lap_time">{n(4)} · Lap time</label>
         <input id="lap_time" name="lap_time" type="text" inputmode="numeric" autocomplete="off" enterkeyhint="done" placeholder="1:24.683" required />
         <p class="hint">Just type the digits — <strong>124683</strong> becomes <strong>1:24.683</strong>.</p>
       </div>

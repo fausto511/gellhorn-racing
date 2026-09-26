@@ -5,6 +5,7 @@
 // the driver leads / the events they run. RLS enforces the same rules.
 import '../styles/hub.css';
 import { eventTypeLabels, focusLabels, platformLabels } from '../data/hub';
+import { SINGLE_PLATFORM } from '../data/platforms';
 interface Props { mode: 'moderator' | 'crew' | 'events'; }
 const { mode } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -58,7 +59,7 @@ const base = import.meta.env.BASE_URL;
               <label>Crew color *<span class="color-row"><input type="color" name="color_picker" value="#ed253d" /><input type="text" name="color" value="#ed253d" maxlength="7" /></span></label>
               <label data-mod-only>URL slug * <small>auto from name</small><input type="text" name="slug" maxlength="48" required /></label>
               <label>Members <small>optional, e.g. from Social Club</small><input type="number" name="member_count" min="0" step="1" /></label>
-              <fieldset class="span2"><legend>Platforms</legend>
+              <fieldset class="span2" hidden={SINGLE_PLATFORM}><legend>Platforms</legend>
                 {Object.entries(platformLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="platforms" value={k} /> {v}</label>)}
               </fieldset>
               <fieldset class="span2"><legend>Focus</legend>
@@ -100,7 +101,7 @@ const base = import.meta.env.BASE_URL;
               <label>Status<select name="status"><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option></select></label>
               <label>Start * <small id="tz-hint">your local time</small><input type="datetime-local" name="starts_at" required /></label>
               <label>End <small>optional</small><input type="datetime-local" name="ends_at" /></label>
-              <fieldset class="span2"><legend>Platforms</legend>
+              <fieldset class="span2" hidden={SINGLE_PLATFORM}><legend>Platforms</legend>
                 {Object.entries(platformLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="platforms" value={k} /> {v}</label>)}
               </fieldset>
               <label>Host crew <small>shown with the event</small><select name="host_crew_id"><option value="">— none —</option></select></label>
@@ -219,6 +220,7 @@ const base = import.meta.env.BASE_URL;
   .color-row input[type="text"] { flex: 1; min-width: 0; }
   fieldset { border: 1px solid var(--gh-line); border-radius: var(--gh-radius); padding: .6rem .8rem .7rem; margin: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
   fieldset legend { padding: 0 .3rem; }
+  fieldset[hidden] { display: none; }
   .hc-form label.check { flex-direction: row; align-items: center; gap: .45rem; text-transform: none; letter-spacing: 0; font-size: .86rem; font-weight: 600; color: var(--gh-text); }
   .check input { width: 1rem; height: 1rem; accent-color: var(--gh-red); }
 
@@ -252,6 +254,9 @@ const base = import.meta.env.BASE_URL;
 <script>
   import { getSupabase, backendConfigured } from '../scripts/supabase-client';
   import { crewCardHtml, eventRowHtml, crewTagHtml, esc, localizeTimes, type HubCrew, type HubEvent } from '../data/hub';
+  import { ACTIVE_PLATFORMS, SINGLE_PLATFORM } from '../data/platforms';
+  // DEC-0073: with one active platform the checkboxes are hidden and it is set automatically.
+  const platformsFrom = (fd: FormData) => (SINGLE_PLATFORM ? [...ACTIVE_PLATFORMS] : (fd.getAll('platforms') as string[]));
 
   type Kind = 'crews' | 'events' | 'roles' | 'requests';
   // 'moderator' = full admin view (/moderator/hub/); 'crew' / 'events' =
@@ -465,7 +470,7 @@ const base = import.meta.env.BASE_URL;
       name: String(fd.get('name') ?? '').trim(),
       tag: String(fd.get('tag') ?? '').trim().toUpperCase(),
       color: String(fd.get('color') ?? '').trim().toLowerCase(),
-      platforms: fd.getAll('platforms') as any,
+      platforms: platformsFrom(fd) as any,
       focus: fd.getAll('focus') as any,
       region: blank(fd.get('region')),
       language: blank(fd.get('language')),
@@ -565,7 +570,7 @@ const base = import.meta.env.BASE_URL;
       status: String(fd.get('status')),
       starts_at: fromLocalInput(String(fd.get('starts_at') ?? '')),
       ends_at: fromLocalInput(String(fd.get('ends_at') ?? '')),
-      platforms: fd.getAll('platforms') as string[],
+      platforms: platformsFrom(fd),
       host_crew_id: blank(fd.get('host_crew_id')),
       host_name: blank(fd.get('host_name')),
       location: blank(fd.get('location')),

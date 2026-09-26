@@ -186,7 +186,7 @@ const base = import.meta.env.BASE_URL;
     const sb = getSupabase();
     const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
     me = own.data?.driver_id ?? null;
-    const { data } = await sb.from('public_leaderboard').select('run_id, driver, make, model, lap_time_ms').order('make').order('model').order('lap_time_ms');
+    const { data } = await sb.from('public_leaderboard').select('run_id, driver, make, model, lap_time_ms').eq('platform', 'ps5').order('make').order('model').order('lap_time_ms');
     entries = (data ?? []) as Entry[];
     renderResults();
     if (me) await loadMine();

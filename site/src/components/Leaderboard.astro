@@ -167,6 +167,7 @@ const needed = vehiclesNeededHtml(sampleEntries);
   // returns at least one row (pre-launch: zero rows -> sample stays, flagged).
   // TRACK_ID is fixed while Gellhorn is the only track.
   import { createClient } from '@supabase/supabase-js';
+  import { LEADERBOARD_PLATFORM } from '../data/platforms';
   import { sampleEntries, initialState, render, vehiclesNeededHtml, vehicleSelectHtml, type LbEntry, type LbState } from '../data/leaderboard';
 
   const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
@@ -233,6 +234,7 @@ const needed = vehiclesNeededHtml(sampleEntries);
       .from('public_leaderboard')
       .select('driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url')
       .eq('track_id', TRACK_ID)
+      .eq('platform', LEADERBOARD_PLATFORM) // DEC-0073: PS5 board only
       .order('lap_time_ms', { ascending: true });
     if (error || !rows || rows.length === 0) return;
     const live = rows as LiveRow[];
