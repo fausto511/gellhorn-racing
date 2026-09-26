@@ -1,0 +1,120 @@
+---
+// My Account > Settings (RS-0032): display name, hide name, sign-out.
+// Moved out of the Time Attack tab so it is easy to find.
+import Base from '../../../layouts/Base.astro';
+import AccountSubnav from '../../../components/AccountSubnav.astro';
+---
+<Base
+  title="Settings — My Account"
+  description="Your account settings: display name, name visibility and sign-out."
+  section="account"
+  noindex
+>
+  <section class="wrap account-wrap">
+    <p class="eyebrow">Private Driver Area</p>
+    <h1 class="display account-title">My Account</h1>
+    <AccountSubnav active="settings" />
+
+    <div id="acc-auth" class="panel acc-auth" hidden>
+      <p>Sign in with Discord to change your settings.</p>
+      <button type="button" id="acc-signin" class="btn btn-outline">Sign in with Discord</button>
+    </div>
+
+    <div id="acc-body" hidden>
+      <div class="panel settings-card">
+        <label class="field">
+          <span>Display Name</span>
+          <input id="display-name-input" type="text" maxlength="40" />
+        </label>
+        <button type="button" id="save-name-btn" class="btn btn-outline">Save</button>
+
+        <label class="field field-checkbox">
+          <input id="hide-name-input" type="checkbox" />
+          <span>Hide my name publicly (your lap times stay visible, just without your name attached)</span>
+        </label>
+
+        <div class="field account-status">
+          <span>Account</span>
+          <div class="account-status-row">
+            <p>Signed in as <strong id="auth-user-label"></strong>.</p>
+            <button type="button" id="discord-signout-btn" class="btn btn-outline">Sign out</button>
+          </div>
+        </div>
+
+        <p id="settings-msg" class="settings-msg" hidden></p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .account-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  .account-title { margin: .4rem 0 1.2rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .acc-auth { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .acc-auth p { margin: 0; font-size: .88rem; }
+  .settings-card { padding: var(--gh-pad-card); display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.5rem; }
+  .settings-card .field { display: flex; flex-direction: column; gap: .4rem; flex: 1 1 16rem; }
+  .settings-card .field span { font-weight: 700; font-size: .85rem; }
+  .account-status { padding-left: 1.75rem; border-left: 1px solid var(--gh-line); }
+  .account-status-row { display: flex; align-items: center; flex-wrap: wrap; gap: .9rem; padding-block: .05rem; }
+  .account-status-row p { margin: 0; font-size: .88rem; }
+  .settings-card input[type="text"] { padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font-size: .9rem; font-family: var(--gh-font-body); }
+  .settings-card input:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  .settings-msg { flex-basis: 100%; margin: 0; font-size: .82rem; }
+  .settings-msg.is-error { color: var(--gh-red); }
+  .settings-msg.is-ok { color: #4fd1c5; }
+  .field-checkbox { flex-direction: row !important; align-items: flex-start; gap: .6rem; }
+  .field-checkbox input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--gh-yellow); }
+  .field-checkbox span { font-size: .85rem; color: var(--gh-muted); font-weight: 400 !important; }
+  @media (max-width: 700px) { .account-status { padding-left: 0; border-left: none; } }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const nameEl = $<HTMLInputElement>('display-name-input');
+  const hideEl = $<HTMLInputElement>('hide-name-input');
+  const msgEl = $('settings-msg');
+  let session: any = null;
+
+  function msg(text: string, ok: boolean) {
+    msgEl.hidden = false;
+    msgEl.className = `settings-msg ${ok ? 'is-ok' : 'is-error'}`;
+    msgEl.textContent = text;
+  }
+
+  async function init(s: any) {
+    session = s;
+    $('acc-auth').hidden = Boolean(s);
+    $('acc-body').hidden = !s;
+    if (!s) return;
+    $('auth-user-label').textContent = s.user.user_metadata?.full_name ?? s.user.user_metadata?.name ?? s.user.email ?? s.user.id;
+    const { data } = await getSupabase().from('drivers').select('display_name, hide_display_name').eq('auth_user_id', s.user.id).maybeSingle();
+    if (data) { nameEl.value = data.display_name ?? ''; hideEl.checked = Boolean(data.hide_display_name); }
+  }
+
+  if (backendConfigured) {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+    $('acc-signin').addEventListener('click', () => {
+      sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname, scopes: 'identify email guilds.join' } });
+    });
+    $('discord-signout-btn').addEventListener('click', () => sb.auth.signOut());
+    $('save-name-btn').addEventListener('click', async () => {
+      if (!session) return;
+      const name = nameEl.value.trim();
+      if (!name) return msg('Display name cannot be empty.', false);
+      const { error } = await sb.from('drivers').update({ display_name: name }).eq('auth_user_id', session.user.id);
+      msg(error ? 'Could not save — please try again.' : 'Saved.', !error);
+    });
+    hideEl.addEventListener('change', async () => {
+      if (!session) return;
+      const want = hideEl.checked;
+      const { error } = await sb.from('drivers').update({ hide_display_name: want }).eq('auth_user_id', session.user.id);
+      if (error) { hideEl.checked = !want; return msg('Could not save — please try again.', false); }
+      msg(want ? 'Saved. Your name is now hidden on public pages — your times stay visible.' : 'Saved. Your name is shown on public pages again.', true);
+    });
+  }
+</script>

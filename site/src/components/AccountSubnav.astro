@@ -1,13 +1,16 @@
 ---
-// My Account sub-navigation (RS-0026): Time Attack (default) / Crew / Events.
+// My Account sub-navigation (RS-0026, RS-0032): Time Attack (default) /
+// Garage / Crew / Events / Settings.
 // Same visual language as HubSubnav / TimeAttackSubnav.
-interface Props { active: 'time-attack' | 'crew' | 'events'; }
+interface Props { active: 'time-attack' | 'garage' | 'crew' | 'events' | 'settings'; }
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const links = [
   { key: 'time-attack', label: 'Time Attack', href: `${base}account/` },
+  { key: 'garage', label: 'Garage', href: `${base}account/garage/` },
   { key: 'crew', label: 'Crew', href: `${base}account/crew/` },
   { key: 'events', label: 'Events', href: `${base}account/events/` },
+  { key: 'settings', label: 'Settings', href: `${base}account/settings/` },
 ];
 ---
 <nav class="acc-subnav" aria-label="My Account">
@@ -24,6 +27,8 @@ const links = [
   .acc-tab-count { padding: 0 .4rem; border-radius: 999px; background: var(--gh-yellow); color: #111; font-style: normal; font-size: .7rem; line-height: 1.4; }
   .acc-tab-count[hidden] { display: none; }
   @media (max-width: 760px) { .acc-subnav { gap: .25rem; } .acc-tab { padding: .7rem .75rem; } }
+  /* phone: all five tabs visible without sideways scrolling */
+  @media (max-width: 480px) { .acc-subnav { gap: 0; justify-content: space-between; } .acc-tab { padding: .65rem .3rem; font-size: .72rem; letter-spacing: 0; } }
 </style>
 
 <script>

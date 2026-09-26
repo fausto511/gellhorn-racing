@@ -209,6 +209,9 @@ const photoOverrides: Record<string, string> = {};
 @media (max-width: 860px) {
   .hero-grid { min-height: 35rem; padding-block: 2.5rem; }
 }
+  /* Owned by the signed-in driver (RS-0032) */
+  :global(.v-tile.is-owned) { border-color: var(--gh-yellow); }
+  :global(.v-owned) { display: inline-flex; align-items: center; margin-left: .45rem; padding: .08rem .45rem; border-radius: 999px; background: var(--gh-yellow); color: #1a1206; font-size: .64rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; vertical-align: 1px; }
 </style>
 
 <script>
@@ -313,4 +316,20 @@ const photoOverrides: Record<string, string> = {};
   if (location.hash === '#compare') {
     activateTab(document.getElementById('compare') as HTMLButtonElement);
   }
+</script>
+
+<script>
+  // Mark the signed-in driver's own vehicles (RS-0032). Private data, only
+  // visible to that driver; nothing happens when signed out.
+  import { currentDriverId, fetchOwned } from '../../scripts/owned';
+  (async () => {
+    if (!(await currentDriverId())) return;
+    const owned = await fetchOwned();
+    owned.forEach((id) => {
+      const tile = document.querySelector<HTMLElement>(`.v-tile[data-id="${CSS.escape(id)}"]`);
+      if (!tile || tile.classList.contains('is-owned')) return;
+      tile.classList.add('is-owned');
+      tile.querySelector('.v-name strong')?.insertAdjacentHTML('beforeend', '<span class="v-owned" title="In My Garage">Owned</span>');
+    });
+  })();
 </script>

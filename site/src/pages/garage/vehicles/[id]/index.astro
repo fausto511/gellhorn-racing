@@ -68,6 +68,11 @@ const photo = photoOverrides[vehicle.id];
       </div>
       <h1 class="display v-title">{vehicle.model}</h1>
       <p class="v-classes">{vehicle.classes.join(' / ')}</p>
+      <button type="button" id="v-own" class="v-own-btn" aria-pressed="false" hidden>
+        <span class="v-own-box" aria-hidden="true"></span>
+        <span class="v-own-label">I own this vehicle</span>
+      </button>
+      <p class="v-own-msg" id="v-own-msg" hidden></p>
       <dl class="v-key">
         <div><dt>Price</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
         <div><dt>Seats</dt><dd>{vehicle.seats}</dd></div>
@@ -118,6 +123,17 @@ const photo = photoOverrides[vehicle.id];
   .v-compare-mark.is-selected { background: var(--gh-yellow); border-color: var(--gh-yellow); color: #1a1206; }
 
   .v-identity { padding: var(--gh-pad-card); }
+  /* "I own this" toggle (RS-0032) */
+  .v-own-btn[hidden], .v-own-msg[hidden] { display: none; }
+  .v-own-btn { display: flex; align-items: center; gap: .6rem; width: 100%; margin: 0 0 1.1rem; padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-text); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; text-align: left; }
+  .v-own-btn:hover { border-color: var(--gh-muted); }
+  .v-own-box { flex: none; width: 1.15rem; height: 1.15rem; border-radius: 4px; border: 2px solid var(--gh-muted); display: inline-flex; align-items: center; justify-content: center; }
+  .v-own-btn[aria-pressed="true"] { border-color: var(--gh-yellow); background: rgba(255,215,76,.08); }
+  .v-own-btn[aria-pressed="true"] .v-own-box { background: var(--gh-yellow); border-color: var(--gh-yellow); }
+  .v-own-btn[aria-pressed="true"] .v-own-box::after { content: ''; width: .32rem; height: .6rem; border: solid #1a1206; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+  .v-own-btn:disabled { opacity: .6; cursor: progress; }
+  .v-own-msg { margin: -.6rem 0 1rem; font-size: .8rem; color: var(--gh-muted); }
+  .v-own-msg a { color: var(--gh-text); }
   .v-maker { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
   .v-maker img { filter: brightness(0) invert(1); opacity: .85; object-fit: contain; }
   .v-maker span { color: var(--gh-muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700; }
@@ -225,4 +241,60 @@ const photo = photoOverrides[vehicle.id];
   }
 
   updateCompareCta();
+</script>
+
+<script>
+  // "I own this vehicle" toggle (RS-0032, DEC-0074). Private list, shown in
+  // My Account > Garage. Signed out: sign in first, then it is set on return.
+  import { backendConfigured, getSupabase } from '../../../../scripts/supabase-client';
+  import { currentDriverId, fetchOwned, setOwned } from '../../../../scripts/owned';
+  const btn = document.getElementById('v-own') as HTMLButtonElement;
+  const label = btn.querySelector('.v-own-label') as HTMLElement;
+  const msg = document.getElementById('v-own-msg') as HTMLElement;
+  const vehicleId = (document.getElementById('v-compare-mark') as HTMLElement).dataset.id!;
+  const base = import.meta.env.BASE_URL;
+  let me: string | null = null;
+
+  function render(owned: boolean) {
+    btn.setAttribute('aria-pressed', String(owned));
+    label.textContent = owned ? 'In my garage' : 'I own this vehicle';
+  }
+  function note(html: string) { msg.innerHTML = html; msg.hidden = !html; }
+
+  async function toggle(want: boolean) {
+    if (!me) return;
+    btn.disabled = true;
+    try {
+      render(await setOwned(me, vehicleId, want));
+      note(want ? `Added to <a href="${base}account/garage/">My Garage</a>.` : '');
+    } catch {
+      note('Could not save — please try again.');
+    }
+    btn.disabled = false;
+  }
+
+  async function init() {
+    btn.hidden = false;
+    me = await currentDriverId();
+    const url = new URL(location.href);
+    const pending = url.searchParams.get('own') === '1';
+    if (pending) { url.searchParams.delete('own'); history.replaceState(null, '', url.pathname + url.search + url.hash); }
+    if (!me) { render(false); return; }
+    const owned = (await fetchOwned()).has(vehicleId);
+    render(owned);
+    if (pending && !owned) toggle(true);
+  }
+
+  if (backendConfigured) {
+    btn.addEventListener('click', () => {
+      if (!me) {
+        const url = new URL(location.href);
+        url.searchParams.set('own', '1');
+        getSupabase().auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: url.toString(), scopes: 'identify email guilds.join' } });
+        return;
+      }
+      toggle(btn.getAttribute('aria-pressed') !== 'true');
+    });
+    init();
+  }
 </script>

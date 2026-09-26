@@ -4,7 +4,7 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
 ---
 <Base
   title="My Account — Gellhorn Time Attack"
-  description="Your private driver area: vehicle records, submissions and account settings."
+  description="Your private driver area: vehicle records and submissions."
   section="account"
   noindex
 >
@@ -68,29 +68,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
         <p id="submissions-msg" class="settings-msg" hidden></p>
       </div>
 
-      <h2 class="section-heading">Settings</h2>
-      <div class="panel settings-card">
-        <label class="field">
-          <span>Display Name</span>
-          <input id="display-name-input" type="text" maxlength="40" />
-        </label>
-        <button type="button" id="save-name-btn" class="btn btn-outline">Save</button>
-
-        <label class="field field-checkbox">
-          <input id="hide-name-input" type="checkbox" />
-          <span>Hide my name publicly (your lap times stay visible, just without your name attached)</span>
-        </label>
-
-        <div class="field account-status">
-          <span>Account</span>
-          <div class="account-status-row">
-            <p>Signed in as <strong id="auth-user-label"></strong>.</p>
-            <button type="button" id="discord-signout-btn" class="btn btn-outline">Sign out</button>
-          </div>
-        </div>
-
-        <p id="settings-msg" class="settings-msg" hidden></p>
-      </div>
     </div>
   </section>
 </Base>
@@ -172,7 +149,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
 
   const noticeEl = document.getElementById('backend-notice');
   const authBoxEl = document.getElementById('auth-box');
-  const authUserLabelEl = document.getElementById('auth-user-label');
   const contentEl = document.getElementById('account-content');
 
   const recordsTbodyEl = document.getElementById('records-tbody');
@@ -180,10 +156,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
   const submissionsTbodyEl = document.getElementById('submissions-tbody');
   const submissionsEmptyEl = document.getElementById('submissions-empty');
   const submissionsMsgEl = document.getElementById('submissions-msg');
-  const displayNameInputEl = document.getElementById('display-name-input');
-  const hideNameInputEl = document.getElementById('hide-name-input');
-  const saveNameBtnEl = document.getElementById('save-name-btn');
-  const settingsMsgEl = document.getElementById('settings-msg');
 
   if (!backendConfigured) {
     noticeEl.hidden = false;
@@ -306,11 +278,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
     if (!backendConfigured) return;
     if (currentSession) {
       authBoxEl.hidden = true;
-      authUserLabelEl.textContent =
-        currentSession.user.user_metadata?.full_name ??
-        currentSession.user.user_metadata?.name ??
-        currentSession.user.email ??
-        currentSession.user.id;
       contentEl.hidden = false;
       loadAccountData();
     } else {
@@ -335,8 +302,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
       return;
     }
     currentDriverRow = driverRow;
-    displayNameInputEl.value = driverRow.display_name;
-    hideNameInputEl.checked = Boolean(driverRow.hide_display_name);
 
     // My Submissions: every run of this driver, any status, most recent
     // first -- this is the activity log, unlike My Records below.
@@ -465,58 +430,6 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
         // option, hence listing identify+email explicitly too.
         options: { redirectTo: window.location.origin + window.location.pathname + window.location.search, scopes: 'identify email guilds.join' },
       });
-    });
-    document.getElementById('discord-signout-btn').addEventListener('click', async () => {
-      const sb = getSupabase();
-      await sb.auth.signOut();
-    });
-
-    saveNameBtnEl.addEventListener('click', async () => {
-      if (!currentSession || !currentDriverRow) return;
-      const newName = displayNameInputEl.value.trim();
-      settingsMsgEl.hidden = false;
-      settingsMsgEl.className = 'settings-msg';
-      if (!newName) {
-        settingsMsgEl.textContent = 'Display name cannot be empty.';
-        settingsMsgEl.classList.add('is-error');
-        return;
-      }
-      const sb = getSupabase();
-      const { error } = await sb
-        .from('drivers')
-        .update({ display_name: newName })
-        .eq('auth_user_id', currentSession.user.id);
-      if (error) {
-        settingsMsgEl.textContent = 'Could not save — please try again.';
-        settingsMsgEl.classList.add('is-error');
-      } else {
-        settingsMsgEl.textContent = 'Saved.';
-        settingsMsgEl.classList.add('is-ok');
-        currentDriverRow.display_name = newName;
-      }
-    });
-
-    hideNameInputEl.addEventListener('change', async () => {
-      if (!currentSession || !currentDriverRow) return;
-      const wantHidden = hideNameInputEl.checked;
-      const sb = getSupabase();
-      const { error } = await sb
-        .from('drivers')
-        .update({ hide_display_name: wantHidden })
-        .eq('auth_user_id', currentSession.user.id);
-      settingsMsgEl.hidden = false;
-      settingsMsgEl.className = 'settings-msg';
-      if (error) {
-        hideNameInputEl.checked = !wantHidden;
-        settingsMsgEl.textContent = 'Could not save -- please try again.';
-        settingsMsgEl.classList.add('is-error');
-      } else {
-        settingsMsgEl.textContent = wantHidden
-          ? 'Saved. Your name is now hidden on public pages -- your times stay visible.'
-          : 'Saved. Your name is shown on public pages again.';
-        settingsMsgEl.classList.add('is-ok');
-        currentDriverRow.hide_display_name = wantHidden;
-      }
     });
   }
 </script>
