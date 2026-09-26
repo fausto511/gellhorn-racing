@@ -1,7 +1,7 @@
 ---
-// Apply for Crew Leader and/or Event Host (RS-0026, DEC-0068). One form, both
-// roles at once possible; appears on My Account > Crew and > Events (with the
-// matching role pre-ticked). Moderators decide in Hub Content > Requests.
+// Apply for ONE role (RS-0026, DEC-0068): Crew Leader on My Account > Crew,
+// Event Host on My Account > Events. Both requests can be open at the same
+// time (one open request per role). Moderators decide in Hub Content > Requests.
 interface Props { focus: 'crew_leader' | 'event_host'; }
 const { focus } = Astro.props;
 ---
@@ -9,11 +9,20 @@ const { focus } = Astro.props;
   <div id="ra-requests" class="ra-requests" hidden></div>
 
   <div id="ra-form-wrap" class="panel ra-panel" hidden>
-    <h2 class="ra-title">Run a crew or events?</h2>
-    <p class="ra-lede">Crew leaders manage their crew page and join requests. Event hosts publish their own events in the calendar. A moderator reviews your request — you can apply for both at once.</p>
+    {focus === 'crew_leader' ? (
+      <Fragment>
+        <h2 class="ra-title">Lead a crew?</h2>
+        <p class="ra-lede">Crew leaders list their crew in The Hub, keep the crew card up to date and accept join requests. A moderator reviews your request.</p>
+      </Fragment>
+    ) : (
+      <Fragment>
+        <h2 class="ra-title">Host events?</h2>
+        <p class="ra-lede">Event hosts publish their own races, meets and cruises in the Hub calendar. A moderator reviews your request.</p>
+      </Fragment>
+    )}
 
     <form id="ra-form" novalidate>
-      <div class="ra-choices">
+      <div class="ra-choices" hidden>
         <label class="ra-choice" id="ra-choice-leader"><input type="checkbox" name="want_leader" /> <span><strong>Crew Leader</strong><small>list and manage your crew</small></span></label>
         <label class="ra-choice" id="ra-choice-host"><input type="checkbox" name="want_host" /> <span><strong>Event Host</strong><small>publish your own events</small></span></label>
       </div>
@@ -44,7 +53,7 @@ const { focus } = Astro.props;
       </fieldset>
 
       <div class="ra-actions">
-        <button type="submit" class="btn btn-primary" id="ra-submit">Send request</button>
+        <button type="submit" class="btn btn-primary" id="ra-submit">{focus === 'crew_leader' ? 'Apply as crew leader' : 'Apply as event host'}</button>
         <p class="ra-msg" id="ra-msg" aria-live="polite"></p>
       </div>
     </form>
@@ -135,7 +144,7 @@ const { focus } = Astro.props;
   form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute('aria-invalid'));
 
   function renderRequests() {
-    const shown = requests.filter((r) => r.status === 'pending' || (r.status === 'rejected' && Date.now() - new Date(r.decided_at ?? r.requested_at).getTime() < 30 * 864e5));
+    const shown = requests.filter((r) => r.role === focus).filter((r) => r.status === 'pending' || (r.status === 'rejected' && Date.now() - new Date(r.decided_at ?? r.requested_at).getTime() < 30 * 864e5));
     reqBox.hidden = shown.length === 0;
     reqBox.innerHTML = shown.map((r) => {
       const crew = r.role === 'crew_leader' ? (r.crew ? `${crewTagHtml(r.crew.tag, r.crew.color, 'sm')} ${esc(r.crew.name)}` : `${crewTagHtml(r.new_crew_tag, r.new_crew_color, 'sm')} ${esc(r.new_crew_name)}`) : '';
@@ -157,7 +166,7 @@ const { focus } = Astro.props;
 
   function validate(): string[] {
     const bad: string[] = [];
-    if (!f.want_leader.checked && !f.want_host.checked) return ['none'];
+    if (!(f.want_leader.checked && canLeader) && !(f.want_host.checked && canHost)) return ['none'];
     if (f.want_leader.checked && canLeader) {
       const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
       if (existing) { if (!f.crew_id.value) bad.push('crew_id'); }
@@ -178,7 +187,7 @@ const { focus } = Astro.props;
     return bad;
   }
   const help: Record<string, string> = {
-    none: 'Tick Crew Leader and/or Event Host first.', crew_id: 'choose your crew', new_crew_name: 'crew name (2–40 characters)',
+    none: 'You already have this role or an open request.', crew_id: 'choose your crew', new_crew_name: 'crew name (2–40 characters)',
     new_crew_tag: 'crew tag (exactly 4 letters/digits)', new_crew_color: 'crew color (#rrggbb)', new_crew_discord_url: 'Discord invite (https://discord.gg/…)',
     host_message: 'a few words about your events', link_url: 'link must start with https://',
   };
@@ -205,6 +214,7 @@ const { focus } = Astro.props;
     form.reset(); syncGroups();
     await load();
     msg('');
+    reqBox.hidden = false; root.hidden = false;
     reqBox.insertAdjacentHTML('afterbegin', '<p class="ra-msg is-ok">Request sent — a moderator will review it. You’ll see the result here.</p>');
   });
 
@@ -222,8 +232,10 @@ const { focus } = Astro.props;
     canHost = !held.has('event_host') && !open.has('event_host');
     document.getElementById('ra-choice-leader')!.hidden = !canLeader;
     document.getElementById('ra-choice-host')!.hidden = !canHost;
-    f.want_leader.checked = canLeader && focus === 'crew_leader';
-    f.want_host.checked = canHost && focus === 'event_host';
+    // Each tab only offers its own role.
+    if (focus === 'crew_leader') canHost = false; else canLeader = false;
+    f.want_leader.checked = canLeader;
+    f.want_host.checked = canHost;
     const list = crews.data ?? [];
     f.crew_id.innerHTML = '<option value="">Choose your crew…</option>' + list.map((c: any) => `<option value="${esc(c.crew_id)}">${esc(c.tag)} · ${esc(c.name)}</option>`).join('');
     document.getElementById('ra-existing-opt')!.hidden = list.length === 0;
