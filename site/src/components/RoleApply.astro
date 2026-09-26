@@ -25,7 +25,7 @@ const { focus } = Astro.props;
 
     <button type="button" class="btn btn-outline" id="ra-open">{focus === 'crew_leader' ? 'Start crew leader application' : 'Start event host application'}</button>
     <form id="ra-form" novalidate hidden>
-      <p class="ra-form-note">Application — nothing is published until a moderator approves it.</p>
+      <p class="ra-form-note">Application — nothing is published until a moderator approves it. Crew leaders and event hosts are always shown with their name: if you have hidden your name, it becomes visible again once approved.</p>
       <div class="ra-choices" hidden>
         <label class="ra-choice" id="ra-choice-leader"><input type="checkbox" name="want_leader" /> <span><strong>Crew Leader</strong><small>list and manage your crew</small></span></label>
         <label class="ra-choice" id="ra-choice-host"><input type="checkbox" name="want_host" /> <span><strong>Event Host</strong><small>publish your own events</small></span></label>

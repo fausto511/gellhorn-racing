@@ -30,7 +30,7 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
 
         <label class="field field-checkbox">
           <input id="hide-name-input" type="checkbox" />
-          <span>Hide my name publicly (your lap times stay visible, just without your name attached)</span>
+          <span>Hide my name publicly (your lap times stay visible, just without your name attached)<em class="hide-locked" id="hide-locked" hidden></em></span>
         </label>
 
         <div class="field account-status">
@@ -66,6 +66,9 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
   .settings-msg.is-ok { color: #4fd1c5; }
   .field-checkbox { flex-direction: row !important; align-items: flex-start; gap: .6rem; }
   .field-checkbox input[type="checkbox"] { width: 1.1rem; height: 1.1rem; margin-top: .15rem; accent-color: var(--gh-yellow); }
+  .hide-locked { display: block; margin-top: .35rem; color: var(--gh-yellow); font-style: normal; font-size: .8rem; }
+  .hide-locked[hidden] { display: none; }
+  .field-checkbox input:disabled + span { color: rgba(160,160,198,.6); }
   .field-checkbox span { font-size: .85rem; color: var(--gh-muted); font-weight: 400 !important; }
   @media (max-width: 700px) { .account-status { padding-left: 0; border-left: none; } }
 </style>
@@ -90,8 +93,19 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
     $('acc-body').hidden = !s;
     if (!s) return;
     $('auth-user-label').textContent = s.user.user_metadata?.full_name ?? s.user.user_metadata?.name ?? s.user.email ?? s.user.id;
-    const { data } = await getSupabase().from('drivers').select('display_name, hide_display_name').eq('auth_user_id', s.user.id).maybeSingle();
+    const { data } = await getSupabase().from('drivers').select('driver_id, display_name, hide_display_name').eq('auth_user_id', s.user.id).maybeSingle();
     if (data) { nameEl.value = data.display_name ?? ''; hideEl.checked = Boolean(data.hide_display_name); }
+    // DEC-0078: crew leaders and event hosts cannot hide their name
+    if (data?.driver_id) {
+      const { data: roles } = await getSupabase().from('hub_roles').select('role').eq('driver_id', data.driver_id).in('role', ['crew_leader', 'event_host']);
+      const list = [...new Set(((roles ?? []) as { role: string }[]).map((r) => (r.role === 'crew_leader' ? 'Crew Leader' : 'Event Host')))];
+      if (list.length) {
+        hideEl.checked = false;
+        hideEl.disabled = true;
+        $('hide-locked').hidden = false;
+        $('hide-locked').textContent = `Not available as ${list.join(' and ')} — crew leaders and event hosts are always shown with their name.`;
+      }
+    }
   }
 
   if (backendConfigured) {
@@ -113,7 +127,7 @@ import AccountSubnav from '../../../components/AccountSubnav.astro';
       if (!session) return;
       const want = hideEl.checked;
       const { error } = await sb.from('drivers').update({ hide_display_name: want }).eq('auth_user_id', session.user.id);
-      if (error) { hideEl.checked = !want; return msg('Could not save — please try again.', false); }
+      if (error) { hideEl.checked = !want; return msg(/role_requires_name/.test(error.message) ? 'Crew leaders and event hosts are always shown with their name.' : 'Could not save — please try again.', false); }
       msg(want ? 'Saved. Your name is now hidden on public pages — your times stay visible.' : 'Saved. Your name is shown on public pages again.', true);
     });
   }
