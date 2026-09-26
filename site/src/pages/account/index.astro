@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import AccountSubnav from '../../components/AccountSubnav.astro';
 ---
 <Base
   title="My Account — Gellhorn Time Attack"
@@ -10,6 +11,7 @@ import Base from '../../layouts/Base.astro';
   <section class="wrap account-wrap">
     <p class="eyebrow">Private Driver Area</p>
     <h1 class="display account-title">My Account</h1>
+    <AccountSubnav active="time-attack" />
 
     <div id="backend-notice" class="notice" hidden>
       <strong>Backend not connected yet.</strong>
@@ -99,7 +101,7 @@ import Base from '../../layouts/Base.astro';
   [hidden] { display: none !important; }
 
   .account-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
-  .account-title { margin: .4rem 0 1.5rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .account-title { margin: .4rem 0 1.2rem; font-size: clamp(2rem, 4vw, 2.8rem); }
 
   .notice { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 1px solid var(--gh-yellow); background: rgba(255,215,76,.08); border-radius: var(--gh-radius); font-size: .85rem; }
   .notice strong { color: var(--gh-yellow); }

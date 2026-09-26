@@ -1,0 +1,248 @@
+---
+// Apply for Crew Leader and/or Event Host (RS-0026, DEC-0068). One form, both
+// roles at once possible; appears on My Account > Crew and > Events (with the
+// matching role pre-ticked). Moderators decide in Hub Content > Requests.
+interface Props { focus: 'crew_leader' | 'event_host'; }
+const { focus } = Astro.props;
+---
+<section class="ra" id="role-apply" data-focus={focus} hidden>
+  <div id="ra-requests" class="ra-requests" hidden></div>
+
+  <div id="ra-form-wrap" class="panel ra-panel" hidden>
+    <h2 class="ra-title">Run a crew or events?</h2>
+    <p class="ra-lede">Crew leaders manage their crew page and join requests. Event hosts publish their own events in the calendar. A moderator reviews your request — you can apply for both at once.</p>
+
+    <form id="ra-form" novalidate>
+      <div class="ra-choices">
+        <label class="ra-choice" id="ra-choice-leader"><input type="checkbox" name="want_leader" /> <span><strong>Crew Leader</strong><small>list and manage your crew</small></span></label>
+        <label class="ra-choice" id="ra-choice-host"><input type="checkbox" name="want_host" /> <span><strong>Event Host</strong><small>publish your own events</small></span></label>
+      </div>
+
+      <fieldset class="ra-group" id="ra-leader" hidden>
+        <legend>Your crew</legend>
+        <div class="ra-radio-row">
+          <label class="ra-radio"><input type="radio" name="crew_mode" value="new" checked /> My crew is not listed yet</label>
+          <label class="ra-radio" id="ra-existing-opt"><input type="radio" name="crew_mode" value="existing" /> My crew is already listed</label>
+        </div>
+        <div class="ra-grid" id="ra-new">
+          <label class="ra-span2">Crew name *<input type="text" name="new_crew_name" maxlength="40" /></label>
+          <label>Crew tag * <small>exactly 4 letters/digits</small><input type="text" name="new_crew_tag" maxlength="4" class="ra-tag" /></label>
+          <label>Crew color *<span class="ra-color"><input type="color" name="color_picker" value="#ed253d" /><input type="text" name="new_crew_color" value="#ed253d" maxlength="7" /></span></label>
+          <label class="ra-span2">Discord invite <small>optional</small><input type="url" name="new_crew_discord_url" placeholder="https://discord.gg/…" /></label>
+          <label class="ra-span2">Short description <small>optional, shown on the crew card</small><textarea name="new_crew_description" maxlength="400" rows="2"></textarea></label>
+        </div>
+        <div id="ra-existing" hidden>
+          <label>Crew<select name="crew_id"></select></label>
+        </div>
+        <label class="ra-full">Note to the moderators <small>optional — e.g. how we can confirm you lead this crew</small><textarea name="leader_message" maxlength="500" rows="2"></textarea></label>
+      </fieldset>
+
+      <fieldset class="ra-group" id="ra-host" hidden>
+        <legend>Your events</legend>
+        <label class="ra-full">What kind of events do you run? *<textarea name="host_message" maxlength="500" rows="3" placeholder="e.g. weekly car meets on PS5, monthly time attack nights …"></textarea></label>
+        <label class="ra-full">Link <small>optional — Discord server, community page …</small><input type="url" name="link_url" placeholder="https://…" /></label>
+      </fieldset>
+
+      <div class="ra-actions">
+        <button type="submit" class="btn btn-primary" id="ra-submit">Send request</button>
+        <p class="ra-msg" id="ra-msg" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<style>
+  .ra[hidden], .ra [hidden] { display: none !important; }
+  .ra { margin-top: 2.5rem; }
+  .ra-panel { padding: var(--gh-pad-card); }
+  .ra-title { margin: 0 0 .4rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
+  .ra-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; max-width: 44rem; }
+  .ra-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .7rem; margin-bottom: 1.2rem; }
+  @media (max-width: 560px) { .ra-choices { grid-template-columns: 1fr; } }
+  .ra-choice { display: flex; align-items: center; gap: .7rem; padding: .85rem 1rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); cursor: pointer; }
+  .ra-choice:has(input:checked) { border-color: var(--gh-yellow); background: rgba(255,215,76,.06); }
+  .ra-choice input { width: 1.1rem; height: 1.1rem; accent-color: var(--gh-yellow); flex: none; }
+  .ra-choice span { display: flex; flex-direction: column; gap: .1rem; }
+  .ra-choice small { color: var(--gh-muted); font-size: .76rem; }
+  .ra-group { border: 1px solid var(--gh-line); border-radius: var(--gh-radius); padding: .9rem 1rem 1rem; margin: 0 0 1rem; display: grid; gap: .9rem; }
+  .ra-group legend { padding: 0 .35rem; font-size: .72rem; color: var(--gh-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  .ra-radio-row { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; }
+  .ra-radio { display: inline-flex; align-items: center; gap: .45rem; font-size: .88rem; font-weight: 600; cursor: pointer; }
+  .ra-radio input { accent-color: var(--gh-yellow); }
+  .ra-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem 1.1rem; }
+  @media (max-width: 560px) { .ra-grid { grid-template-columns: 1fr; } }
+  .ra-span2 { grid-column: 1 / -1; }
+  .ra label:not(.ra-choice):not(.ra-radio) { display: flex; flex-direction: column; gap: .35rem; font-size: .72rem; color: var(--gh-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .ra small { font-weight: 500; text-transform: none; letter-spacing: 0; opacity: .85; }
+  .ra input[type="text"], .ra input[type="url"], .ra select, .ra textarea {
+    padding: .6rem .7rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text);
+    font-size: 16px; font-family: var(--gh-font-body); text-transform: none; letter-spacing: normal; font-weight: 400; color-scheme: dark; min-width: 0;
+  }
+  @media (min-width: 761px) { .ra input[type="text"], .ra input[type="url"], .ra select, .ra textarea { font-size: .88rem; } }
+  .ra textarea { resize: vertical; }
+  .ra :is(input, select, textarea):focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  .ra :is(input, select, textarea)[aria-invalid="true"] { border-color: var(--gh-red); }
+  .ra-tag { text-transform: uppercase !important; letter-spacing: .12em !important; font-weight: 800 !important; }
+  .ra-color { display: flex; gap: .5rem; }
+  .ra-color input[type="color"] { width: 2.6rem; height: 2.5rem; padding: 0; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: none; cursor: pointer; flex: none; }
+  .ra-color input[type="text"] { flex: 1; }
+  .ra-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+  .ra-msg { margin: 0; font-size: .85rem; }
+  .ra-msg.is-error { color: var(--gh-red); }
+  .ra-msg.is-ok { color: #4fd1c5; }
+  .ra-requests { display: grid; gap: .6rem; margin-bottom: 1.2rem; }
+  :global(.ra-req) { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; padding: .8rem 1rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface); font-size: .88rem; }
+  :global(.ra-req.is-pending) { border-color: rgba(255,215,76,.45); }
+  :global(.ra-req-main) { flex: 1 1 16rem; min-width: 0; }
+  :global(.ra-req-main small) { display: block; color: var(--gh-muted); font-size: .78rem; margin-top: .15rem; }
+  :global(.ra-req .btn) { font-size: .78rem; padding: .45rem .8rem; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../scripts/supabase-client';
+  import { esc, crewTagHtml } from '../data/hub';
+
+  const root = document.getElementById('role-apply')!;
+  const focus = root.dataset.focus as 'crew_leader' | 'event_host';
+  const form = document.getElementById('ra-form') as HTMLFormElement;
+  const f = form.elements as any;
+  const formWrap = document.getElementById('ra-form-wrap')!;
+  const reqBox = document.getElementById('ra-requests')!;
+  const msgEl = document.getElementById('ra-msg')!;
+  const leaderBox = document.getElementById('ra-leader')!;
+  const hostBox = document.getElementById('ra-host')!;
+
+  let me: string | null = null;
+  let requests: any[] = [];
+  let canLeader = true;
+  let canHost = true;
+
+  const roleLabel = (r: string) => (r === 'crew_leader' ? 'Crew Leader' : 'Event Host');
+  function msg(t: string, err = false) { msgEl.textContent = t; msgEl.className = `ra-msg ${t ? (err ? 'is-error' : 'is-ok') : ''}`; }
+  const blank = (v: unknown) => { const t = String(v ?? '').trim(); return t === '' ? null : t; };
+
+  function syncGroups() {
+    leaderBox.hidden = !(f.want_leader.checked && canLeader);
+    hostBox.hidden = !(f.want_host.checked && canHost);
+    const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
+    document.getElementById('ra-new')!.hidden = existing;
+    document.getElementById('ra-existing')!.hidden = !existing;
+  }
+  form.addEventListener('change', syncGroups);
+  f.new_crew_tag.addEventListener('input', () => { f.new_crew_tag.value = f.new_crew_tag.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+  f.color_picker.addEventListener('input', () => { f.new_crew_color.value = f.color_picker.value; });
+  f.new_crew_color.addEventListener('input', () => { if (/^#[0-9a-fA-F]{6}$/.test(f.new_crew_color.value)) f.color_picker.value = f.new_crew_color.value.toLowerCase(); });
+  form.addEventListener('input', (e) => (e.target as HTMLElement).removeAttribute('aria-invalid'));
+
+  function renderRequests() {
+    const shown = requests.filter((r) => r.status === 'pending' || (r.status === 'rejected' && Date.now() - new Date(r.decided_at ?? r.requested_at).getTime() < 30 * 864e5));
+    reqBox.hidden = shown.length === 0;
+    reqBox.innerHTML = shown.map((r) => {
+      const crew = r.role === 'crew_leader' ? (r.crew ? `${crewTagHtml(r.crew.tag, r.crew.color, 'sm')} ${esc(r.crew.name)}` : `${crewTagHtml(r.new_crew_tag, r.new_crew_color, 'sm')} ${esc(r.new_crew_name)}`) : '';
+      if (r.status === 'pending') {
+        return `<div class="ra-req is-pending"><div class="ra-req-main"><strong>${roleLabel(r.role)} request pending</strong> ${crew}<small>Sent ${esc(new Date(r.requested_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))} — a moderator will review it.</small></div><button type="button" class="btn btn-outline" data-withdraw="${esc(r.request_id)}">Withdraw</button></div>`;
+      }
+      return `<div class="ra-req"><div class="ra-req-main"><strong>${roleLabel(r.role)} request not approved</strong> ${crew}<small>${r.decision_note ? 'Moderator note: ' + esc(r.decision_note) : 'You can send a new request below.'}</small></div></div>`;
+    }).join('');
+  }
+
+  reqBox.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-withdraw]');
+    if (!b) return;
+    if (b.dataset.armed !== '1') { b.dataset.armed = '1'; b.textContent = 'Click again to withdraw'; return; }
+    b.disabled = true;
+    await getSupabase().from('hub_role_requests').delete().eq('request_id', b.dataset.withdraw!);
+    await load();
+  });
+
+  function validate(): string[] {
+    const bad: string[] = [];
+    if (!f.want_leader.checked && !f.want_host.checked) return ['none'];
+    if (f.want_leader.checked && canLeader) {
+      const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
+      if (existing) { if (!f.crew_id.value) bad.push('crew_id'); }
+      else {
+        const n = String(f.new_crew_name.value).trim();
+        if (n.length < 2 || n.length > 40) bad.push('new_crew_name');
+        if (!/^[A-Z0-9]{4}$/.test(f.new_crew_tag.value)) bad.push('new_crew_tag');
+        if (!/^#[0-9a-fA-F]{6}$/.test(f.new_crew_color.value)) bad.push('new_crew_color');
+        const d = String(f.new_crew_discord_url.value).trim();
+        if (d && !/^https:\/\/(discord\.gg|discord\.com\/invite)\/[A-Za-z0-9-]+$/.test(d)) bad.push('new_crew_discord_url');
+      }
+    }
+    if (f.want_host.checked && canHost) {
+      if (String(f.host_message.value).trim().length < 5) bad.push('host_message');
+      const l = String(f.link_url.value).trim();
+      if (l && !/^https:\/\//.test(l)) bad.push('link_url');
+    }
+    return bad;
+  }
+  const help: Record<string, string> = {
+    none: 'Tick Crew Leader and/or Event Host first.', crew_id: 'choose your crew', new_crew_name: 'crew name (2–40 characters)',
+    new_crew_tag: 'crew tag (exactly 4 letters/digits)', new_crew_color: 'crew color (#rrggbb)', new_crew_discord_url: 'Discord invite (https://discord.gg/…)',
+    host_message: 'a few words about your events', link_url: 'link must start with https://',
+  };
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const bad = validate();
+    form.querySelectorAll('[aria-invalid]').forEach((el) => el.removeAttribute('aria-invalid'));
+    bad.forEach((n) => form.querySelector(`[name="${n}"]`)?.setAttribute('aria-invalid', 'true'));
+    if (bad.length) { msg(bad[0] === 'none' ? help.none : `Please fix: ${bad.map((b) => help[b]).join('; ')}.`, true); return; }
+    const rows: any[] = [];
+    if (f.want_leader.checked && canLeader) {
+      const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
+      rows.push(existing
+        ? { driver_id: me, role: 'crew_leader', crew_id: f.crew_id.value, message: blank(f.leader_message.value) }
+        : { driver_id: me, role: 'crew_leader', new_crew_name: String(f.new_crew_name.value).trim(), new_crew_tag: f.new_crew_tag.value, new_crew_color: f.new_crew_color.value.toLowerCase(), new_crew_discord_url: blank(f.new_crew_discord_url.value), new_crew_description: blank(f.new_crew_description.value), message: blank(f.leader_message.value) });
+    }
+    if (f.want_host.checked && canHost) rows.push({ driver_id: me, role: 'event_host', message: blank(f.host_message.value), link_url: blank(f.link_url.value) });
+    const btn = document.getElementById('ra-submit') as HTMLButtonElement;
+    btn.disabled = true;
+    const { error } = await getSupabase().from('hub_role_requests').insert(rows);
+    btn.disabled = false;
+    if (error) { msg(/duplicate|one_open/i.test(error.message) ? 'You already have an open request for this role.' : 'Could not send the request — please try again.', true); return; }
+    form.reset(); syncGroups();
+    await load();
+    msg('');
+    reqBox.insertAdjacentHTML('afterbegin', '<p class="ra-msg is-ok">Request sent — a moderator will review it. You’ll see the result here.</p>');
+  });
+
+  async function load() {
+    const sb = getSupabase();
+    const [r, roles, crews] = await Promise.all([
+      sb.from('hub_role_requests').select('request_id, role, status, requested_at, decided_at, decision_note, new_crew_name, new_crew_tag, new_crew_color, crew:crews(name, tag, color)').eq('driver_id', me!).order('requested_at', { ascending: false }),
+      sb.from('hub_roles').select('role').eq('driver_id', me!),
+      sb.from('crews').select('crew_id, name, tag').eq('is_published', true).order('name'),
+    ]);
+    requests = r.data ?? [];
+    const held = new Set((roles.data ?? []).map((x: any) => x.role));
+    const open = new Set(requests.filter((x) => x.status === 'pending').map((x) => x.role));
+    canLeader = !held.has('crew_leader') && !open.has('crew_leader');
+    canHost = !held.has('event_host') && !open.has('event_host');
+    document.getElementById('ra-choice-leader')!.hidden = !canLeader;
+    document.getElementById('ra-choice-host')!.hidden = !canHost;
+    f.want_leader.checked = canLeader && focus === 'crew_leader';
+    f.want_host.checked = canHost && focus === 'event_host';
+    const list = crews.data ?? [];
+    f.crew_id.innerHTML = '<option value="">Choose your crew…</option>' + list.map((c: any) => `<option value="${esc(c.crew_id)}">${esc(c.tag)} · ${esc(c.name)}</option>`).join('');
+    document.getElementById('ra-existing-opt')!.hidden = list.length === 0;
+    formWrap.hidden = !canLeader && !canHost;
+    renderRequests();
+    root.hidden = formWrap.hidden && reqBox.hidden;
+    syncGroups();
+  }
+
+  async function init(session: any) {
+    if (!session) { root.hidden = true; return; }
+    const own = await getSupabase().from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    if (!me) { root.hidden = true; return; }
+    await load();
+  }
+  if (backendConfigured) {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+  }
+</script>

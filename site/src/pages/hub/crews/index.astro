@@ -37,7 +37,7 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
     <div class="crew-grid" id="crew-root" set:html={initialHtml} />
     <p class="hub-empty" id="crew-empty" hidden>No crews match these filters.</p>
 
-    <p class="hub-note">Want your crew listed? The directory is curated for now — reach out on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>. Drivers can ask to join a listed crew right here; the crew leader approves.</p>
+    <p class="hub-note">Want your crew listed? Apply as crew leader in <a href={`${import.meta.env.BASE_URL}account/crew/`}>My Account</a> — a moderator reviews it. Drivers can ask to join a listed crew right here; the crew leader approves.</p>
   </section>
 </Base>
 

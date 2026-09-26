@@ -1,0 +1,75 @@
+---
+// My Account > Events (RS-0026): link to the calendar, own events for hosts
+// and crew leaders (same editor as the moderator panel, personal mode) and
+// the Crew Leader / Event Host application.
+import Base from '../../../layouts/Base.astro';
+import AccountSubnav from '../../../components/AccountSubnav.astro';
+import HubEditor from '../../../components/HubEditor.astro';
+import RoleApply from '../../../components/RoleApply.astro';
+import '../../../styles/hub.css';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="My Events — My Account"
+  description="Find events and, for event hosts, manage your own events."
+  section="account"
+  noindex
+>
+  <section class="wrap account-wrap">
+    <p class="eyebrow">Private Driver Area</p>
+    <h1 class="display account-title">My Account</h1>
+    <AccountSubnav active="events" />
+
+    <div id="acc-auth" class="panel acc-auth" hidden>
+      <p>Sign in with Discord to see your events.</p>
+      <button type="button" id="acc-signin" class="btn btn-outline">Sign in with Discord</button>
+    </div>
+
+    <div id="acc-body" hidden>
+      <div class="panel ev-cta">
+        <p><strong>Looking for something to drive?</strong> Races, time attack nights, car meets and cruises from the community — all in one calendar.</p>
+        <a class="btn btn-primary" href={`${base}hub/events/`}>Find events</a>
+      </div>
+
+      <div id="host-block" hidden>
+        <h2 class="section-heading">My Events</h2>
+        <p class="section-lede">Create and edit the events you run. Published events show up in the calendar right away.</p>
+        <HubEditor mode="events" />
+      </div>
+
+      <RoleApply focus="event_host" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .account-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  .account-title { margin: .4rem 0 1.2rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .acc-auth { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .acc-auth p { margin: 0; font-size: .88rem; }
+  .ev-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.2rem; }
+  .ev-cta p { margin: 0; color: var(--gh-muted); font-size: .9rem; max-width: 40rem; }
+  .ev-cta strong { color: var(--gh-text); }
+  .section-heading { margin: 2.5rem 0 .3rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
+  .section-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  document.addEventListener('hc-access', (e: any) => {
+    document.getElementById('host-block')!.hidden = !e.detail.hasAccess;
+  });
+  function init(session: any) {
+    document.getElementById('acc-auth')!.hidden = Boolean(session);
+    document.getElementById('acc-body')!.hidden = !session;
+  }
+  if (backendConfigured) {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+    document.getElementById('acc-signin')!.addEventListener('click', () => {
+      sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname, scopes: 'identify email guilds.join' } });
+    });
+  }
+</script>

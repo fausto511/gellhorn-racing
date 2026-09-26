@@ -1,0 +1,145 @@
+---
+// My Account > Crew (RS-0026): own membership (join / pending / leave),
+// crews I lead (same editor as the moderator panel, personal mode) and the
+// Crew Leader / Event Host application.
+import Base from '../../../layouts/Base.astro';
+import AccountSubnav from '../../../components/AccountSubnav.astro';
+import HubEditor from '../../../components/HubEditor.astro';
+import RoleApply from '../../../components/RoleApply.astro';
+import '../../../styles/hub.css';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="My Crew — My Account"
+  description="Your crew membership and, for crew leaders, crew management."
+  section="account"
+  noindex
+>
+  <section class="wrap account-wrap">
+    <p class="eyebrow">Private Driver Area</p>
+    <h1 class="display account-title">My Account</h1>
+    <AccountSubnav active="crew" />
+
+    <div id="acc-auth" class="panel acc-auth" hidden>
+      <p>Sign in with Discord to see your crew.</p>
+      <button type="button" id="acc-signin" class="btn btn-outline">Sign in with Discord</button>
+    </div>
+
+    <div id="acc-body" hidden>
+      <h2 class="section-heading">My Crew</h2>
+      <div id="membership" class="membership"></div>
+
+      <div id="lead-block" hidden>
+        <h2 class="section-heading">Crew Management</h2>
+        <p class="section-lede">Edit your crew card, accept join requests and manage members. Changes go live immediately.</p>
+        <HubEditor mode="crew" />
+      </div>
+
+      <RoleApply focus="crew_leader" />
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .account-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); }
+  .account-title { margin: .4rem 0 1.2rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .acc-auth { margin-bottom: 1.5rem; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .acc-auth p { margin: 0; font-size: .88rem; }
+  .section-heading { margin: 2.5rem 0 .3rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
+  #acc-body > .section-heading:first-child { margin-top: 0; }
+  .section-lede { margin: 0 0 1.2rem; color: var(--gh-muted); font-size: .88rem; }
+  .membership { margin-top: 1rem; }
+  :global(.mem-empty-card) { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding: 1.1rem 1.2rem; }
+  :global(.mem-empty-card p) { margin: 0; color: var(--gh-muted); font-size: .9rem; }
+  :global(.mem-empty-card strong) { color: var(--gh-text); }
+  :global(.mem-current) { display: grid; grid-template-columns: minmax(0, 24rem) 1fr; gap: 1.2rem; align-items: start; }
+  @media (max-width: 760px) { :global(.mem-current) { grid-template-columns: 1fr; } }
+  :global(.mem-side) { display: flex; flex-direction: column; align-items: flex-start; gap: .7rem; font-size: .88rem; color: var(--gh-muted); }
+  :global(.mem-side p) { margin: 0; }
+  :global(.mem-side .btn) { font-size: .8rem; }
+  :global(.mem-msg) { margin: 0; font-size: .84rem; color: #4fd1c5; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  import { crewCardHtml, crewTagHtml, esc } from '../../../data/hub';
+
+  const base = import.meta.env.BASE_URL;
+  const authEl = document.getElementById('acc-auth')!;
+  const bodyEl = document.getElementById('acc-body')!;
+  const memEl = document.getElementById('membership')!;
+  let me: string | null = null;
+  let leaderIds: string[] = [];
+  let mine: any = null;
+
+  // Leader block visibility comes from the editor itself (same role check).
+  document.addEventListener('hc-access', (e: any) => {
+    document.getElementById('lead-block')!.hidden = !e.detail.hasAccess;
+    leaderIds = e.detail.leaderCrewIds ?? [];
+    render();
+  });
+
+  async function load() {
+    const sb = getSupabase();
+    const { data } = await sb.from('crew_membership_overview').select('membership_id, crew_id, status, crew_name, tag, color').eq('driver_id', me!).maybeSingle();
+    mine = data ?? null;
+    let crew: any = null;
+    if (mine?.status === 'active') {
+      const c = await sb.from('crews').select('crew_id,slug,name,tag,color,platforms,focus,region,language,description,member_count,discord_url,social_club_url,is_partner').eq('crew_id', mine.crew_id).maybeSingle();
+      crew = c.data;
+    }
+    render(crew);
+  }
+
+  let lastCrew: any = null;
+  function render(crew: any = lastCrew, note = '') {
+    lastCrew = crew;
+    if (!mine) {
+      memEl.innerHTML = `<div class="panel mem-empty-card"><p><strong>You're not in a crew yet.</strong> Find a crew that races the way you do and ask to join — the crew leader approves.</p><a class="btn btn-primary" href="${base}hub/crews/">Find a crew</a></div>`;
+      return;
+    }
+    if (mine.status === 'pending') {
+      memEl.innerHTML = `<div class="panel mem-empty-card"><p>Your request to join ${crewTagHtml(mine.tag, mine.color, 'sm')} <strong>${esc(mine.crew_name)}</strong> is waiting for the crew leader.</p><button type="button" class="btn btn-outline" data-leave>Withdraw request</button></div>${note ? `<p class="mem-msg">${esc(note)}</p>` : ''}`;
+      return;
+    }
+    const leads = leaderIds.includes(mine.crew_id);
+    memEl.innerHTML = `<div class="mem-current"><div class="crew-grid">${crew ? crewCardHtml(crew) : ''}</div><div class="mem-side"><p>You're a member of ${crewTagHtml(mine.tag, mine.color, 'sm')} <strong>${esc(mine.crew_name)}</strong>.${leads ? ' You lead this crew — manage it below.' : ''}</p><button type="button" class="btn btn-outline" data-leave>Leave crew</button>${note ? `<p class="mem-msg">${esc(note)}</p>` : ''}</div></div>`;
+  }
+
+  memEl.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-leave]');
+    if (!b || !mine) return;
+    if (b.dataset.armed !== '1') {
+      b.dataset.armed = '1';
+      b.textContent = mine.status === 'active' ? 'Click again to leave' : 'Click again to withdraw';
+      setTimeout(() => { if (b.isConnected && b.dataset.armed === '1') render(); }, 4000);
+      return;
+    }
+    b.disabled = true;
+    const wasActive = mine.status === 'active';
+    const { error } = await getSupabase().from('crew_memberships').delete().eq('membership_id', mine.membership_id);
+    if (error) { b.disabled = false; return; }
+    mine = null;
+    render(null);
+    memEl.insertAdjacentHTML('beforeend', `<p class="mem-msg">${wasActive ? 'You left the crew.' : 'Request withdrawn.'}</p>`);
+  });
+
+  async function init(session: any) {
+    authEl.hidden = Boolean(session);
+    bodyEl.hidden = !session;
+    if (!session) return;
+    const own = await getSupabase().from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    if (me) await load();
+  }
+
+  if (backendConfigured) {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+    document.getElementById('acc-signin')!.addEventListener('click', () => {
+      sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname, scopes: 'identify email guilds.join' } });
+    });
+  }
+</script>

@@ -35,13 +35,11 @@ const globalLinks = [
           <span id="account-avatar-fallback" class="account-avatar-fallback" hidden></span>
         </button>
         <div id="account-menu-dropdown" class="account-menu-dropdown" hidden role="menu">
-          <a href={`${base}account/`} role="menuitem">Account</a>
+          <a href={`${base}account/`} role="menuitem" id="account-menu-account">Account</a>
           <!-- Only shown to moderators (checked after login). Hiding it is
                cosmetic -- the moderator pages and the database (RLS) do
                their own access check. -->
           <a href={`${base}moderator/`} role="menuitem" id="account-menu-moderator" hidden>Moderator</a>
-          <!-- Crew leaders / event hosts without moderator rights (RS-0023). -->
-          <a href={`${base}moderator/hub/`} role="menuitem" id="account-menu-hub" hidden>Hub Content</a>
           <button type="button" id="account-menu-logout" role="menuitem">Logout</button>
         </div>
       </div>
@@ -148,7 +146,7 @@ const globalLinks = [
     const avatarFallbackEl = document.getElementById('account-avatar-fallback');
     const logoutBtnEl = document.getElementById('account-menu-logout');
     const moderatorLinkEl = document.getElementById('account-menu-moderator');
-    const hubLinkEl = document.getElementById('account-menu-hub');
+    const accountLinkEl = document.getElementById('account-menu-account');
     const discordBtnEl = document.getElementById('discord-btn');
     const discordBtnLabelEl = document.getElementById('discord-btn-label');
 
@@ -167,23 +165,31 @@ const globalLinks = [
     // row coming back means "this user is a moderator".
     let moderatorCheckedFor = null;
     async function updateModeratorLink(session) {
-      if (!session) { moderatorLinkEl.hidden = true; hubLinkEl.hidden = true; moderatorCheckedFor = null; return; }
+      if (!session) { moderatorLinkEl.hidden = true; moderatorCheckedFor = null; return; }
       if (moderatorCheckedFor === session.user.id) return;
       moderatorCheckedFor = session.user.id;
       const { data, error } = await supabase.from('moderators').select('driver_id').limit(1);
       const isMod = !error && Array.isArray(data) && data.length > 0;
       moderatorLinkEl.hidden = !isMod;
-      if (isMod) { hubLinkEl.hidden = true; return; }
-      // hub_roles: non-moderators only see their own rows (RLS).
-      const roles = await supabase.from('hub_roles').select('role, crew_id');
-      const list = !roles.error && Array.isArray(roles.data) ? roles.data : [];
-      hubLinkEl.hidden = list.length === 0;
-      // Crew leaders: show open join requests (RS-0024) right in the menu.
-      const crewIds = list.filter((r) => r.role === 'crew_leader' && r.crew_id).map((r) => r.crew_id);
-      hubLinkEl.textContent = 'Hub Content';
-      if (crewIds.length) {
-        const { count } = await supabase.from('crew_membership_overview').select('membership_id', { count: 'exact', head: true }).eq('status', 'pending').in('crew_id', crewIds);
-        if (count) hubLinkEl.textContent = `Hub Content (${count} new)`;
+      moderatorLinkEl.textContent = 'Moderator';
+      accountLinkEl.textContent = 'Account';
+      accountLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}account/`);
+      // Moderators: open Crew Leader / Event Host requests (RS-0026).
+      if (isMod) {
+        const { count } = await supabase.from('hub_role_requests').select('request_id', { count: 'exact', head: true }).eq('status', 'pending');
+        if (count) moderatorLinkEl.textContent = `Moderator (${count} new)`;
+      }
+      // Crew leaders: open join requests -> straight to My Account > Crew.
+      const own = await supabase.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+      const me = own.data?.driver_id;
+      if (!me) return;
+      const roles = await supabase.from('hub_roles').select('crew_id').eq('driver_id', me).eq('role', 'crew_leader');
+      const crewIds = (roles.data ?? []).map((r) => r.crew_id).filter(Boolean);
+      if (!crewIds.length) return;
+      const { count } = await supabase.from('crew_membership_overview').select('membership_id', { count: 'exact', head: true }).eq('status', 'pending').in('crew_id', crewIds);
+      if (count) {
+        accountLinkEl.textContent = `Account (${count} new)`;
+        accountLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}account/crew/`);
       }
     }
 
