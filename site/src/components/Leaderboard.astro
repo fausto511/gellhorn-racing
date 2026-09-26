@@ -1,10 +1,12 @@
 ---
-// Gellhorn leaderboard (2026-09-26): Overall / Vehicle Records (+ one board
-// per vehicle), driver + vehicle search, All times / Verified only.
+// Gellhorn leaderboard (2026-09-26, DEC-0072): one vehicle dropdown --
+// "All vehicles" = Overall (across all vehicles and classes), or one
+// vehicle's own board -- plus driver/crew search and All times / Verified only.
 // The build renders the sample data with the same renderer the browser uses
 // (data/leaderboard.ts); the browser takes over and swaps in live rows as
 // soon as at least one real run is published.
-import { sampleEntries, initialState, render, vehiclesNeededHtml } from '../data/leaderboard';
+import { sampleEntries, initialState, render, vehiclesNeededHtml, vehicleSelectHtml } from '../data/leaderboard';
+const vehicleSelect = vehicleSelectHtml(sampleEntries, initialState);
 const first = render(sampleEntries, initialState, true);
 const needed = vehiclesNeededHtml(sampleEntries);
 ---
@@ -16,20 +18,16 @@ const needed = vehiclesNeededHtml(sampleEntries);
         <h2 class="display lb-title">Leaderboard</h2>
         <p class="lb-meta" id="lb-meta">{first.meta}</p>
       </div>
-      <div class="lb-tabs" role="tablist" aria-label="Leaderboard view">
-        <button type="button" class="lb-tab is-active" role="tab" aria-selected="true" data-view="overall">Overall</button>
-        <button type="button" class="lb-tab" role="tab" aria-selected="false" data-view="vehicles">Vehicle Records</button>
-      </div>
     </div>
 
     <div class="lb-controls">
-      <label class="ui-search lb-search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" id="lb-q-driver" placeholder="Search driver or crew tag" aria-label="Search driver or crew tag" autocomplete="off" />
+      <label class="lb-vehicle-select">
+        <span class="sr-only">Vehicle</span>
+        <select class="ui-select" id="lb-vehicle" aria-label="Vehicle: All vehicles (Overall) or one vehicle's leaderboard" set:html={vehicleSelect}></select>
       </label>
       <label class="ui-search lb-search">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        <input type="search" id="lb-q-vehicle" placeholder="Search vehicle" aria-label="Search vehicle" autocomplete="off" />
+        <input type="search" id="lb-q-driver" placeholder="Search driver or crew tag" aria-label="Search driver or crew tag" autocomplete="off" />
       </label>
       <div class="lb-toggle" role="group" aria-label="Time filter">
         <button type="button" class="is-active" aria-pressed="true" data-verified="0">All Times</button>
@@ -71,11 +69,10 @@ const needed = vehiclesNeededHtml(sampleEntries);
   .sample-flag[hidden] { display: none; }
   .lb-title { font-size: clamp(1.9rem, 3vw, 2.6rem); margin: 0; }
   .lb-meta { margin: .5rem 0 0; color: var(--gh-muted); font-size: .85rem; }
-  .lb-tabs { display: flex; gap: .5rem; }
-  .lb-tab { padding: .55rem 1.1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .82rem; cursor: pointer; }
-  .lb-tab.is-active { border-color: var(--gh-yellow); color: var(--gh-yellow); }
 
   .lb-controls { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 1.25rem; }
+  .lb-vehicle-select { flex: 1 1 16rem; display: flex; }
+  .lb-vehicle-select select { width: 100%; }
   .lb-search { flex: 1 1 14rem; } /* look: site-wide .ui-search (tokens.css) */
   .lb-toggle { display: inline-flex; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); overflow: hidden; }
   .lb-toggle button { padding: .65rem 1.1rem; border: none; background: transparent; color: var(--gh-muted); font-weight: 700; font-size: .78rem; cursor: pointer; }
@@ -131,6 +128,13 @@ const needed = vehiclesNeededHtml(sampleEntries);
   :global(.needed-text span) { color: var(--gh-muted); font-size: .7rem; }
 
   @media (max-width: 700px) {
+    /* phone: keep rank, driver, vehicle, lap time and a status icon on screen */
+    .lb-table { min-width: 0; }
+    :global(.lb-table .col-opt), :global(.lb-table .st-txt) { display: none; }
+    :global(.lb-table td), :global(.lb-table th) { padding-inline: .55rem; }
+    :global(.lb-table .lb-vehicle-name) { flex-direction: column; gap: 0; }
+    :global(.lb-table .lb-crew-tag) { margin-left: .3rem; }
+    :global(.lb-table .lb-vehicle .logo-chip) { display: none; }
     .lb-head { align-items: flex-start; }
     .needed { justify-content: flex-start; }
     .needed ul { justify-content: flex-start; }
@@ -142,18 +146,18 @@ const needed = vehiclesNeededHtml(sampleEntries);
   :global(.watch-btn) { cursor: pointer; font-family: var(--gh-font-body); }
   :global(.watch-btn.is-disabled) { opacity: .45; cursor: not-allowed; }
   :global(.lb-empty-row td) { padding: 2rem 1.1rem; text-align: center; color: var(--gh-muted); }
-  .lb-tab:hover:not(.is-active), .lb-toggle button:hover:not(.is-active) { color: var(--gh-text); }
+  .lb-toggle button:hover:not(.is-active) { color: var(--gh-text); }
   .lb-more { display: flex; justify-content: center; }
   :global(.lb-more-btn) { margin-top: 1rem; }
   :global(.lb-context) { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.2rem; margin-bottom: 1rem; }
-  :global(.lb-back) { display: inline-flex; align-items: center; gap: .3rem; padding: .45rem .8rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-text); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; }
-  :global(.lb-back:hover) { border-color: var(--gh-muted); }
   :global(.lb-context-title) { display: flex; align-items: center; gap: .65rem; flex: 1 1 auto; }
   :global(.lb-context-title h3) { margin: 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.25rem; }
   :global(.lb-context-kicker) { margin: 0; color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
   :global(.lb-context-link) { color: var(--gh-muted); font-size: .8rem; font-weight: 700; }
   :global(.lb-context-link:hover) { color: var(--gh-text); }
-  :global(.lb-context-note) { margin: 0 0 1rem; color: var(--gh-muted); font-size: .82rem; }
+  @media (max-width: 380px) {
+    :global(.lb-table td), :global(.lb-table th) { padding-inline: .4rem; }
+  }
 </style>
 
 <script>
@@ -163,7 +167,7 @@ const needed = vehiclesNeededHtml(sampleEntries);
   // returns at least one row (pre-launch: zero rows -> sample stays, flagged).
   // TRACK_ID is fixed while Gellhorn is the only track.
   import { createClient } from '@supabase/supabase-js';
-  import { sampleEntries, initialState, render, vehiclesNeededHtml, type LbEntry, type LbState } from '../data/leaderboard';
+  import { sampleEntries, initialState, render, vehiclesNeededHtml, vehicleSelectHtml, type LbEntry, type LbState } from '../data/leaderboard';
 
   const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
   const SUPABASE_ANON_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -174,21 +178,20 @@ const needed = vehiclesNeededHtml(sampleEntries);
   let sample = true;
   const state: LbState = { ...initialState };
 
-  // Shareable state: ?lb=vehicles&vehicle=<id>&verified=1
+  // Shareable state: ?vehicle=<id>&verified=1
   const params = new URLSearchParams(location.search);
-  if (params.get('lb') === 'vehicles') state.view = 'vehicles';
-  if (params.get('vehicle')) { state.view = 'vehicles'; state.vehicle = params.get('vehicle'); }
+  if (params.get('vehicle')) state.vehicle = params.get('vehicle');
   if (params.get('verified') === '1') state.verifiedOnly = true;
 
   function syncUrl() {
     const u = new URL(location.href);
-    ['lb', 'vehicle', 'verified'].forEach((k) => u.searchParams.delete(k));
-    if (state.view === 'vehicles') u.searchParams.set('lb', 'vehicles');
+    ['vehicle', 'verified', 'lb'].forEach((k) => u.searchParams.delete(k));
     if (state.vehicle) u.searchParams.set('vehicle', state.vehicle);
     if (state.verifiedOnly) u.searchParams.set('verified', '1');
     history.replaceState(null, '', u.pathname + u.search + u.hash);
   }
 
+  const vehicleSel = $('lb-vehicle') as HTMLSelectElement;
   function draw() {
     const r = render(data, state, sample);
     $('lb-thead').innerHTML = r.head;
@@ -196,11 +199,8 @@ const needed = vehiclesNeededHtml(sampleEntries);
     $('lb-context').innerHTML = r.context;
     $('lb-more').innerHTML = r.more;
     $('lb-meta').textContent = r.meta;
-    document.querySelectorAll<HTMLButtonElement>('.lb-tab').forEach((t) => {
-      const on = t.dataset.view === state.view;
-      t.classList.toggle('is-active', on);
-      t.setAttribute('aria-selected', String(on));
-    });
+    vehicleSel.innerHTML = vehicleSelectHtml(data, state); // counts follow the verified filter
+    vehicleSel.value = state.vehicle ?? '';
     document.querySelectorAll<HTMLButtonElement>('.lb-toggle button').forEach((b) => {
       const on = (b.dataset.verified === '1') === state.verifiedOnly;
       b.classList.toggle('is-active', on);
@@ -210,35 +210,14 @@ const needed = vehiclesNeededHtml(sampleEntries);
   }
 
   const qDriver = $('lb-q-driver') as HTMLInputElement;
-  const qVehicle = $('lb-q-vehicle') as HTMLInputElement;
   qDriver.addEventListener('input', () => { state.qDriver = qDriver.value; draw(); });
-  qVehicle.addEventListener('input', () => {
-    state.qVehicle = qVehicle.value;
-    if (state.vehicle && qVehicle.value) state.vehicle = null; // searching vehicles -> back to the list
-    draw();
-  });
-  document.querySelectorAll<HTMLButtonElement>('.lb-tab').forEach((t) => t.addEventListener('click', () => {
-    state.view = t.dataset.view as LbState['view'];
-    state.vehicle = null;
-    state.showAll = false;
-    draw();
-  }));
+  vehicleSel.addEventListener('change', () => { state.vehicle = vehicleSel.value || null; state.showAll = false; draw(); });
   document.querySelectorAll<HTMLButtonElement>('.lb-toggle button').forEach((b) => b.addEventListener('click', () => {
     state.verifiedOnly = b.dataset.verified === '1';
     draw();
   }));
   $('leaderboard').addEventListener('click', (e) => {
-    const el = e.target as HTMLElement;
-    const veh = el.closest<HTMLElement>('[data-lb-vehicle]');
-    if (veh) {
-      state.view = 'vehicles'; state.vehicle = veh.dataset.lbVehicle!; state.showAll = false;
-      state.qVehicle = ''; qVehicle.value = '';
-      draw();
-      $('lb-context').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-    if (el.closest('[data-lb-back]')) { state.vehicle = null; state.showAll = false; draw(); return; }
-    if (el.closest('[data-lb-more]')) { state.showAll = true; draw(); }
+    if ((e.target as HTMLElement).closest('[data-lb-more]')) { state.showAll = true; draw(); }
   });
 
   draw();

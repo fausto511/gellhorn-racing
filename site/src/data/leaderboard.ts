@@ -28,16 +28,13 @@ export interface LbEntry {
   video_url: string | null;
 }
 
-export type LbView = 'overall' | 'vehicles';
 export interface LbState {
-  view: LbView;
-  vehicle: string | null; // vehicle_id when a single vehicle board is open
+  vehicle: string | null; // null = Overall (all vehicles), else one vehicle's board
   qDriver: string;
-  qVehicle: string;
   verifiedOnly: boolean;
   showAll: boolean;
 }
-export const initialState: LbState = { view: 'overall', vehicle: null, qDriver: '', qVehicle: '', verifiedOnly: false, showAll: false };
+export const initialState: LbState = { vehicle: null, qDriver: '', verifiedOnly: false, showAll: false };
 export const PAGE = 12;
 
 // ---------------------------------------------------------------------------
@@ -119,9 +116,6 @@ const byTime = (a: LbEntry, b: LbEntry) => a.lap_time_ms - b.lap_time_ms || a.dr
 function matchDriver(e: LbEntry, q: string) {
   return !q || norm(e.driver).includes(q) || (e.crew ? norm(e.crew.tag).includes(q) : false);
 }
-function matchVehicle(e: { make: string; model: string }, q: string) {
-  return !q || norm(vehName(e)).includes(q);
-}
 
 /** Overall: every driver once, with his fastest vehicle. */
 export function overallRows(all: LbEntry[], verifiedOnly: boolean) {
@@ -137,18 +131,6 @@ export function overallRows(all: LbEntry[], verifiedOnly: boolean) {
 export function vehicleRows(all: LbEntry[], vehicleId: string, verifiedOnly: boolean) {
   return all.filter((e) => e.vehicle_id === vehicleId && (!verifiedOnly || e.verified)).sort(byTime).map((e, i) => ({ e, rank: i + 1 }));
 }
-/** Vehicle Records: record per vehicle. */
-export function vehicleRecords(all: LbEntry[], verifiedOnly: boolean) {
-  const map = new Map<string, { record: LbEntry; drivers: LbEntry[] }>();
-  for (const e of all) {
-    if (verifiedOnly && !e.verified) continue;
-    const m = map.get(e.vehicle_id);
-    if (!m) map.set(e.vehicle_id, { record: e, drivers: [e] });
-    else { m.drivers.push(e); if (byTime(e, m.record) < 0) m.record = e; }
-  }
-  return [...map.values()].sort((a, b) => byTime(a.record, b.record)).map((v, i) => ({ ...v, rank: i + 1 }));
-}
-
 // ---------------------------------------------------------------------------
 // Markup
 // ---------------------------------------------------------------------------
@@ -179,8 +161,8 @@ function crewTag(c: LbEntry['crew']) {
 const CHECK = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
 function statusCell(verified: boolean) {
   return verified
-    ? `<span class="status-ok"><span class="check-circle">${CHECK}</span> Video verified</span>`
-    : '<span class="status-pending"><span class="status-dot"></span> Not video verified</span>';
+    ? `<span class="status-ok" title="Video verified"><span class="check-circle">${CHECK}</span><span class="st-txt"> Video verified</span></span>`
+    : '<span class="status-pending" title="Not video verified"><span class="status-dot"></span><span class="st-txt"> Not video verified</span></span>';
 }
 function videoCell(e: LbEntry, sample: boolean) {
   if (!e.verified) return '—';
@@ -193,65 +175,65 @@ const empty = (cols: number, text: string) => `<tr class="lb-empty-row"><td cols
 export interface Rendered { head: string; body: string; context: string; more: string; meta: string }
 
 export function render(all: LbEntry[], s: LbState, sample: boolean): Rendered {
-  const qd = norm(s.qDriver), qv = norm(s.qVehicle);
-  const filtering = Boolean(qd || qv);
-  const cap = <T>(rows: T[]): T[] => (s.showAll || filtering ? rows : rows.slice(0, PAGE));
+  const qd = norm(s.qDriver);
+  const cap = <T>(rows: T[]): T[] => (s.showAll || qd ? rows : rows.slice(0, PAGE));
+  const vf = s.verifiedOnly ? 'verified ' : '';
   const moreBtn = (shown: number, total: number, noun: string) =>
-    shown < total ? `<button type="button" class="btn btn-outline lb-more-btn" data-lb-more>Show all ${total} ${noun}</button>` : '';
-  const vf = s.verifiedOnly ? ' verified' : '';
+    shown < total ? `<button type="button" class="btn btn-outline lb-more-btn" data-lb-more>Show all ${total} ${vf}${noun}</button>` : '';
   const driverCount = new Set(all.map((e) => e.driver_id)).size;
   const laps = [...new Map(all.map((e) => [e.driver_id, e.entries])).values()].reduce((a, b) => a + b, 0);
   const metaBase = `Gellhorn International Raceway · PS5 · Current Standard · ${driverCount} driver${driverCount === 1 ? '' : 's'} · ${laps} accepted lap${laps === 1 ? '' : 's'}`;
 
-  // --- single vehicle board ---
-  if (s.view === 'vehicles' && s.vehicle) {
-    const v = all.find((e) => e.vehicle_id === s.vehicle) ?? (() => {
-      const g = vehicleOptions.find((x) => x.id === s.vehicle);
-      return g ? ({ make: g.make, model: g.model, logo: g.logoSlug, vehicle_id: g.id } as LbEntry) : null;
-    })();
+  // --- one vehicle: only this vehicle's times, fastest first ---
+  if (s.vehicle) {
+    const g = vehicleOptions.find((x) => x.id === s.vehicle);
+    const v = all.find((e) => e.vehicle_id === s.vehicle) ?? (g ? ({ make: g.make, model: g.model, logo: g.logoSlug, vehicle_id: g.id } as LbEntry) : null);
     const ranked = vehicleRows(all, s.vehicle, s.verifiedOnly);
     const rows = ranked.filter(({ e }) => matchDriver(e, qd));
     const shown = cap(rows);
     const best = ranked[0]?.e.lap_time_ms ?? 0;
-    const head = '<tr><th scope="col">#</th><th scope="col">Driver</th><th scope="col">Track Entries</th><th scope="col">Lap Time</th><th scope="col">Status</th><th scope="col">Video</th></tr>';
-    const body = shown.length
-      ? shown.map(({ e, rank }) => `<tr class="${rank <= 3 ? 'is-top3' : ''}"><td class="lb-rank">${rank}</td><td class="lb-driver">${esc(e.driver)}${crewTag(e.crew)}</td><td class="lb-num">${e.entries}</td><td class="lb-time">${lapTime(e.lap_time_ms)}${gap(e.lap_time_ms, best)}</td><td>${statusCell(e.verified)}</td><td class="lb-video">${videoCell(e, sample)}</td></tr>`).join('')
-      : empty(6, ranked.length ? 'No driver matches your search.' : `No${vf} times on this vehicle yet.`);
     const name = v ? `${esc(v.make)} ${esc(v.model)}` : 'Unknown vehicle';
+    const head = '<tr><th scope="col">#</th><th scope="col">Driver</th><th scope="col" class="col-opt">Track Entries</th><th scope="col">Lap Time</th><th scope="col"><span class="st-txt">Status</span></th><th scope="col" class="col-opt">Video</th></tr>';
+    const body = shown.length
+      ? shown.map(({ e, rank }) => `<tr class="${rank <= 3 ? 'is-top3' : ''}"><td class="lb-rank">${rank}</td><td class="lb-driver">${esc(e.driver)}${crewTag(e.crew)}</td><td class="lb-num col-opt">${e.entries}</td><td class="lb-time">${lapTime(e.lap_time_ms)}${gap(e.lap_time_ms, best)}</td><td>${statusCell(e.verified)}</td><td class="lb-video col-opt">${videoCell(e, sample)}</td></tr>`).join('')
+      : empty(6, ranked.length ? 'No driver matches your search.' : `No ${vf}times on the ${name} yet. <a href="${base}time-attack/submit/">Be the first — submit a lap</a>.`);
     const context = `<div class="lb-context">
-      <button type="button" class="lb-back" data-lb-back><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>All vehicles</button>
       <div class="lb-context-title">${v ? logoChip(v, true) : ''}<div><p class="lb-context-kicker">Vehicle Leaderboard</p><h3>${name}</h3></div></div>
       ${v && inGarage(v.vehicle_id) ? `<a class="lb-context-link" href="${garageUrl(v.vehicle_id)}">Open in The Garage</a>` : ''}
     </div>`;
-    return { head, body, context, more: moreBtn(shown.length, rows.length, `${s.verifiedOnly ? 'verified ' : ''}times`), meta: `${metaBase} · ${ranked.length} driver${ranked.length === 1 ? '' : 's'} on this vehicle` };
+    return { head, body, context, more: moreBtn(shown.length, rows.length, 'times'), meta: `${metaBase} · ${ranked.length} driver${ranked.length === 1 ? '' : 's'} on this vehicle` };
   }
 
-  // --- vehicle records list ---
-  if (s.view === 'vehicles') {
-    const recs = vehicleRecords(all, s.verifiedOnly);
-    const rows = recs.filter((r) => matchVehicle(r.record, qv) && (!qd || r.drivers.some((d) => matchDriver(d, qd))));
-    const shown = cap(rows);
-    const head = '<tr><th scope="col">#</th><th scope="col">Vehicle</th><th scope="col">Record Holder</th><th scope="col">Drivers</th><th scope="col">Record</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Leaderboard</span></th></tr>';
-    const body = shown.length
-      ? shown.map(({ record: e, drivers, rank }) => `<tr><td class="lb-rank">${rank}</td><td>${vehicleCell(e)}</td><td class="lb-driver">${esc(e.driver)}${crewTag(e.crew)}</td><td class="lb-num">${drivers.length}</td><td class="lb-time">${lapTime(e.lap_time_ms)}</td><td>${statusCell(e.verified)}</td><td class="lb-video"><button type="button" class="watch-btn outline-hover" data-lb-vehicle="${esc(e.vehicle_id)}" aria-label="Open the ${esc(vehName(e))} leaderboard">Leaderboard</button></td></tr>`).join('')
-      : empty(7, recs.length ? 'No vehicle matches your search.' : `No${vf} times yet.`);
-    const context = `<p class="lb-context-note">Fastest${vf} time for every vehicle on Gellhorn. Open a vehicle to see its full leaderboard.</p>`;
-    return { head, body, context, more: moreBtn(shown.length, rows.length, 'vehicles'), meta: `${metaBase} · ${recs.length} vehicle${recs.length === 1 ? '' : 's'} with${vf} times` };
-  }
-
-  // --- overall ---
+  // --- overall: across all vehicles and classes, every driver once ---
   const ranked = overallRows(all, s.verifiedOnly);
-  const rows = ranked.filter(({ e }) => matchDriver(e, qd) && matchVehicle(e, qv));
+  const rows = ranked.filter(({ e }) => matchDriver(e, qd));
   const shown = cap(rows);
   const best = ranked[0]?.e.lap_time_ms ?? 0;
-  const head = '<tr><th scope="col">#</th><th scope="col">Driver</th><th scope="col">Vehicle</th><th scope="col">Track Entries</th><th scope="col">Lap Time</th><th scope="col">Status</th><th scope="col">Video</th></tr>';
+  const head = '<tr><th scope="col">#</th><th scope="col">Driver</th><th scope="col">Vehicle</th><th scope="col" class="col-opt">Track Entries</th><th scope="col">Lap Time</th><th scope="col"><span class="st-txt">Status</span></th><th scope="col" class="col-opt">Video</th></tr>';
   const body = shown.length
-    ? shown.map(({ e, rank }) => `<tr class="${rank <= 3 ? 'is-top3' : ''}"><td class="lb-rank">${rank}</td><td class="lb-driver">${esc(e.driver)}${crewTag(e.crew)}</td><td>${vehicleCell(e)}</td><td class="lb-num">${e.entries}</td><td class="lb-time">${lapTime(e.lap_time_ms)}${gap(e.lap_time_ms, best)}</td><td>${statusCell(e.verified)}</td><td class="lb-video">${videoCell(e, sample)}</td></tr>`).join('')
-    : empty(7, ranked.length ? 'No time matches your search.' : `No${vf} times yet.`);
-  const context = qv
-    ? '<p class="lb-context-note">Overall shows each driver\'s fastest vehicle only. Use Vehicle Records to see every time on one vehicle.</p>'
-    : '';
-  return { head, body, context, more: moreBtn(shown.length, rows.length, `${s.verifiedOnly ? 'verified ' : ''}drivers`), meta: metaBase };
+    ? shown.map(({ e, rank }) => `<tr class="${rank <= 3 ? 'is-top3' : ''}"><td class="lb-rank">${rank}</td><td class="lb-driver">${esc(e.driver)}${crewTag(e.crew)}</td><td>${vehicleCell(e)}</td><td class="lb-num col-opt">${e.entries}</td><td class="lb-time">${lapTime(e.lap_time_ms)}${gap(e.lap_time_ms, best)}</td><td>${statusCell(e.verified)}</td><td class="lb-video col-opt">${videoCell(e, sample)}</td></tr>`).join('')
+    : empty(7, ranked.length ? 'No driver matches your search.' : `No ${vf}times yet.`);
+  return { head, body, context: '', more: moreBtn(shown.length, rows.length, 'drivers'), meta: metaBase };
+}
+
+/** Vehicle dropdown: "All vehicles" (= Overall), then every garage vehicle
+ *  grouped by class, with the number of drivers who set a time on it. */
+export function vehicleSelectHtml(all: LbEntry[], s: LbState): string {
+  const count = new Map<string, number>();
+  for (const e of all) if (!s.verifiedOnly || e.verified) count.set(e.vehicle_id, (count.get(e.vehicle_id) ?? 0) + 1);
+  const groups = new Map<string, typeof vehicleOptions>();
+  for (const v of vehicleOptions) {
+    const c = v.classes[0] ?? 'Other';
+    if (!groups.has(c)) groups.set(c, []);
+    groups.get(c)!.push(v);
+  }
+  const opt = (v: (typeof vehicleOptions)[number]) => {
+    const n = count.get(v.id) ?? 0;
+    return `<option value="${esc(v.id)}"${s.vehicle === v.id ? ' selected' : ''}>${esc(v.make)} ${esc(v.model)}${n ? ` (${n})` : ''}</option>`;
+  };
+  const sorted = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  return `<option value=""${s.vehicle ? '' : ' selected'}>All vehicles (Overall)</option>`
+    + sorted.map(([c, vs]) => `<optgroup label="${esc(c)}">${vs.sort((a, b) => `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`)).map(opt).join('')}</optgroup>`).join('');
 }
 
 /** Vehicles Needed: vehicles that have times but no verified record first,
