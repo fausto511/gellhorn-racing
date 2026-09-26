@@ -44,8 +44,10 @@ export interface HubEvent {
   location: string | null;
   description: string | null;
   join_url: string | null;
+  /** Discord invite where the event takes place (RS-0034) */
+  discord_url?: string | null;
   status: 'scheduled' | 'cancelled';
-  host?: { name: string; tag: string; color: string } | null;
+  host?: { name: string; tag: string; color: string; discord_url?: string | null } | null;
   max_participants?: number | null;
   /** sample events only: fictional drivers already signed up */
   sample_going?: string[];
@@ -130,6 +132,20 @@ export function esc(value: unknown): string {
 
 const safeColor = (c: string) => (/^#[0-9a-fA-F]{6}$/.test(c) ? c : '#a0a0c6');
 const safeUrl = (u: string | null) => (u && /^https:\/\//.test(u) ? u : null);
+const DISCORD_RX = /^https:\/\/(discord\.gg|discord\.com\/invite)\/[A-Za-z0-9-]+$/;
+/** Where to meet the host: the event's own Discord invite, else the host crew's (RS-0034). */
+export function eventDiscord(e: HubEvent): string | null {
+  const u = e.discord_url || e.host?.discord_url || null;
+  return u && DISCORD_RX.test(u) ? u : null;
+}
+const iconDiscord = '<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>';
+/** Discord button for an event row; sample events get a disabled demo button. */
+export function eventDiscordHtml(e: HubEvent, sample = false): string {
+  if (e.status === 'cancelled') return '';
+  if (sample) return `<span class="btn ev-discord is-disabled" title="Sample event — no real Discord server">${iconDiscord}Host Discord</span>`;
+  const u = eventDiscord(e);
+  return u ? `<a class="btn ev-discord" href="${esc(u)}" target="_blank" rel="noopener" title="Join the host's Discord server">${iconDiscord}Host Discord</a>` : '';
+}
 
 /** Social-Club-style crew tag: white plate, black tag, thin crew-colour bar at the bottom. */
 export function crewTagHtml(tag: string, color: string, size: 'sm' | 'md' = 'md'): string {
@@ -233,6 +249,7 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
   </div>
   <div class="ev-side">
     ${host}
+    ${eventDiscordHtml(e, Boolean(opts.sample))}
     ${join && !cancelled ? `<a class="btn btn-white-tonal ev-join" href="${esc(join)}" target="_blank" rel="noopener">Details</a>` : ''}
     ${opts.rsvp ? `<div class="ev-rsvp" data-rsvp="${esc(e.event_id)}"></div>` : ''}
   </div>

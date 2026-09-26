@@ -134,3 +134,10 @@
 /* Sample events (RS-0033): clearly marked, but sign-up works as a demo */
 .chip-sample { color: var(--gh-red); background: rgba(237,37,61,.14); border-color: transparent; }
 .ev-rsvp-note { max-width: 16rem; color: var(--gh-muted); font-size: .72rem; text-align: right; }
+
+/* Host Discord button on events (RS-0034) */
+.ev-discord { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .9rem; font-size: .8rem; background: #5865f2; border: 1px solid #5865f2; color: #fff; text-decoration: none; }
+.ev-discord:hover { background: #4752c4; border-color: #4752c4; }
+.ev-discord.is-disabled { opacity: .45; cursor: not-allowed; }
+.ev-discord.is-disabled:hover { background: #5865f2; }
+.ev-rsvp-msg a { color: inherit; text-decoration: underline; }

@@ -48,7 +48,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
 </Base>
 
 <script>
-  import { sampleEventsUpcoming, eventRowHtml, localizeTimes, monthLabel, esc, type HubEvent } from '../../../data/hub';
+  import { sampleEventsUpcoming, eventRowHtml, eventDiscord, localizeTimes, monthLabel, esc, type HubEvent } from '../../../data/hub';
   import { sampleRsvps, setSampleRsvp } from '../../../scripts/sample-rsvp';
   import { fetchLiveEvents } from '../../../scripts/hub-live';
   import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
@@ -94,7 +94,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   let mine = new Set<string>();
   let session: any = null;
   let me: string | null = null;
-  let note: { id: string; text: string; err?: boolean } | null = null;
+  let note: { id: string; text: string; err?: boolean; discord?: string | null } | null = null;
 
   const isOver = (e: HubEvent) => new Date(e.ends_at ?? new Date(new Date(e.starts_at).getTime() + 3 * 3600e3).toISOString()) < new Date();
 
@@ -117,7 +117,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
       else if (closed) action = '';
       else if (full) action = '<span class="ev-full">Full</span>';
       else action = `<button type="button" class="btn btn-sm btn-primary ev-rsvp-btn" data-join="${esc(id)}">I'm in</button>`;
-      const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}</span>` : '';
+      const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}${note.discord ? ` <a href="${esc(note.discord)}" target="_blank" rel="noopener">Join the host\u2019s Discord</a> to take part.` : ''}</span>` : '';
       slot.innerHTML = `${list}${action}${msg}`;
     });
   }
@@ -154,7 +154,8 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
     }
     if (!me) return;
     const { error } = await getSupabase().from('hub_event_rsvps').insert({ event_id: id, driver_id: me });
-    note = error ? { id, text: 'Could not sign up — the event may be full or already over.', err: true } : { id, text: 'You\u2019re in!' };
+    const ev = events.find((x) => x.event_id === id);
+    note = error ? { id, text: 'Could not sign up — the event may be full or already over.', err: true } : { id, text: 'You\u2019re in!', discord: ev ? eventDiscord(ev) : null };
     await loadRsvps();
   }
   async function leave(id: string) {
