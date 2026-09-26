@@ -42,7 +42,12 @@ const photo = photoOverrides[vehicle.id];
       <label class="ui-search v-search-field"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" id="v-search" placeholder="Search Vehicle" aria-label="Search vehicles" autocomplete="off" /></label>
       <ul id="v-search-results" class="v-search-results" hidden></ul>
     </div>
+    <button type="button" id="v-own" class="v-own-btn" aria-pressed="false" hidden>
+      <span class="v-own-box" aria-hidden="true"></span>
+      <span class="v-own-label">I own this vehicle</span>
+    </button>
     <a href={`${base}garage/#compare`} id="v-compare-cta" class="garage-compare-btn">Compare Selected (0)</a>
+    <p class="v-own-msg" id="v-own-msg" role="status" hidden></p>
   </section>
 
   <section class="wrap v-stage">
@@ -68,11 +73,6 @@ const photo = photoOverrides[vehicle.id];
       </div>
       <h1 class="display v-title">{vehicle.model}</h1>
       <p class="v-classes">{vehicle.classes.join(' / ')}</p>
-      <button type="button" id="v-own" class="v-own-btn" aria-pressed="false" hidden>
-        <span class="v-own-box" aria-hidden="true"></span>
-        <span class="v-own-label">I own this vehicle</span>
-      </button>
-      <p class="v-own-msg" id="v-own-msg" hidden></p>
       <dl class="v-key">
         <div><dt>Price</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
         <div><dt>Seats</dt><dd>{vehicle.seats}</dd></div>
@@ -101,7 +101,7 @@ const photo = photoOverrides[vehicle.id];
 </Base>
 
 <style>
-  .v-toolbar { display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: var(--gh-gap-card); padding-top: 1.5rem; }
+  .v-toolbar { display: grid; grid-template-columns: 1.5fr 1fr auto; align-items: center; gap: var(--gh-gap-card); padding-top: 1.5rem; }
   .v-search-wrap { position: relative; }
   .v-search-field { width: 100%; } /* look: site-wide .ui-search (tokens.css) */
   .v-search-results { position: absolute; top: calc(100% + .35rem); left: 0; right: 0; z-index: 20; margin: 0; padding: .3rem; list-style: none; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); max-height: 16rem; overflow-y: auto; }
@@ -125,14 +125,14 @@ const photo = photoOverrides[vehicle.id];
   .v-identity { padding: var(--gh-pad-card); }
   /* "I own this" toggle (RS-0032) */
   .v-own-btn[hidden], .v-own-msg[hidden] { display: none; }
-  .v-own-btn { display: flex; align-items: center; gap: .6rem; width: 100%; margin: 0 0 1.1rem; padding: .7rem .9rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: transparent; color: var(--gh-text); font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer; text-align: left; }
+  .v-own-btn { justify-self: end; display: inline-flex; align-items: center; gap: .5rem; padding: .55rem 1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-surface); color: var(--gh-text); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .v-own-btn:hover { border-color: var(--gh-muted); }
-  .v-own-box { flex: none; width: 1.15rem; height: 1.15rem; border-radius: 4px; border: 2px solid var(--gh-muted); display: inline-flex; align-items: center; justify-content: center; }
+  .v-own-box { flex: none; width: 1rem; height: 1rem; border-radius: 4px; border: 2px solid var(--gh-muted); display: inline-flex; align-items: center; justify-content: center; }
   .v-own-btn[aria-pressed="true"] { border-color: var(--gh-yellow); background: rgba(255,215,76,.08); }
   .v-own-btn[aria-pressed="true"] .v-own-box { background: var(--gh-yellow); border-color: var(--gh-yellow); }
   .v-own-btn[aria-pressed="true"] .v-own-box::after { content: ''; width: .32rem; height: .6rem; border: solid #1a1206; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
   .v-own-btn:disabled { opacity: .6; cursor: progress; }
-  .v-own-msg { margin: -.6rem 0 1rem; font-size: .8rem; color: var(--gh-muted); }
+  .v-own-msg { grid-column: 1 / -1; justify-self: end; margin: -.4rem 0 0; font-size: .8rem; color: var(--gh-muted); }
   .v-own-msg a { color: var(--gh-text); }
   .v-maker { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
   .v-maker img { filter: brightness(0) invert(1); opacity: .85; object-fit: contain; }
@@ -158,8 +158,10 @@ const photo = photoOverrides[vehicle.id];
 
   @media (max-width: 760px) {
     .v-stage { grid-template-columns: 1fr; }
-    .v-toolbar { grid-template-columns: 1fr; }
-    .garage-compare-btn { justify-self: stretch; text-align: center; }
+    .v-toolbar { grid-template-columns: 1fr 1fr; }
+    .v-search-wrap { grid-column: 1 / -1; }
+    .garage-compare-btn, .v-own-btn { justify-self: stretch; justify-content: center; text-align: center; }
+    .v-own-msg { justify-self: start; }
   }
 </style>
 
@@ -259,7 +261,12 @@ const photo = photoOverrides[vehicle.id];
     btn.setAttribute('aria-pressed', String(owned));
     label.textContent = owned ? 'In my garage' : 'I own this vehicle';
   }
-  function note(html: string) { msg.innerHTML = html; msg.hidden = !html; }
+  let noteTimer: number | undefined;
+  function note(html: string) {
+    msg.innerHTML = html; msg.hidden = !html;
+    clearTimeout(noteTimer);
+    if (html) noteTimer = window.setTimeout(() => { msg.hidden = true; }, 5000);
+  }
 
   async function toggle(want: boolean) {
     if (!me) return;
