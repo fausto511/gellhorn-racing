@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
 ---
 <Base
   title="Privacy Policy"
@@ -53,23 +54,26 @@ import Base from '../../layouts/Base.astro';
       <p>Legal basis: Art. 6(1)(c) GDPR in conjunction with Art. 16 of the EU Digital Services Act where it applies, and Art. 6(1)(f) GDPR (our legitimate interest in a safe, lawful community).</p>
 
       <h2>9. Hosting and technical delivery</h2>
-      <p>The website is hosted on GitHub Pages (provider: GitHub, Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA). When you open the site, GitHub automatically processes technical access data (server logs, including IP address, time of access and the file requested). The exact basis for the data transfer to the USA (e.g. the EU-U.S. Data Privacy Framework) will be named here before launch.</p>
+      <p>The website is hosted on GitHub Pages (provider: GitHub, Inc., 88 Colin P Kelly Jr St, San Francisco, CA 94107, USA). When you open the site, GitHub automatically processes technical access data (server logs, including IP address, time of access and the file requested). GitHub, Inc. is certified under the EU-U.S. Data Privacy Framework; the transfer to the USA is therefore based on the European Commission's adequacy decision (Art. 45 GDPR).</p>
       <p>Legal basis: Art. 6(1)(f) GDPR (our legitimate interest in delivering the website securely and reliably).</p>
 
       <h2>10. Database and sign-in provider (Supabase)</h2>
-      <p>User accounts, profile data, submissions, private proof, Hub content and reports are stored and managed with Supabase (Supabase Inc., USA) in an EU data region. A data processing agreement with Supabase still has to be concluded before launch (or its standard DPA checked) and will then be referenced here.</p>
+      <p>User accounts, profile data, submissions, private proof, Hub content and reports are stored and managed with Supabase (Supabase Inc., USA) in an EU data region. We have a data processing agreement with Supabase under Art. 28 GDPR (Supabase Data Processing Addendum, part of Supabase's terms). Where data is transferred to the USA, the EU Standard Contractual Clauses included in it apply (Art. 46(2)(c) GDPR).</p>
       <p>Legal basis: Art. 6(1)(b) GDPR in conjunction with Art. 28 GDPR (processing on our behalf).</p>
 
       <h2>11. Browser storage, cookies and tracking</h2>
       <p>When you sign in, your login session is stored in your browser's local storage so you stay signed in. Sign-ups for sample events are stored there too. Both are technically necessary for the functions you use and need no consent under Section 25(2) TDDDG. You can remove them at any time by signing out or clearing your browser data.</p>
       <p>We currently use no analytics or tracking services. If we ever add an analytics or statistics service, we will add it here beforehand, with its legal basis and a consent banner.</p>
 
-      <h2>12. Your rights</h2>
+      <h2>12. Minimum age</h2>
+      <p>Accounts are for people aged 16 and over (see the <a href={`${base}terms/`}>Terms of Use</a>). If we learn that an account belongs to someone younger, we delete it.</p>
+
+      <h2>13. Your rights</h2>
       <p>You have the right to access the data we store about you (Art. 15 GDPR), to have incorrect data corrected (Art. 16 GDPR), to have your data deleted (Art. 17 GDPR), to restrict processing (Art. 18 GDPR), to data portability (Art. 20 GDPR), to object to processing based on Art. 6(1)(f) GDPR (Art. 21 GDPR), and to lodge a complaint with a data protection supervisory authority (Art. 77 GDPR). Please send requests to the contact e-mail above.</p>
       <p><strong>Deleting your account:</strong> You can delete your account yourself at any time under My Account › Settings › Delete my account. This deletes your display name, your Discord link and login, your garage, crew membership and roles, events you created, event sign-ups, reports you sent, your screenshots and video links; submissions not yet reviewed are deleted too. Lap times that have already been reviewed stay on the leaderboard without a name, as "Deleted driver", and can no longer be linked to any person. Deletion is permanent: signing in with Discord again creates a new, empty account.</p>
       <p>If you only remove our website from the authorized apps in your Discord settings, your account with us is not deleted; your data stays as it is until you sign in again and delete your account, or send us a deletion request.</p>
 
-      <h2>13. Changes to this policy</h2>
+      <h2>14. Changes to this policy</h2>
       <p>We update this privacy policy when the way we process data changes. The version published at the time of your visit applies. This version: 27 September 2026.</p>
     </div>
   </section>
