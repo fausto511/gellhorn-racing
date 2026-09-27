@@ -3,4 +3,4 @@
 // Keep the disclaimer on every page (trademark conditions, DEC-0081).
 export const SITE_NAME = 'Leonida Racing';
 export const SITE_TAGLINE = 'GTA 6 racing database & community';
-export const SITE_DISCLAIMER = 'Independent GTA VI fan project. Not affiliated with Rockstar Games or Take-Two Interactive.';
+export const SITE_DISCLAIMER = 'Independent GTA VI community project. Not affiliated with Rockstar Games or Take-Two Interactive.';
