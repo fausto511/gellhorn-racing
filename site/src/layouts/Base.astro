@@ -4,14 +4,24 @@ import '../styles/fonts.css';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
+import { SITE_NAME, SITE_TAGLINE } from '../data/site';
+
 interface Props {
   title: string;
   description: string;
   section?: 'time-attack' | 'garage' | 'hub' | 'account' | 'moderator' | null;
   noindex?: boolean;
+  /** Path below the base, e.g. 'images/x.jpg'. Defaults to the raceway hero. */
+  ogImage?: string;
+  /** schema.org objects rendered as JSON-LD (home page: WebSite + Organization). */
+  jsonLd?: Record<string, unknown>[];
 }
-const { title, description, section = null, noindex = false } = Astro.props;
+const { title, description, section = null, noindex = false, ogImage = 'images/gellhorn-raceway-1672.jpg', jsonLd = [] } = Astro.props;
 const base = import.meta.env.BASE_URL;
+// Every page title ends with the brand (DEC-0082), unless it already starts with it (home).
+const fullTitle = title.startsWith(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(`${base}${ogImage}`, Astro.site).href;
 ---
 <!doctype html>
 <!-- Inline dark background + color-scheme: the page never flashes white
@@ -22,9 +32,20 @@ const base = import.meta.env.BASE_URL;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content="#14141a" />
-    <title>{title}</title>
+    <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="robots" content={noindex ? 'noindex,follow' : 'index,follow'} />
+    <link rel="canonical" href={canonical} />
+    <meta name="application-name" content={SITE_NAME} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="alternate" type="text/plain" title={`${SITE_NAME} — ${SITE_TAGLINE} (for AI assistants)`} href={`${base}llms.txt`} />
+    {jsonLd.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(jsonLd.length === 1 ? jsonLd[0] : jsonLd)} />}
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
   </head>
   <body>

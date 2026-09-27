@@ -2,14 +2,14 @@
 import Base from '../../layouts/Base.astro';
 ---
 <Base
-  title="Datenschutzerklärung — Gellhorn Time Attack"
+  title="Datenschutzerklärung"
   description="Datenschutzerklärung gemäß Art. 13/14 DSGVO."
 >
   <section class="page-head">
     <div class="wrap">
       <p class="eyebrow">Privacy</p>
       <h1 class="display page-title">Datenschutzerklärung</h1>
-      <p class="page-lede">Stand: 26. September 2026</p>
+      <p class="page-lede">Stand: 27. September 2026</p>
     </div>
   </section>
 
@@ -27,7 +27,7 @@ import Base from '../../layouts/Base.astro';
       <p>Diese Website verarbeitet personenbezogene Daten in folgenden Bereichen: Anmeldung und Kontoverwaltung (Discord-OAuth-Login), Einreichung und Verifizierung von Rundenzeiten (Screenshots/Belege als private Originale, öffentliche Bestzeiten als Ergebnis), Moderation und Missbrauchsprävention sowie die technische Bereitstellung der Seite (Hosting, Server-Logs).</p>
 
       <h2>3. Discord-Anmeldung (OAuth)</h2>
-      <p>Für die Anmeldung nutzen wir Discord als externen Anmeldedienst (OAuth 2.0). Dabei fragen wir ausschließlich den kleinstmöglichen Discord-Scope <code>identify</code> an (keine E-Mail-Adresse, keine Server-/Gilden-Daten). Von Discord übermittelt werden entsprechend nur die Discord-Nutzer-ID, der Benutzername und der Avatar. Es werden keine Discord-Zugangsdaten (Passwort) von uns gespeichert oder eingesehen.</p>
+      <p>Für die Anmeldung nutzen wir Discord als externen Anmeldedienst (OAuth 2.0). Dabei fragen wir die Discord-Berechtigungen <code>identify</code>, <code>email</code> und <code>guilds.join</code> an; Discord zeigt sie dir vor der Anmeldung an. Von Discord übermittelt werden die Discord-Nutzer-ID, der Benutzername, der Avatar und die mit dem Discord-Konto verknüpfte E-Mail-Adresse. Die E-Mail-Adresse wird im Nutzerkonto bei unserem Anmelde- und Datenbankdienst gespeichert und nicht öffentlich angezeigt. Mit <code>guilds.join</code> wirst du direkt nach der Anmeldung einmalig unserem Discord-Server hinzugefügt; du kannst den Server jederzeit verlassen. Es werden keine Discord-Zugangsdaten (Passwort) von uns gespeichert oder eingesehen.</p>
       <p>Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Erfüllung des Nutzungsverhältnisses). Verantwortlicher für die Verarbeitung auf Discord-Seite ist Discord Inc. Die Datenschutzerklärung von Discord ist unter discord.com/privacy einsehbar.</p>
 
       <h2>4. Einreichungen, Screenshots und Verifizierung</h2>
@@ -52,7 +52,7 @@ import Base from '../../layouts/Base.astro';
       <p>Wenn du lediglich die Verknüpfung unserer Website in deinen Discord-Einstellungen entfernst, wird dein Account bei uns nicht gelöscht; deine Daten bleiben unverändert bestehen, bis du dich wieder anmeldest und den Account löschst oder uns eine Löschanfrage schickst.</p>
 
       <h2>9. Änderungen dieser Erklärung</h2>
-      <p>Diese Datenschutzerklärung wird bei Bedarf angepasst, wenn sich die Datenverarbeitung ändert. Es gilt die zum Zeitpunkt des Website-Besuchs veröffentlichte Fassung. Stand dieser Fassung: 13. September 2026.</p>
+      <p>Diese Datenschutzerklärung wird bei Bedarf angepasst, wenn sich die Datenverarbeitung ändert. Es gilt die zum Zeitpunkt des Website-Besuchs veröffentlichte Fassung. Stand dieser Fassung: 27. September 2026.</p>
     </div>
   </section>
 </Base>

@@ -1,11 +1,12 @@
 ---
+import { SITE_NAME, SITE_DISCLAIMER } from '../data/site';
 const base = import.meta.env.BASE_URL;
 ---
 <footer class="site-foot">
   <div class="wrap site-foot-row">
     <div>
-      <p class="foot-brand">Gellhorn Time Attack</p>
-      <p class="foot-note">Independent GTA VI community project. Not affiliated with Rockstar Games or Take-Two Interactive.</p>
+      <p class="foot-brand">{SITE_NAME}</p>
+      <p class="foot-note">{SITE_DISCLAIMER}</p>
     </div>
     <nav aria-label="Footer">
       <a href={`${base}about/`}>About</a>

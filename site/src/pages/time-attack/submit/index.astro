@@ -13,7 +13,7 @@ const byMake = new Map<string, typeof vehicleOptions>();
   .forEach((v) => byMake.set(v.make, [...(byMake.get(v.make) ?? []), v]));
 ---
 <Base
-  title="Submit a Lap — Gellhorn Time Attack"
+  title="Submit a Lap — GTA 6 Time Attack"
   description="Submit your Gellhorn International Raceway PS5 lap time: vehicle, lap time and proof."
   section="time-attack"
 >
@@ -83,7 +83,7 @@ const byMake = new Map<string, typeof vehicleOptions>();
             <label class="seg-opt is-soon" title={comingLater(p)}><input type="radio" name="platform" value={p.runValue} disabled /><span>{p.label}<small>Coming later</small></span></label>
           ))}
         </div>
-        <p class="hint">Gellhorn Time Attack runs on PS5 for now. Xbox Series X|S and PC will follow later.</p>
+        <p class="hint">Time Attack runs on PS5 for now. Xbox Series X|S and PC will follow later.</p>
       </div>
 
       <div class="field">

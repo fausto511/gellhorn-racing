@@ -1,10 +1,30 @@
 ---
 import Base from '../layouts/Base.astro';
+import { SITE_NAME } from '../data/site';
 const base = import.meta.env.BASE_URL;
+const home = new URL(base, Astro.site).href;
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: home,
+    inLanguage: 'en',
+    description: 'Independent GTA VI racing community: proof-based Time Attack leaderboards, a vehicle database and a hub for racing events and crews.',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: SITE_NAME,
+    url: home,
+    sameAs: ['https://discord.gg/hPGuBwXRqT'],
+  },
+];
 ---
 <Base
-  title="Gellhorn Time Attack — a GTA 6 racing community project"
-  description="A community time attack for Grand Theft Auto VI, starting with Gellhorn International Raceway."
+  title="Leonida Racing — GTA 6 Racing Community: Time Attack, Garage & Events"
+  description="Leonida Racing is an independent GTA VI racing community: proof-based Time Attack leaderboards starting at Gellhorn International Raceway, a vehicle database, and racing events and crews."
+  jsonLd={jsonLd}
 >
   <section class="home-split-section">
     <div class="wrap home-split">
@@ -25,7 +45,7 @@ const base = import.meta.env.BASE_URL;
         </picture>
         <div class="home-tile-veil" aria-hidden="true"></div>
         <div class="home-tile-copy">
-          <p class="eyebrow">Gellhorn Time Attack</p>
+          <p class="eyebrow">Time Attack</p>
           <h2 class="display home-tile-title">The Track</h2>
           <p class="home-tile-lede">Submit a lap, climb the leaderboard — starting with Gellhorn International Raceway.</p>
           <span class="btn btn-primary home-tile-cta" aria-hidden="true">Enter Time Attack</span>
