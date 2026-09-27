@@ -9,19 +9,19 @@ export const GET: APIRoute = ({ site }) => {
   const u = (p: string) => new URL(`${base}${p}`, site).href;
   const body = `# ${SITE_NAME}
 
-> ${SITE_NAME} is an independent community website for racing in Grand Theft Auto VI (GTA 6): proof-based Time Attack lap-time leaderboards starting at Gellhorn International Raceway, a database of confirmed GTA VI vehicles ("The Garage"), and an event calendar and crew directory for the racing scene ("The Hub"). ${SITE_DISCLAIMER}
+> ${SITE_NAME} is an independent racing database and community for Grand Theft Auto VI (GTA 6): a database of confirmed GTA VI vehicles with verified classes ("The Garage"), proof-based Time Attack lap-time leaderboards starting at Gellhorn International Raceway, and an event calendar and crew directory for the racing scene ("The Hub"). ${SITE_DISCLAIMER}
 
 Status: GTA VI has not been released yet. The site is built ahead of launch; leaderboards, lap data and most Hub content are sample data until real gameplay can be tested. The rule set ("Gellhorn Standard") is a draft. Time Attack currently runs on PS5 only; Xbox Series X|S and PC are planned for later.
+
+## The Garage
+
+- [The Garage](${u('garage/')}): GTA VI vehicles confirmed so far, with verified in-game classes; prices, top speeds and lap data are added once they can be checked
 
 ## Time Attack
 
 - [Gellhorn International Raceway](${u('time-attack/gellhorn-international-raceway/')}): track page with the leaderboard, filterable by vehicle, driver or crew, and by verification level
 - [How It Works](${u('time-attack/how-it-works/')}): how to submit a lap in four steps
 - [Rules & Verification](${u('time-attack/rules/')}): what counts as a valid lap; screenshot entry vs. video-verified times
-
-## The Garage
-
-- [The Garage](${u('garage/')}): GTA VI vehicles confirmed so far, with verified in-game classes; prices, top speeds and lap data are added once they can be checked
 
 ## The Hub
 
