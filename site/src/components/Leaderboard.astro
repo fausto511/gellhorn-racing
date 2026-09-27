@@ -176,7 +176,12 @@ const needed = vehiclesNeededHtml(sampleEntries);
   const $ = (id: string) => document.getElementById(id)!;
 
   let data: LbEntry[] = sampleEntries;
+  // Best VERIFIED run per driver + vehicle (RS-0040). `data` holds only the
+  // fastest run, which may be unverified while a slower verified one exists;
+  // "Verified only" therefore uses its own view. Sample data: same list.
+  let verifiedData: LbEntry[] = sampleEntries;
   let sample = true;
+  const current = () => (state.verifiedOnly ? verifiedData : data);
   const state: LbState = { ...initialState };
 
   // Shareable state: ?vehicle=<id>&verified=1
@@ -194,13 +199,13 @@ const needed = vehiclesNeededHtml(sampleEntries);
 
   const vehicleSel = $('lb-vehicle') as HTMLSelectElement;
   function draw() {
-    const r = render(data, state, sample);
+    const r = render(current(), state, sample);
     $('lb-thead').innerHTML = r.head;
     $('lb-tbody').innerHTML = r.body;
     $('lb-context').innerHTML = r.context;
     $('lb-more').innerHTML = r.more;
     $('lb-meta').textContent = r.meta;
-    vehicleSel.innerHTML = vehicleSelectHtml(data, state); // counts follow the verified filter
+    vehicleSel.innerHTML = vehicleSelectHtml(current(), state); // counts follow the verified filter
     vehicleSel.value = state.vehicle ?? '';
     document.querySelectorAll<HTMLButtonElement>('.lb-toggle button').forEach((b) => {
       const on = (b.dataset.verified === '1') === state.verifiedOnly;
@@ -230,30 +235,35 @@ const needed = vehiclesNeededHtml(sampleEntries);
   }
   async function loadLive() {
     const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data: rows, error } = await sb
-      .from('public_leaderboard')
-      .select('driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url')
+    const cols = 'driver, driver_id, vehicle_id, make, model, manufacturer_logo_slug, lap_time_ms, track_entries, video_verified, video_url';
+    const query = (view: string) => sb.from(view).select(cols)
       .eq('track_id', TRACK_ID)
       .eq('platform', LEADERBOARD_PLATFORM) // DEC-0073: PS5 board only
       .order('lap_time_ms', { ascending: true });
-    if (error || !rows || rows.length === 0) return;
+    const [allRes, verRes] = await Promise.all([query('public_leaderboard'), query('public_leaderboard_verified')]);
+    const rows = allRes.data;
+    if (allRes.error || !rows || rows.length === 0) return;
     const live = rows as LiveRow[];
+    const liveVerified = (verRes.error ? [] : (verRes.data ?? [])) as LiveRow[];
     // Crew tag (RS-0024): active members of published crews, never anonymised drivers.
     const tags = new Map<string, { tag: string; color: string }>();
-    const ids = [...new Set(live.map((r) => r.driver_id).filter(Boolean))];
+    const ids = [...new Set([...live, ...liveVerified].map((r) => r.driver_id).filter(Boolean))];
     if (ids.length) {
       const roster = await sb.from('public_crew_roster').select('driver_id, tag, color').in('driver_id', ids.slice(0, 300));
       for (const r of (roster.data ?? []) as { driver_id: string; tag: string; color: string }[]) tags.set(r.driver_id, { tag: r.tag, color: r.color });
     }
-    data = live.map((r) => ({
+    const toEntry = (r: LiveRow): LbEntry => ({
       driver: r.driver, driver_id: r.driver_id, crew: tags.get(r.driver_id) ?? null,
       vehicle_id: r.vehicle_id, make: r.make, model: r.model, logo: r.manufacturer_logo_slug,
       lap_time_ms: r.lap_time_ms, entries: Number(r.track_entries) || 0,
       verified: Boolean(r.video_verified), video_url: r.video_url,
-    }));
+    });
+    data = live.map(toEntry);
+    verifiedData = liveVerified.map(toEntry);
     sample = false;
     ($('lb-flag') as HTMLElement).hidden = true;
-    $('lb-needed').innerHTML = vehiclesNeededHtml(data);
+    // a vehicle counts as verified if ANY driver has a verified run on it
+    $('lb-needed').innerHTML = vehiclesNeededHtml([...data, ...verifiedData]);
     draw();
   }
   if (SUPABASE_URL && SUPABASE_ANON_KEY) loadLive();
