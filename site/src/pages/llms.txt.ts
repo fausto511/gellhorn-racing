@@ -31,7 +31,7 @@ Status: GTA VI has not been released yet. The site is built ahead of launch; lea
 
 ## About
 
-- [About](${u('about/')}): what the site is, what it isn't, who runs it
+- [About](${u('about/')}): what the site is and what it isn't
 - [Privacy Policy (German)](${u('privacy/')})
 - [Legal notice / Impressum (German)](${u('legal/')})
 `;
