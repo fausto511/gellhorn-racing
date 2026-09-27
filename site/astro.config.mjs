@@ -2,15 +2,15 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
-// GitHub-Pages-Projektseite: braucht `site` + `base`, weil die Seite unter
-// https://fausto511.github.io/gellhorn-racing/ läuft, nicht auf der Root.
-// Sobald die eigene Domain (leonidaracing.com, DEC-0081) angeschlossen wird:
-// `base` auf '' setzen, `site` auf 'https://leonidaracing.com' ändern.
-// robots.txt, llms.txt, canonical und og:url folgen automatisch.
-const base = '/gellhorn-racing';
+// Eigene Domain leonidaracing.com (DEC-0081, angebunden 2026-09-27): Seite
+// liegt auf der Root, daher kein `base` mehr. Vorher: GitHub-Pages-
+// Projektseite unter https://fausto511.github.io/gellhorn-racing/ mit
+// base '/gellhorn-racing'. robots.txt, llms.txt, canonical und og:url folgen
+// `site` automatisch.
+const base = '/';
 
 export default defineConfig({
-  site: 'https://fausto511.github.io',
+  site: 'https://leonidaracing.com',
   base,
   output: 'static',
   trailingSlash: 'always',
