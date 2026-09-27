@@ -207,6 +207,7 @@ export function crewCardHtml(c: HubCrew, roster?: string[]): string {
       ${c.crew_id ? '<span class="crew-join-slot"></span>' : ''}
       ${sc ? `<a class="crew-link" href="${esc(sc)}" target="_blank" rel="noopener">Social Club</a>` : ''}
       ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : ''}
+      ${c.crew_id ? `<a class="crew-report" href="${esc(`${import.meta.env.BASE_URL}report-content/?crew=${encodeURIComponent(c.crew_id)}`)}" title="Report this crew to the moderators">Report</a>` : ''}
     </span>
   </div>
 </article>`;
@@ -255,6 +256,7 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
       ${e.location ? `<span class="ev-loc">${iconPin}${esc(e.location)}</span>` : ''}
       ${eventDiscordHtml(e, Boolean(opts.sample))}
       ${join && !cancelled ? `<a class="ev-info" href="${esc(join)}" target="_blank" rel="noopener">Event info ↗</a>` : ''}
+      ${!opts.sample ? `<a class="ev-report" href="${esc(`${import.meta.env.BASE_URL}report-content/?event=${encodeURIComponent(e.event_id)}`)}" title="Report this event to the moderators">Report</a>` : ''}
     </p>
     ${e.description ? `<p class="ev-desc">${esc(e.description)}</p>` : ''}
   </div>

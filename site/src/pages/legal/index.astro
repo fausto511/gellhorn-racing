@@ -1,52 +1,56 @@
 ---
 import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
 ---
 <Base
-  title="Impressum"
-  description="Impressum gemäß § 5 DDG."
+  title="Legal Notice (Impressum)"
+  description="Legal notice (Impressum) under Section 5 of the German Digital Services Act (DDG)."
 >
   <section class="page-head">
     <div class="wrap">
       <p class="eyebrow">Legal</p>
-      <h1 class="display page-title">Impressum</h1>
+      <h1 class="display page-title">Legal Notice</h1>
+      <p class="page-lede">Impressum</p>
     </div>
   </section>
 
   <section class="prose">
     <div class="wrap prose-body">
-      <h2>Angaben gemäß § 5 DDG</h2>
+      <h2>Information under Section 5 DDG</h2>
       <p>
         Alexander Jaeger<br />
         Wolfenbütteler Str. 17<br />
         30519 Hannover<br />
-        Deutschland
+        Germany
       </p>
 
-      <h2>Kontakt</h2>
-      <p>E-Mail: <a href="mailto:fausto89@web.de">fausto89@web.de</a></p>
+      <h2>Contact</h2>
+      <p>E-mail: <a href="mailto:fausto89@web.de">fausto89@web.de</a></p>
+      <p>This address is also our point of contact for users and for authorities under Articles 11 and 12 of the EU Digital Services Act. You can write to us in English or German.</p>
 
-      <h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2>
-      <p>Alexander Jaeger, Anschrift wie oben.</p>
+      <h2>Responsible for content under Section 18(2) MStV</h2>
+      <p>Alexander Jaeger, address as above.</p>
 
-      <h2>Haftung für Inhalte</h2>
-      <p>Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 DDG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.</p>
-      <p>Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+      <h2>Liability for content</h2>
+      <p>As a service provider, we are responsible for our own content on these pages under general law (Section 7(1) DDG). Under Sections 8 to 10 DDG, however, we are not obliged to monitor third-party information that is transmitted or stored, or to look for circumstances that indicate illegal activity.</p>
+      <p>Obligations to remove or block the use of information under general law remain unaffected. Liability in this respect only begins when we become aware of a specific infringement. As soon as we learn of such infringements, we will remove the content without delay. You can report content via <a href={`${base}report-content/`}>Report content</a> or by e-mail.</p>
 
-      <h2>Haftung für Links</h2>
-      <p>Unser Angebot enthält Links zu externen Websites Dritter (z. B. Discord, verlinkte Community-Server), auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich.</p>
+      <h2>Liability for links</h2>
+      <p>This site contains links to external third-party websites (e.g. Discord and linked community servers). We have no influence on their content and therefore cannot accept any liability for it. The respective provider or operator is always responsible for the content of linked pages.</p>
 
-      <h2>Urheberrecht</h2>
-      <p>Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Beiträge Dritter (z. B. eingereichte Screenshots) sind als solche gekennzeichnet.</p>
+      <h2>Copyright</h2>
+      <p>Content and works created by the site operator on these pages are subject to German copyright law. Contributions by third parties (e.g. submitted screenshots) are marked as such.</p>
 
-      <h2>Verhältnis zu Rockstar Games / Take-Two Interactive</h2>
-      <p>Diese Website ist ein privates, nicht-kommerzielles Fanprojekt und steht in keiner Verbindung zu Rockstar Games, Take-Two Interactive Software oder verbundenen Unternehmen. Spielbezeichnungen, Marken, Screenshots und sonstige Spielinhalte bleiben Eigentum der jeweiligen Rechteinhaber und werden im Rahmen des Fanprojekt-Kontexts verwendet.</p>
+      <h2>Relationship to Rockstar Games / Take-Two Interactive</h2>
+      <p>This website is a private, non-commercial, independent community project and has no connection to Rockstar Games, Take-Two Interactive Software or their affiliates. Game titles, trademarks, screenshots and other game content remain the property of their respective owners.</p>
     </div>
   </section>
 </Base>
 
 <style>
   .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
-  .page-title { margin: .6rem 0 0; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
+  .page-title { margin: .6rem 0 .5rem; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
+  .page-lede { color: var(--gh-muted); font-size: .92rem; }
 
   .prose { padding-bottom: var(--gh-gap-section); }
   .prose-body { max-width: 62ch; }

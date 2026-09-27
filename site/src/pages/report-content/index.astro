@@ -1,0 +1,246 @@
+---
+// Report content (RS-0039, DEC-0083): crews, events, driver names or anything
+// else that breaks the law or the Terms -- notice & action (Art. 16 DSA).
+// Separate from "Report a time" (/report/, RS-0029). Sign-in required; people
+// without Discord use the contact e-mail from the legal notice (stated here).
+// The database enforces: published crews/events only, reason + >= 20 chars,
+// good-faith statement, one open report per person and target, max. 5 open.
+// Prefill: ?crew=<crew_id> or ?event=<event_id> (links on crew cards/events).
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base
+  title="Report content"
+  description="Report a crew, an event, a driver name or other content that breaks the law or our Terms. Reports go to the moderators only."
+  noindex
+>
+  <section class="wrap rep-wrap">
+    <p class="eyebrow">Moderation</p>
+    <h1 class="display rep-title">Report content</h1>
+    <p class="rep-lede">Found a crew, an event, a driver name or anything else on this site that is illegal or breaks our <a href={`${base}terms/`}>Terms</a>? Tell the moderators. Reports are private: only moderators see them. You'll see the outcome of your report on this page.</p>
+    <p class="rep-lede rep-alt">Want to report a lap time instead? Use <a href={`${base}report/`}>Report a time</a>. No Discord account? Send your report to the e-mail address in the <a href={`${base}legal/`}>Legal notice</a>.</p>
+
+    <div id="rep-backend" class="notice" hidden><strong>Backend not connected.</strong><span>Reports cannot be sent from this build.</span></div>
+
+    <div id="rep-auth" class="panel rep-auth" hidden>
+      <p>Sign in with Discord to send a report. This keeps reports accountable and lets us tell you the outcome.</p>
+      <button type="button" id="rep-signin" class="btn btn-outline">Sign in with Discord</button>
+    </div>
+
+    <div id="rep-body" hidden>
+      <div id="rep-mine" class="rep-mine" hidden></div>
+
+      <form id="rep-form" class="panel rep-form" novalidate>
+        <div class="rep-step">
+          <p class="rep-step-title"><span>1</span> What do you want to report?</p>
+          <div class="rep-reasons rep-types">
+            <label><input type="radio" name="type" value="crew" /> A crew</label>
+            <label><input type="radio" name="type" value="event" /> An event</label>
+            <label><input type="radio" name="type" value="driver_name" /> A driver name</label>
+            <label><input type="radio" name="type" value="other" /> Something else</label>
+          </div>
+          <label class="rep-field" id="f-crew" hidden>Which crew?
+            <select id="rep-crew"><option value="">Choose a crew</option></select>
+            <small id="rep-crew-none" hidden>There are no published crews yet.</small>
+          </label>
+          <label class="rep-field" id="f-event" hidden>Which event?
+            <select id="rep-event"><option value="">Choose an event</option></select>
+            <small id="rep-event-none" hidden>There are no published events yet.</small>
+          </label>
+          <label class="rep-field" id="f-text" hidden><span id="rep-text-label">Which driver name?</span>
+            <input type="text" id="rep-text" maxlength="300" autocomplete="off" />
+            <small id="rep-text-hint">Write the name exactly as it is shown.</small>
+          </label>
+        </div>
+
+        <div class="rep-step">
+          <p class="rep-step-title"><span>2</span> What is the problem?</p>
+          <div class="rep-reasons">
+            <label><input type="radio" name="reason" value="illegal" /> Illegal content</label>
+            <label><input type="radio" name="reason" value="hate_or_harassment" /> Hate or harassment</label>
+            <label><input type="radio" name="reason" value="sexual_or_violent" /> Sexual or violent content</label>
+            <label><input type="radio" name="reason" value="spam_or_scam" /> Spam, scam or misleading</label>
+            <label><input type="radio" name="reason" value="impersonation" /> Impersonation</label>
+            <label><input type="radio" name="reason" value="intellectual_property" /> Copyright or trademark</label>
+            <label><input type="radio" name="reason" value="other" /> Breaks the Terms otherwise</label>
+          </div>
+          <label class="rep-details">Explain why <small>at least 20 characters — what exactly is wrong, and where? If you think it's illegal, say why.</small>
+            <textarea name="details" maxlength="2000" rows="5" placeholder="e.g. The crew description insults people for their religion."></textarea>
+          </label>
+          <label class="rep-check"><input type="checkbox" id="rep-faith" /> <span>I confirm that this report is accurate and complete to the best of my knowledge.</span></label>
+        </div>
+
+        <div class="rep-actions">
+          <button type="submit" class="btn btn-primary" id="rep-send">Send report</button>
+          <p id="rep-msg" class="rep-msg" aria-live="polite"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .rep-wrap { padding-block: clamp(2.5rem, 6vw, 4.5rem); max-width: 52rem; }
+  .rep-title { margin: .4rem 0 .8rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .rep-lede { margin: 0 0 1rem; color: var(--gh-muted); font-size: .92rem; }
+  .rep-lede a { color: var(--gh-text); }
+  .rep-alt { margin-bottom: 1.8rem; font-size: .85rem; }
+  .notice { display: flex; flex-direction: column; gap: .3rem; margin-bottom: 1.5rem; padding: 1rem 1.2rem; border: 1px solid var(--gh-yellow); background: rgba(255,215,76,.08); border-radius: var(--gh-radius); font-size: .85rem; }
+  .rep-auth { padding: 1rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .rep-auth p { margin: 0; font-size: .88rem; }
+  .rep-form { padding: var(--gh-pad-card); display: grid; gap: 1.6rem; }
+  .rep-step { display: grid; gap: .8rem; }
+  .rep-step-title { margin: 0; display: flex; align-items: center; gap: .6rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.05rem; }
+  .rep-step-title span { display: inline-grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--gh-yellow); color: #111; font-style: normal; font-size: .8rem; }
+  .rep-reasons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+  @media (max-width: 560px) { .rep-reasons { grid-template-columns: 1fr; } }
+  .rep-reasons label { display: flex; align-items: center; gap: .55rem; padding: .7rem .85rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); font-size: .88rem; font-weight: 600; cursor: pointer; }
+  .rep-reasons label:has(input:checked) { border-color: var(--gh-yellow); background: rgba(255,215,76,.06); }
+  .rep-reasons input, .rep-check input { accent-color: var(--gh-yellow); }
+  .rep-field, .rep-details { display: flex; flex-direction: column; gap: .35rem; font-size: .72rem; color: var(--gh-muted); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+  .rep-field small, .rep-details small { text-transform: none; letter-spacing: 0; font-weight: 500; }
+  .rep-field select, .rep-field input, .rep-details textarea { padding: .65rem .75rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font: inherit; font-size: 16px; text-transform: none; letter-spacing: normal; font-weight: 400; }
+  .rep-details textarea { resize: vertical; }
+  @media (min-width: 761px) { .rep-field select, .rep-field input, .rep-details textarea { font-size: .9rem; } }
+  .rep-field select:focus, .rep-field input:focus, .rep-details textarea:focus { outline: 2px solid var(--gh-yellow); outline-offset: 1px; }
+  [aria-invalid="true"] { border-color: var(--gh-red) !important; }
+  .rep-check { display: flex; align-items: flex-start; gap: .6rem; font-size: .86rem; cursor: pointer; }
+  .rep-check input { margin-top: .2rem; width: 1rem; height: 1rem; flex: none; }
+  .rep-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .8rem; }
+  .rep-msg { margin: 0; font-size: .86rem; }
+  .rep-msg.is-error { color: var(--gh-red); }
+  .rep-msg.is-ok { color: #4fd1c5; }
+  .rep-mine { display: grid; gap: .5rem; margin-bottom: 1.5rem; }
+  :global(.rep-mine-row) { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .7rem 1rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); background: var(--gh-surface); font-size: .86rem; }
+  :global(.rep-mine-row .rm-main) { flex: 1 1 16rem; min-width: 0; overflow-wrap: anywhere; }
+  :global(.rep-mine-row small) { display: block; color: var(--gh-muted); font-size: .78rem; margin-top: .1rem; }
+  :global(.rep-mine-row .rm-decision) { color: var(--gh-text); }
+  :global(.rep-status) { padding: .15rem .55rem; border-radius: 999px; font-size: .66rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; border: 1px solid var(--gh-line); color: var(--gh-muted); }
+  :global(.rep-status.open) { color: var(--gh-yellow); border-color: rgba(255,215,76,.45); }
+  :global(.rep-status.resolved) { color: #4fd1c5; border-color: rgba(79,209,197,.45); }
+  :global(.rep-mine-title) { margin: 0 0 .2rem; font-size: .72rem; color: var(--gh-muted); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../scripts/supabase-client';
+  import { esc } from '../../data/hub';
+  import { contentReasonLabels, contentTypeLabels } from '../../data/reports';
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const form = $('rep-form') as HTMLFormElement;
+  const msgEl = $('rep-msg');
+  const mineEl = $('rep-mine');
+  const crewSel = $('rep-crew') as HTMLSelectElement;
+  const eventSel = $('rep-event') as HTMLSelectElement;
+  const textEl = $('rep-text') as HTMLInputElement;
+  const faithEl = $('rep-faith') as HTMLInputElement;
+  const detailsEl = form.elements.namedItem('details') as HTMLTextAreaElement;
+  const params = new URLSearchParams(location.search);
+  let me: string | null = null;
+
+  function msg(t: string, err = false) { msgEl.textContent = t; msgEl.className = `rep-msg ${t ? (err ? 'is-error' : 'is-ok') : ''}`; }
+  const typeValue = () => (form.querySelector('input[name="type"]:checked') as HTMLInputElement | null)?.value ?? '';
+
+  function showFields() {
+    const t = typeValue();
+    $('f-crew').hidden = t !== 'crew';
+    $('f-event').hidden = t !== 'event';
+    $('f-text').hidden = t !== 'driver_name' && t !== 'other';
+    $('rep-text-label').textContent = t === 'other' ? 'What and where?' : 'Which driver name?';
+    $('rep-text-hint').textContent = t === 'other' ? 'Paste a link to the page or describe where it is shown.' : 'Write the name exactly as it is shown.';
+    textEl.placeholder = t === 'other' ? 'Link or description' : 'Driver name';
+  }
+  form.addEventListener('change', (ev) => { if ((ev.target as HTMLInputElement).name === 'type') { showFields(); msg(''); } });
+  for (const el of [crewSel, eventSel, textEl, detailsEl]) el.addEventListener('input', () => el.removeAttribute('aria-invalid'));
+
+  function pickType(t: string) {
+    const r = form.querySelector<HTMLInputElement>(`input[name="type"][value="${t}"]`);
+    if (r) { r.checked = true; showFields(); }
+  }
+
+  async function loadTargets() {
+    const sb = getSupabase();
+    const [crews, events] = await Promise.all([
+      sb.from('crews').select('crew_id, name, tag').eq('is_published', true).order('name'),
+      sb.from('hub_events').select('event_id, title, starts_at').eq('is_published', true).order('starts_at', { ascending: false }).limit(200),
+    ]);
+    const cl = (crews.data ?? []) as { crew_id: string; name: string; tag: string }[];
+    const el = (events.data ?? []) as { event_id: string; title: string; starts_at: string }[];
+    crewSel.innerHTML = '<option value="">Choose a crew</option>' + cl.map((c) => `<option value="${esc(c.crew_id)}">${esc(c.name)} [${esc(c.tag)}]</option>`).join('');
+    eventSel.innerHTML = '<option value="">Choose an event</option>' + el.map((e) => `<option value="${esc(e.event_id)}">${esc(new Date(e.starts_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))} · ${esc(e.title)}</option>`).join('');
+    $('rep-crew-none').hidden = cl.length > 0;
+    $('rep-event-none').hidden = el.length > 0;
+    const crew = params.get('crew');
+    const event = params.get('event');
+    if (crew && cl.some((c) => c.crew_id === crew)) { pickType('crew'); crewSel.value = crew; }
+    else if (event && el.some((e) => e.event_id === event)) { pickType('event'); eventSel.value = event; }
+  }
+
+  async function loadMine() {
+    const { data } = await getSupabase().from('content_reports')
+      .select('report_id, target_type, target_snapshot, target_text, reason, status, created_at, decision_note')
+      .eq('reporter_driver_id', me!).order('created_at', { ascending: false }).limit(10);
+    const rows = (data ?? []) as any[];
+    mineEl.hidden = rows.length === 0;
+    mineEl.innerHTML = rows.length ? '<p class="rep-mine-title">Your reports</p>' + rows.map((r) => {
+      const what = `${esc(contentTypeLabels[r.target_type] ?? r.target_type)}: ${esc(r.target_snapshot ?? r.target_text ?? '—')}`;
+      const status = r.status === 'open' ? 'In review' : r.status === 'resolved' ? 'Action taken' : 'No action';
+      return `<div class="rep-mine-row"><div class="rm-main">${what}<small>${esc(contentReasonLabels[r.reason] ?? r.reason)} · ${esc(new Date(r.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }))}</small>${r.decision_note ? `<small class="rm-decision">Moderators: ${esc(r.decision_note)}</small>` : ''}</div><span class="rep-status ${esc(r.status)}">${status}</span></div>`;
+    }).join('') : '';
+  }
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const t = typeValue();
+    const reason = (form.querySelector('input[name="reason"]:checked') as HTMLInputElement | null)?.value;
+    const details = detailsEl.value.trim();
+    const text = textEl.value.trim();
+    if (!t) { msg('Choose what you want to report.', true); return; }
+    if (t === 'crew' && !crewSel.value) { crewSel.setAttribute('aria-invalid', 'true'); msg('Choose the crew.', true); return; }
+    if (t === 'event' && !eventSel.value) { eventSel.setAttribute('aria-invalid', 'true'); msg('Choose the event.', true); return; }
+    if ((t === 'driver_name' || t === 'other') && text.length < 2) { textEl.setAttribute('aria-invalid', 'true'); msg(t === 'other' ? 'Tell us what and where.' : 'Enter the driver name.', true); return; }
+    if (!reason) { msg('Choose what the problem is.', true); return; }
+    if (details.length < 20) { detailsEl.setAttribute('aria-invalid', 'true'); msg('Please explain in at least 20 characters.', true); return; }
+    if (!faithEl.checked) { msg('Please confirm that your report is accurate.', true); return; }
+    const row: Record<string, unknown> = { target_type: t, reason, details, good_faith: true, reporter_driver_id: me };
+    if (t === 'crew') row.target_crew_id = crewSel.value;
+    else if (t === 'event') row.target_event_id = eventSel.value;
+    else row.target_text = text;
+    const btn = $('rep-send') as HTMLButtonElement; btn.disabled = true;
+    const { error } = await getSupabase().from('content_reports').insert(row);
+    btn.disabled = false;
+    if (error) {
+      msg(/duplicate|unique/i.test(error.message) ? 'You already have an open report for this.'
+        : /target_not_found/i.test(error.message) ? 'This is no longer published — nothing to report.'
+        : /row-level/i.test(error.message) ? 'You have 5 open reports already — please wait until they are handled.'
+        : 'Could not send the report. Please try again.', true);
+      return;
+    }
+    form.reset(); showFields();
+    msg('Thanks — the moderators will take a look. You will see the outcome here.');
+    await loadMine();
+  });
+
+  async function init(session: any) {
+    $('rep-auth').hidden = Boolean(session);
+    $('rep-body').hidden = !session;
+    if (!session) return;
+    const sb = getSupabase();
+    const own = await sb.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
+    me = own.data?.driver_id ?? null;
+    await loadTargets();
+    if (me) await loadMine();
+  }
+
+  if (!backendConfigured) {
+    $('rep-backend').hidden = false;
+  } else {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((e, s) => { if (e === 'SIGNED_IN' || e === 'SIGNED_OUT') init(s); });
+    $('rep-signin').addEventListener('click', () => {
+      sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname + window.location.search, scopes: 'identify email guilds.join' } });
+    });
+  }
+</script>

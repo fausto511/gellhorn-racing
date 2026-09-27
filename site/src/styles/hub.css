@@ -152,3 +152,7 @@ a.ev-dc:hover { color: #aab2ff; text-decoration: underline; text-underline-offse
 .ev-discord { display: inline-flex; align-items: center; gap: .45rem; padding: .45rem .9rem; font-size: .8rem; background: #5865f2; border: 1px solid #5865f2; color: #fff; text-decoration: none; }
 .ev-discord:hover { background: #4752c4; border-color: #4752c4; }
 .ev-rsvp-msg a { color: inherit; text-decoration: underline; }
+
+/* Report links (RS-0039): deliberately quiet -- visible, but not inviting. */
+.crew-report, .ev-report { color: var(--gh-muted); font-size: .72rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--gh-line); text-underline-offset: 2px; }
+.crew-report:hover, .ev-report:hover { color: var(--gh-text); }
