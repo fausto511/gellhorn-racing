@@ -104,7 +104,7 @@ const jsonLd = [
     <div class="home-row" id="home-crews" set:html={crewsHtml} />
   </section>
 
-  <section class="wrap home-strip">
+  <section class="wrap home-strip home-strip-sep">
     <div class="home-strip-head">
       <h2 class="display home-strip-title">Events</h2>
       <span class="hub-sample-flag" id="home-ev-flag">Sample data</span>
@@ -112,6 +112,23 @@ const jsonLd = [
     </div>
     <p class="home-strip-lede">Race nights, league rounds and car meets from the community — shown in your local time.</p>
     <div class="home-row" id="home-events" set:html={eventsHtml} />
+  </section>
+
+  <!-- Discord band (Fausto, 2026-09-28): full-width, Discord blurple,
+       slanted edges, big headline + two actions. -->
+  <section class="home-band" aria-labelledby="home-band-title">
+    <div class="wrap home-band-inner">
+      <div class="home-band-copy">
+        <h2 class="display home-band-title" id="home-band-title">Ready to race?</h2>
+        <p class="home-band-text">Our Discord is where the Leonida Racing community meets: find a crew, set up race nights and talk cars with drivers from around the world. Log in with Discord to submit laps, build your garage and sign up for events.</p>
+        <div class="home-band-actions">
+          <button type="button" class="btn home-band-btn home-band-primary" id="band-join">Login with Discord</button>
+          <a class="btn home-band-btn home-band-primary" id="band-account" href={`${base}account/`} hidden>Go to My Account</a>
+          <a class="btn home-band-btn home-band-outline" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Join our Discord</a>
+        </div>
+      </div>
+      <svg viewBox="0 0 24 24" width="220" height="220" class="home-cta-logo" fill="currentColor" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+    </div>
   </section>
 </Base>
 
@@ -181,6 +198,31 @@ const jsonLd = [
   :global(.he-title) { display: block; margin: 0; font-weight: 800; font-size: .95rem; line-height: 1.3; }
   :global(.he-meta) { display: block; margin: 0; color: var(--gh-muted); font-size: .78rem; }
 
+  .home-strip-sep { position: relative; margin-top: clamp(2rem, 4.5vw, 3rem); }
+  /* hairline across the content width only, like the header line style */
+  .home-strip-sep::before { content: ''; position: absolute; top: 0; left: clamp(1.25rem, 4vw, 2.5rem); right: clamp(1.25rem, 4vw, 2.5rem); border-top: 1px solid var(--gh-line); }
+
+  /* ---- Discord band ---- */
+  .home-band {
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+    margin-bottom: calc(-1 * var(--gh-gap-section)); /* sits right on the footer line */
+    background: #5865f2;
+    color: #fff;
+    clip-path: polygon(0 0, 100% 2.25rem, 100% 100%, 0 calc(100% - 2.25rem));
+    padding-block: clamp(4rem, 8vw, 5.5rem);
+  }
+  .home-band-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+  .home-band-copy { max-width: 40rem; }
+  .home-band-title { margin: 0 0 .9rem; font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1; color: #fff; }
+  .home-band-text { margin: 0 0 1.75rem; font-size: clamp(.95rem, 1.4vw, 1.05rem); line-height: 1.6; color: rgba(255,255,255,.88); }
+  .home-band-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+  .home-band-btn { padding: .95rem 1.6rem; font-size: 1rem; border-radius: var(--gh-radius); cursor: pointer; }
+  .home-band-primary { background: #fff; color: #4752c4; border: 2px solid #fff; }
+  .home-band-primary:hover { background: #eef0ff; }
+  .home-band-outline { background: transparent; color: #fff; border: 2px solid #fff; }
+  .home-band-outline:hover { background: rgba(255,255,255,.12); }
+  .home-cta-logo { flex: none; width: clamp(8rem, 16vw, 13.5rem); height: auto; color: rgba(255,255,255,.85); }
+
   @media (max-width: 1000px) {
     .home-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
@@ -194,6 +236,9 @@ const jsonLd = [
     .home-tiles::-webkit-scrollbar, .home-row::-webkit-scrollbar { display: none; }
     .home-tile, :global(.home-row > .hc-card) { flex: 0 0 78%; scroll-snap-align: start; }
     .home-tile { aspect-ratio: 16 / 9; }
+    .home-band { clip-path: polygon(0 0, 100% 1.25rem, 100% 100%, 0 calc(100% - 1.25rem)); }
+    .home-cta-logo { display: none; }
+    .home-band-btn { flex: 1 1 100%; }
   }
 </style>
 
@@ -210,7 +255,11 @@ const jsonLd = [
 
   if (backendConfigured) {
     const sb = getSupabase();
-    const show = (signedIn: boolean) => { join.hidden = signedIn; account.hidden = !signedIn; };
+    const bandJoin = document.getElementById('band-join')!;
+    const bandAccount = document.getElementById('band-account')!;
+    const show = (signedIn: boolean) => { join.hidden = signedIn; account.hidden = !signedIn; bandJoin.hidden = signedIn; bandAccount.hidden = !signedIn; };
+    const login = () => sb.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname, scopes: 'identify email guilds.join' } });
+    bandJoin.addEventListener('click', login);
     sb.auth.getSession().then(({ data }) => show(Boolean(data?.session)));
     sb.auth.onAuthStateChange((_e, s) => show(Boolean(s)));
     join.addEventListener('click', () => {
