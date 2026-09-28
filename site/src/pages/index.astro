@@ -115,7 +115,7 @@ const jsonLd = [
   </section>
 
   <!-- Discord band (Fausto, 2026-09-28): full-width, Discord blurple,
-       slanted edges, big headline + two actions. -->
+       straight rectangle (no slant, Fausto 2026-09-28), big headline + two actions. -->
   <section class="home-band" aria-labelledby="home-band-title">
     <div class="wrap home-band-inner">
       <div class="home-band-copy">
@@ -208,8 +208,7 @@ const jsonLd = [
     margin-bottom: calc(-1 * var(--gh-gap-section)); /* sits right on the footer line */
     background: #5865f2;
     color: #fff;
-    clip-path: polygon(0 0, 100% 2.25rem, 100% 100%, 0 calc(100% - 2.25rem));
-    padding-block: clamp(4rem, 8vw, 5.5rem);
+    padding-block: clamp(3rem, 6vw, 4.5rem);
   }
   .home-band-inner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
   .home-band-copy { max-width: 40rem; }
@@ -236,7 +235,6 @@ const jsonLd = [
     .home-tiles::-webkit-scrollbar, .home-row::-webkit-scrollbar { display: none; }
     .home-tile, :global(.home-row > .hc-card) { flex: 0 0 78%; scroll-snap-align: start; }
     .home-tile { aspect-ratio: 16 / 9; }
-    .home-band { clip-path: polygon(0 0, 100% 1.25rem, 100% 100%, 0 calc(100% - 1.25rem)); }
     .home-cta-logo { display: none; }
     .home-band-btn { flex: 1 1 100%; }
   }
