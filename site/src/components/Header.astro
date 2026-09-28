@@ -16,7 +16,7 @@ const globalLinks = [
 <header class="site-head" id="site-head">
   <div class="wrap global-nav-row">
     <a class="brand" href={base}>
-      <span class="brand-main">LEONIDA</span><span class="brand-sub">RACING</span>
+      <span class="brand-main">LEONIDA</span><span class="brand-sub">RACING</span><span class="brand-beta" title="Leonida Racing is in beta — we are still building it">Beta</span>
     </a>
     <nav class="global-nav" id="global-nav" aria-label="Global">
       {globalLinks.map((l) => (
@@ -66,8 +66,10 @@ const globalLinks = [
   .site-head { position: sticky; top: 0; z-index: 40; background: rgba(20,20,26,.96); backdrop-filter: blur(10px); border-bottom: 1px solid var(--gh-line); }
   .global-nav-row { display: flex; align-items: center; gap: 1.75rem; height: 4.25rem; }
   .brand { display: inline-flex; gap: .35rem; align-items: baseline; text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; letter-spacing: .01em; }
-  .brand-main { color: var(--gh-text); font-size: 1.15rem; }
-  .brand-sub { color: var(--gh-red); font-size: 1.15rem; }
+  .brand-main { color: var(--gh-text); font-size: 1.55rem; }
+  .brand-sub { color: var(--gh-red); font-size: 1.55rem; }
+  /* Beta marker (Fausto, 2026-09-28): the site is still being built. */
+  .brand-beta { align-self: center; margin-left: .35rem; padding: .12rem .4rem; border: 1px solid var(--gh-yellow); border-radius: 3px; color: var(--gh-yellow); font-family: var(--gh-font-body); font-style: normal; font-weight: 800; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; line-height: 1.2; }
   .global-nav { display: flex; gap: 1.75rem; margin-left: .75rem; flex: 1; }
   .global-link { color: var(--gh-muted); text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-size: 1.05rem; font-weight: 900; letter-spacing: .01em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
   .global-link:hover { color: var(--gh-text); }
@@ -91,7 +93,8 @@ const globalLinks = [
   @media (max-width: 760px) {
     .global-nav-row { gap: .75rem; }
     .brand { margin-right: auto; }
-    .brand-main, .brand-sub { font-size: 1rem; }
+    .brand-main, .brand-sub { font-size: 1.2rem; }
+    .brand-beta { margin-left: .25rem; font-size: .52rem; padding: .1rem .3rem; }
     .global-nav { display: none; position: absolute; top: 100%; left: 0; right: 0; margin: 0; flex-direction: column; gap: 0; padding: .25rem clamp(1.25rem, 4vw, 2.5rem) .75rem; background: var(--gh-bg); border-bottom: 1px solid var(--gh-line); box-shadow: 0 12px 24px rgba(0,0,0,.35); }
     .site-head.nav-open .global-nav { display: flex; }
     .global-link { padding-block: .85rem; border-bottom: 1px solid var(--gh-line); border-left: 2px solid transparent; padding-left: .75rem; }
