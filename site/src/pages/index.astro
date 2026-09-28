@@ -45,7 +45,7 @@ const jsonLd = [
     <div class="wrap home-hero-inner">
       <div class="home-intro">
         <p class="eyebrow">GTA VI Racing Database &amp; Community</p>
-        <h1 class="display home-title">Race Leonida.</h1>
+        <h1 class="display home-title">Every car, every lap,<br />every crew in Leonida.</h1>
         <p class="home-lede">Look up every confirmed car, set proof-backed lap times at Gellhorn International Raceway, and find the crews and race nights of the GTA VI scene. Independent, free, and built with the community — ready for launch day.</p>
         <div class="home-cta">
           <button type="button" id="home-join" class="btn home-join">
@@ -53,7 +53,6 @@ const jsonLd = [
             <span>Login with Discord</span>
           </button>
           <a id="home-account" class="btn btn-white-tonal home-join" href={`${base}account/`} hidden>Go to My Account</a>
-          <p class="home-cta-note" id="home-cta-note">Free · no password — you log in with your Discord account.</p>
         </div>
       </div>
 
@@ -101,6 +100,7 @@ const jsonLd = [
       <span class="hub-sample-flag" id="home-crew-flag">Sample data</span>
       <a class="home-strip-link" href={`${base}hub/crews/`}>All crews →</a>
     </div>
+    <p class="home-strip-lede">Racing crews, leagues and car meet communities on PS5 — find one that races the way you do.</p>
     <div class="home-row" id="home-crews" set:html={crewsHtml} />
   </section>
 
@@ -110,6 +110,7 @@ const jsonLd = [
       <span class="hub-sample-flag" id="home-ev-flag">Sample data</span>
       <a class="home-strip-link" href={`${base}hub/events/`}>All events →</a>
     </div>
+    <p class="home-strip-lede">Race nights, league rounds and car meets from the community — shown in your local time.</p>
     <div class="home-row" id="home-events" set:html={eventsHtml} />
   </section>
 </Base>
@@ -125,25 +126,24 @@ const jsonLd = [
     display: flex;
     align-items: flex-end;
     overflow: hidden;
-    border-bottom: 1px solid rgba(252, 250, 247, .85);
+    border-bottom: 1px solid var(--gh-line); /* same hairline as under the header */
   }
   .home-hero-bg, .home-hero-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 60%; }
   .home-hero-veil {
     position: absolute; inset: 0;
     background:
-      linear-gradient(90deg, rgba(20,20,26,.9) 0%, rgba(20,20,26,.62) 40%, rgba(20,20,26,.15) 75%),
-      linear-gradient(0deg, rgba(20,20,26,.92) 0%, rgba(20,20,26,.35) 45%, rgba(20,20,26,.2) 100%);
+      radial-gradient(ellipse 60% 55% at 50% 38%, rgba(20,20,26,.72) 0%, rgba(20,20,26,.35) 70%, rgba(20,20,26,.2) 100%),
+      linear-gradient(0deg, rgba(20,20,26,.92) 0%, rgba(20,20,26,.35) 45%, rgba(20,20,26,.35) 100%);
   }
   .home-hero-inner { position: relative; width: 100%; padding-block: clamp(2rem, 4.5vw, 3.25rem) clamp(1.5rem, 3vw, 2rem); display: grid; gap: clamp(1.75rem, 4vw, 2.75rem); }
-  .home-intro { max-width: 40rem; }
-  .home-title { margin: .5rem 0 .9rem; font-size: clamp(2.6rem, 6vw, 4.4rem); line-height: .95; }
-  .home-lede { margin: 0 0 1.5rem; color: #d9d8e8; font-size: clamp(.95rem, 1.4vw, 1.08rem); line-height: 1.6; max-width: 36rem; }
-  .home-cta { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem 1rem; }
+  .home-intro { max-width: 46rem; margin-inline: auto; text-align: center; }
+  .home-title { margin: .5rem 0 1rem; font-size: clamp(2.2rem, 5.2vw, 4rem); line-height: .98; }
+  .home-lede { margin: 0 auto 1.6rem; color: #d9d8e8; font-size: clamp(.95rem, 1.4vw, 1.08rem); line-height: 1.6; max-width: 38rem; }
+  .home-cta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .6rem 1rem; }
   /* Discord's own colour for the sign-in button, as in the header. */
   .home-join { gap: .6rem; padding: .95rem 1.5rem; font-size: 1rem; }
   #home-join { background: #5865f2; color: #fff; border: none; cursor: pointer; }
   #home-join:hover { filter: brightness(1.1); }
-  .home-cta-note { margin: 0; color: var(--gh-muted); font-size: .8rem; }
 
   .home-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
   .home-tile {
@@ -162,7 +162,8 @@ const jsonLd = [
   /* ---- Strips below the line ---- */
   .home-strip { padding-top: clamp(2.25rem, 5vw, 3.25rem); }
   .home-strip + .home-strip { padding-top: clamp(1.75rem, 4vw, 2.5rem); }
-  .home-strip-head { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+  .home-strip-head { display: flex; align-items: center; gap: .75rem; margin-bottom: .35rem; }
+  .home-strip-lede { margin: 0 0 1rem; color: var(--gh-muted); font-size: .9rem; }
   .home-strip-title { margin: 0; font-size: 1.5rem; }
   .home-strip-link { margin-left: auto; color: var(--gh-muted); font-size: .85rem; font-weight: 700; text-decoration: none; }
   .home-strip-link:hover { color: var(--gh-text); }
@@ -187,6 +188,7 @@ const jsonLd = [
     .home-hero { min-height: 0; }
     .home-hero-veil { background: linear-gradient(0deg, rgba(20,20,26,.96) 0%, rgba(20,20,26,.7) 55%, rgba(20,20,26,.45) 100%); }
     .home-join { width: 100%; }
+    .home-title { font-size: clamp(1.7rem, 7.6vw, 2.2rem); }
     /* tiles and strips scroll sideways on phones instead of stacking */
     .home-tiles, .home-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--wrap-pad, 1.25rem); gap: .75rem; margin-inline: calc(-1 * var(--wrap-pad, 1.25rem)); padding-inline: var(--wrap-pad, 1.25rem); scrollbar-width: none; }
     .home-tiles::-webkit-scrollbar, .home-row::-webkit-scrollbar { display: none; }
@@ -205,11 +207,10 @@ const jsonLd = [
 
   const join = document.getElementById('home-join') as HTMLButtonElement;
   const account = document.getElementById('home-account')!;
-  const note = document.getElementById('home-cta-note')!;
 
   if (backendConfigured) {
     const sb = getSupabase();
-    const show = (signedIn: boolean) => { join.hidden = signedIn; account.hidden = !signedIn; note.hidden = signedIn; };
+    const show = (signedIn: boolean) => { join.hidden = signedIn; account.hidden = !signedIn; };
     sb.auth.getSession().then(({ data }) => show(Boolean(data?.session)));
     sb.auth.onAuthStateChange((_e, s) => show(Boolean(s)));
     join.addEventListener('click', () => {
