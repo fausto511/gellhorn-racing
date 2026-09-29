@@ -27,8 +27,8 @@ const jsonLd = [
 ];
 ---
 <Base
-  title="Leonida Racing — GTA 6 Racing Database & Community"
-  description="Leonida Racing is a GTA VI racing database and community: vehicles with verified classes, proof-based lap-time leaderboards starting at Gellhorn International Raceway, and racing events and crews."
+  title="Leonida Racing — GTA VI Racing Database & Community"
+  description="Explore the GTA VI car database and check vehicle specs. Submit lap times at Gellhorn International Raceway. Find racing crews, events, and car meets."
   jsonLd={jsonLd}
 >
   <!-- Home layout (Fausto, 2026-09-28): full-width hero image over roughly
@@ -46,7 +46,7 @@ const jsonLd = [
       <div class="home-intro">
         <p class="eyebrow">GTA VI Racing Database &amp; Community</p>
         <h1 class="display home-title">Find the cars setting the pace.<br />Make your mark on the track.</h1>
-        <p class="home-lede">Get the stats on GTA 6 cars. See what racers drive and what’s worth a spot in your garage. <br />Put down a time at Gellhorn. Show the community what you’ve got. <br />Find your crew, your next rival, or a car meet to roll up to.</p>
+        <p class="home-lede">Get the stats on GTA VI cars. See what racers drive and what’s worth a spot in your garage. <br />Put down a time at Gellhorn. Show the community what you’ve got. <br />Find your crew, your next rival, or a car meet to roll up to.</p>
         <div class="home-cta">
           <button type="button" id="home-join" class="btn home-join">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 5.3A18 18 0 0 0 15.9 4l-.3.6a15 15 0 0 1 4 1.6 16 16 0 0 0-13.2 0 15 15 0 0 1 4-1.6L10.1 4a18 18 0 0 0-4.4 1.3C2.9 9 2.2 12.6 2.5 16.1a18 18 0 0 0 5.5 2.8l.8-1.3a11 11 0 0 1-1.9-.9l.5-.4a13 13 0 0 0 9.2 0l.5.4a11 11 0 0 1-1.9.9l.8 1.3a18 18 0 0 0 5.5-2.8c.4-4-.7-7.5-2.2-10.8ZM9.3 14c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Zm5.4 0c-.8 0-1.4-.7-1.4-1.6s.6-1.6 1.4-1.6 1.4.7 1.4 1.6-.6 1.6-1.4 1.6Z"/></svg>
@@ -63,7 +63,7 @@ const jsonLd = [
           <span class="home-tile-copy">
             <span class="eyebrow">Vehicles</span>
             <span class="display home-tile-title">The Garage</span>
-            <span class="home-tile-lede">Classes and stats for every confirmed car</span>
+            <span class="home-tile-lede">Check the specs. Find your next car.</span>
           </span>
         </a>
         <a class="home-tile" href={`${base}time-attack/gellhorn-international-raceway/`}>
@@ -75,7 +75,7 @@ const jsonLd = [
           <span class="home-tile-copy">
             <span class="eyebrow">Time Attack</span>
             <span class="display home-tile-title">The Track</span>
-            <span class="home-tile-lede">Submit a lap, climb the leaderboard</span>
+            <span class="home-tile-lede">Submit a lap. Move up the leaderboard.</span>
           </span>
         </a>
         <a class="home-tile" href={`${base}hub/`}>
@@ -87,7 +87,7 @@ const jsonLd = [
           <span class="home-tile-copy">
             <span class="eyebrow">Community</span>
             <span class="display home-tile-title">The Hub</span>
-            <span class="home-tile-lede">Race nights, car meets and crews</span>
+            <span class="home-tile-lede">Find races, crews, and car meets.</span>
           </span>
         </a>
       </div>
@@ -100,7 +100,7 @@ const jsonLd = [
       <span class="hub-sample-flag" id="home-crew-flag">Sample data</span>
       <a class="home-strip-link" href={`${base}hub/crews/`}>All crews →</a>
     </div>
-    <p class="home-strip-lede">Racing crews, leagues and car meet communities on PS5 — find one that races the way you do.</p>
+    <p class="home-strip-lede">Find a crew to race with — drivers who challenge each other, share the grid, and show up as a team.</p>
     <div class="home-row" id="home-crews" set:html={crewsHtml} />
   </section>
 
@@ -110,7 +110,7 @@ const jsonLd = [
       <span class="hub-sample-flag" id="home-ev-flag">Sample data</span>
       <a class="home-strip-link" href={`${base}hub/events/`}>All events →</a>
     </div>
-    <p class="home-strip-lede">Race nights, league rounds and car meets from the community — shown in your local time.</p>
+    <p class="home-strip-lede">Find races, league rounds, community playlists, and car meets. All start times are shown in your time zone.</p>
     <div class="home-row" id="home-events" set:html={eventsHtml} />
   </section>
 
@@ -119,8 +119,8 @@ const jsonLd = [
   <section class="home-band" aria-labelledby="home-band-title">
     <div class="wrap home-band-inner">
       <div class="home-band-copy">
-        <h2 class="display home-band-title" id="home-band-title">Ready to race?</h2>
-        <p class="home-band-text">Our Discord is where the Leonida Racing community meets: find a crew, set up race nights and talk cars with drivers from around the world. Log in with Discord to submit laps, build your garage and sign up for events.</p>
+        <h2 class="display home-band-title" id="home-band-title">Ready to Race?</h2>
+        <p class="home-band-text">Join the Leonida Racing Discord to talk cars and see what the scene is organizing. Meet racers, find events, connect with hosts and creators — or bring something of your own to the community.</p>
         <div class="home-band-actions">
           <button type="button" class="btn home-band-btn home-band-primary" id="band-join">Login with Discord</button>
           <a class="btn home-band-btn home-band-primary" id="band-account" href={`${base}account/`} hidden>Go to My Account</a>

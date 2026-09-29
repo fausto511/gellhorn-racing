@@ -3,52 +3,51 @@ import Base from '../../layouts/Base.astro';
 const base = import.meta.env.BASE_URL;
 ---
 <Base
-  title="About"
-  description="What Leonida Racing is — a GTA VI racing database and community with The Garage, Time Attack and The Hub — and what it doesn't do."
+  title="About Leonida Racing — GTA VI Racing Database & Community"
+  description="See how Leonida Racing brings GTA VI car data, lap times, racing crews, events, hosts, and creators together in one community."
 >
   <section class="page-head">
     <div class="wrap">
-      <p class="eyebrow">About</p>
+      <p class="eyebrow">GTA VI Racing Database &amp; Community</p>
       <h1 class="display page-title">About Leonida Racing</h1>
-      <p class="page-lede">Set a lap. Prove it. Find your race.</p>
+      <p class="page-lede">Leonida Racing is a GTA VI racing database and community. Check car specs and lap times, find races and crews, and connect with drivers, hosts, and creators across the scene.</p>
     </div>
   </section>
 
   <section class="prose">
     <div class="wrap prose-body">
-      <h2>What this is</h2>
-      <p>Leonida Racing is a racing database and community for GTA VI. The database side collects checkable facts — vehicles and their classes, and lap times backed by proof. The community side brings drivers together — race events and the crews behind them. It has three parts:</p>
-      <ul>
-        <li><strong>The Garage</strong> — the GTA VI vehicles confirmed so far, with their verified in-game classes. Prices, top speeds and lap data are added once they can be checked.</li>
-        <li><strong>Time Attack</strong> — a public, proof-based lap-time competition, starting with Gellhorn International Raceway. You submit a lap, and the site answers a few concrete questions for you: what your best comparable run is, where you stand overall and with that specific car, how far you are from the record and from your next realistic target, and — just as important — how solid the time you're looking at actually is and which rule version it was set under.</li>
-        <li><strong>The Hub</strong> — an event calendar and crew directory for the racing scene: race nights, league rounds, car meets and the crews behind them. Until the scene forms after release, much of it is clearly marked sample data.</li>
-      </ul>
+      <h2>The Database</h2>
+      <p>The Garage helps you choose what to buy and keep your collection organized. Check vehicle specs, prices, and performance, compare cars, and see what deserves a place in your garage.</p>
+      <p>Time Attack adds the driver to the equation: submit a lap at Gellhorn International Raceway, follow the leaderboard, and see what each car can do in the hands of the community.</p>
 
-      <h2>What this isn't (yet)</h2>
-      <p>This site doesn't try to be everything. It doesn't rank vehicles independently of the driver — that's a separate, harder question that needs multiple drivers and paired testing, and it only makes sense once enough Time Attack data exists. It's also not a GTA news site, a social feed or a video host.</p>
+      <h2>The Community</h2>
+      <p>The Hub is where the GTA VI racing scene comes together. Find races, league rounds, community playlists, car meets, and crews.</p>
+      <p>Connect with drivers, hosts, and creators, see what the scene is organizing, or bring something of your own.</p>
 
-      <h2>Built ahead of launch</h2>
-      <p>GTA VI hasn't come out yet. Everything here — the submission flow, the verification tiers, the rules — is built and ready for release day, but the actual Gellhorn Standard stays in draft until it's been tested against real gameplay. Nothing on this site should be read as a final ruling on how GTA VI works until that testing has happened.</p>
+      <h2>Built for Racers and Car People</h2>
+      <p>You do not have to chase an overall record to be part of Leonida Racing. You might be looking for the right car, a better time, a competitive crew, a relaxed car meet, or simply a full grid.</p>
+      <p>If GTA VI cars and racing matter to you, this is your scene.</p>
 
       <h2>Independent</h2>
-      <p>Leonida Racing is built with and for the GTA VI racing community. It has no connection to Rockstar Games or Take-Two Interactive — it's an independent community project, not an official one.</p>
+      <p>Leonida Racing is an independent community project built for GTA VI racers and car enthusiasts. It is not affiliated with Rockstar Games or Take-Two Interactive.</p>
 
       <h2>Contact</h2>
-      <p>Questions, feedback or moderation requests: reach out on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a>, or by email — see the <a href={`${base}legal/`}>legal notice</a> for the address.</p>
+      <p>Found incorrect vehicle data, have a question about a lap submission, or need help with a listing? Reach us on <a href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Discord</a> or use the email address in the <a href={`${base}legal/`}>legal notice</a>.</p>
 
-      <h2>How your data is used, briefly</h2>
-      <p>Signing in uses Discord. We receive your Discord ID, username, avatar and email address, and Discord asks you to let us add you to our Discord server — that happens once, right after you sign in. Submitting a lap stores the time, vehicle and your evidence screenshot so it can be checked and shown on the leaderboard. Full details, legal bases and retention: <a href={`${base}privacy/`}>Privacy Policy</a>.</p>
+      <h2>How Your Data Is Used</h2>
+      <p>Signing in uses Discord. We store the account details needed for your profile and the lap information and evidence needed to review and display your submissions.</p>
+      <p>The <a href={`${base}privacy/`}>Privacy Policy</a> explains what is collected, why, and for how long.</p>
     </div>
   </section>
 
   <section class="cta-band">
     <div class="wrap cta-row">
       <div>
-        <h2 class="display cta-title">Get involved</h2>
-        <p class="cta-copy">Join the Discord to follow progress, or read the rules to see how submissions work.</p>
+        <h2 class="display cta-title">Join the Community</h2>
+        <p class="cta-copy">Talk cars, meet racers, find events, and bring something of your own to Leonida Racing.</p>
       </div>
       <div class="cta-actions">
-        <a class="btn btn-outline" href={`${base}time-attack/rules/`}>Read the Rules</a>
+        <a class="btn btn-outline" href={`${base}garage/`}>Explore The Garage</a>
         <a class="btn btn-red" href="https://discord.gg/hPGuBwXRqT" target="_blank" rel="noopener">Join Discord</a>
       </div>
     </div>
@@ -58,7 +57,7 @@ const base = import.meta.env.BASE_URL;
 <style>
   .page-head { padding-block: clamp(3rem, 6vw, 4.5rem) clamp(2rem, 4vw, 3rem); }
   .page-title { margin: .6rem 0 .9rem; font-size: clamp(2.2rem, 4.5vw, 3.2rem); }
-  .page-lede { max-width: 46ch; color: var(--gh-muted); font-size: 1.02rem; }
+  .page-lede { max-width: 60ch; color: var(--gh-muted); font-size: 1.02rem; }
 
   .prose { padding-bottom: var(--gh-gap-section); }
   .prose-body { max-width: 62ch; }
@@ -67,6 +66,7 @@ const base = import.meta.env.BASE_URL;
   .prose-body p { margin: 0 0 1rem; color: var(--gh-muted); font-size: .96rem; line-height: 1.7; }
   .prose-body ul { margin: 0 0 1rem; padding-left: 1.1rem; display: grid; gap: .6rem; color: var(--gh-muted); font-size: .96rem; line-height: 1.7; }
   .prose-body li strong { color: var(--gh-text); }
+  .prose-body a { color: var(--gh-text); }
 
   .cta-band { padding-block: var(--gh-gap-section); border-top: 1px solid var(--gh-line); background: var(--gh-surface-soft); }
   .cta-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2rem; }

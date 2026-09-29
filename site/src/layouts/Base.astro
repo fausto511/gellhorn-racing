@@ -19,7 +19,7 @@ interface Props {
 const { title, description, section = null, noindex = false, ogImage = 'images/gellhorn-raceway-1672.jpg', jsonLd = [] } = Astro.props;
 const base = import.meta.env.BASE_URL;
 // Every page title ends with the brand (DEC-0082), unless it already starts with it (home).
-const fullTitle = title.startsWith(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(`${base}${ogImage}`, Astro.site).href;
 ---
