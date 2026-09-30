@@ -14,15 +14,24 @@ export interface VehicleOption {
   releaseDate?: string; // e.g. "2026-11-19" -- in-game/real-world release date once known
   dlc?: string; // DLC/update name, if this vehicle isn't part of the base game
   acquisition?: 'pre-order' | 'ultimate-edition' | 'gta-plus'; // special access requirement, if any
+  // true = a garage photo exists at public/images/vehicles/<id>-{640,1280,1920}.webp
+  // (made from "Visual/Cars/<Make Model> Garage.jpg", 2026-09-30).
+  photo?: boolean;
 }
 
+// RULE (Fausto, 2026-09-30): vehicleOptions lists ONLY vehicles whose GTA VI
+// in-game name is verified (exception: Übermacht Sentinel Classic Cabrio).
+// Everything here is public: garage, vehicle pages, sitemap, submit form,
+// compare. Cars seen in GTA VI material whose in-game name is still unknown
+// go into unverifiedVehicles below instead -- never shown on the site.
+
 export const vehicleOptions: VehicleOption[] = [
-  { id: "vapid-stanier-55", classes: ["Sedans"], make: "Vapid", model: "Stanier '55", logoSlug: "vapid", seats: 2, drive: "RWD", acquisition: "pre-order" },
-  { id: "grotti-cheetah-95", classes: ["Sports Classics"], make: "Grotti", model: "Cheetah '95", logoSlug: "grotti", seats: 2, drive: "RWD", acquisition: "ultimate-edition" },
-  { id: "schyster-deviant", classes: ["Muscle"], make: "Schyster", model: "Deviant", logoSlug: "schyster", seats: 2, drive: "RWD", acquisition: "ultimate-edition" },
-  { id: "declasse-mamba-gt", classes: ["Sports Classics"], make: "Declasse", model: "Mamba GT", logoSlug: "declasse", seats: 2, drive: "RWD", acquisition: "ultimate-edition" },
+  { id: "vapid-stanier-55", classes: ["Sedans"], make: "Vapid", model: "Stanier '55", logoSlug: "vapid", seats: 2, drive: "RWD", acquisition: "pre-order", photo: true },
+  { id: "grotti-cheetah-95", classes: ["Sports Classics"], make: "Grotti", model: "Cheetah '95", logoSlug: "grotti", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
+  { id: "schyster-deviant", classes: ["Muscle"], make: "Schyster", model: "Deviant", logoSlug: "schyster", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
+  { id: "declasse-mamba-gt", classes: ["Sports Classics"], make: "Declasse", model: "Mamba GT", logoSlug: "declasse", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
   { id: "vapid-riata-classic", classes: ["SUVs"], make: "Vapid", model: "Riata Classic", logoSlug: "vapid", seats: 2, drive: "n/a", acquisition: "ultimate-edition" },
-  { id: "dundreary-sirius", classes: ["Muscle"], make: "Dundreary", model: "Sirius", logoSlug: "dundreary", seats: 2, drive: "n/a", acquisition: "ultimate-edition" },
+  { id: "dundreary-sirius", classes: ["Muscle"], make: "Dundreary", model: "Sirius", logoSlug: "dundreary", seats: 2, drive: "n/a", acquisition: "ultimate-edition", photo: true },
   { id: "obey-8f-drafter", classes: ["Sports"], make: "Obey", model: "8F Drafter", logoSlug: "obey", seats: 2, drive: "AWD" },
   { id: "vapid-aleutian", classes: ["SUVs"], make: "Vapid", model: "Aleutian", logoSlug: "vapid", seats: 4, drive: "AWD" },
   { id: "albany-alpha", classes: ["Sports"], make: "Albany", model: "Alpha", logoSlug: "albany", seats: 2, drive: "RWD" },
@@ -57,7 +66,7 @@ export const vehicleOptions: VehicleOption[] = [
   { id: "karin-feroci", classes: ["Sedans"], make: "Karin", model: "Feroci", logoSlug: "karin", seats: 4, drive: "RWD" },
   { id: "grotti-furia", classes: ["Super"], make: "Grotti", model: "Furia", logoSlug: "grotti", seats: 2, drive: "AWD" },
   { id: "karin-futo", classes: ["Sports"], make: "Karin", model: "Futo", logoSlug: "karin", seats: 2, drive: "RWD" },
-  { id: "vapid-ganado-70", classes: ["Muscle"], make: "Vapid", model: "Ganado '70", logoSlug: "vapid", seats: 2, drive: "n/a" },
+  { id: "vapid-ganado-70", classes: ["Muscle"], make: "Vapid", model: "Ganado '70", logoSlug: "vapid", seats: 2, drive: "n/a", photo: true },
   { id: "bravado-gauntlet-classic", classes: ["Muscle"], make: "Bravado", model: "Gauntlet Classic", logoSlug: "bravado", seats: 2, drive: "RWD" },
   { id: "bravado-gauntlet-hellfire", classes: ["Muscle"], make: "Bravado", model: "Gauntlet Hellfire", logoSlug: "bravado", seats: 2, drive: "RWD" },
   { id: "declasse-granger", classes: ["SUVs"], make: "Declasse", model: "Granger", logoSlug: "declasse", seats: 8, drive: "AWD" },
@@ -127,4 +136,18 @@ export const vehicleOptions: VehicleOption[] = [
   { id: "grotti-itali-rsx", classes: ["Sports"], make: "Grotti", model: "Itali RSX", logoSlug: "grotti", seats: 2, drive: "AWD" },
   { id: "maibatsu-penumbra-ff", classes: ["Sports"], make: "Maibatsu", model: "Penumbra FF", logoSlug: "maibatsu", seats: 2, drive: "AWD" },
   { id: "ubermacht-sentinel-classic-cabrio", classes: ["Sports Classics"], make: "Übermacht", model: "Sentinel Classic Cabrio", logoSlug: "ubermacht", seats: 2, drive: "RWD" },
+  // Added 2026-09-30 from gtabase.com GTA 6 pages (Fausto supplied the photos).
+  // Kamacho: also in GTA Online, gtabase does not separate the values; no edition given there.
+  // Dominator '67 Buggy: new in GTA VI, Ultimate Edition; drivetrain not given on gtabase.
+  { id: "canis-kamacho", classes: ["Off-Road"], make: "Canis", model: "Kamacho", logoSlug: "canis", seats: 4, drive: "AWD", photo: true },
+  { id: "vapid-dominator-67-buggy", classes: ["Off-Road"], make: "Vapid", model: "Dominator '67 Buggy", logoSlug: "vapid", seats: 2, drive: "n/a", acquisition: "ultimate-edition", photo: true },
+];
+
+// Seen in GTA VI material, in-game name NOT verified -> not on the site and
+// not in the database (class/seats/drive unknown, nothing to reference it).
+// Once Rockstar names it: add it to vehicleOptions with the real name, add
+// the DB row, and build the photo from the source file.
+export interface UnverifiedVehicle { workingId: string; basedOn: string; photoSource: string; note: string }
+export const unverifiedVehicles: UnverifiedVehicle[] = [
+  { workingId: "unnamed-kellison-j4-inspired", basedOn: "Kellison J4 (1960s US kit sports car)", photoSource: "Visual/Cars/Kellison J4 Garage.jpg", note: "GTA Wiki lists it as a Kellison J4-inspired car without in-game name or manufacturer (checked 2026-09-30)." },
 ];

@@ -16,6 +16,10 @@ const jsonLd = [
     url: home,
     inLanguage: 'en',
     description: 'GTA VI racing database and community: vehicles with verified classes, proof-based lap-time leaderboards, and a hub for racing events and crews.',
+    // Not shown on the page: search engines also get the common "GTA 6"
+    // spelling here (visible text always says "GTA VI", 2026-09-30).
+    keywords: 'GTA 6, GTA VI, Grand Theft Auto VI, GTA 6 cars, GTA 6 racing, GTA 6 crews, GTA 6 car meets',
+    about: { '@type': 'VideoGame', name: 'Grand Theft Auto VI', alternateName: ['GTA VI', 'GTA 6'] },
   },
   {
     '@context': 'https://schema.org',

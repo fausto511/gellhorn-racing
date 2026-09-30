@@ -26,6 +26,9 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
           <option value="">All focus areas</option>
           {Object.entries(focusLabels).map(([k, v]) => <option value={k}>{v}</option>)}
         </select>
+        <select class="ui-select" id="crew-lang" aria-label="Filter by language">
+          <option value="">All languages</option>
+        </select>
         <select class="ui-select" id="crew-platform" aria-label="Filter by platform">
           {PLATFORMS.map((p) => <option value={p.active && ACTIVE_PLATFORMS.length === 1 ? '' : p.id} disabled={!p.active} selected={p.id === 'ps5'}>{p.active ? p.label : `${p.label} — coming later`}</option>)}
         </select>
@@ -43,6 +46,7 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
 
 <script>
   import { crewCardHtml, crewTagHtml, esc, type HubCrew } from '../../../data/hub';
+  import { languageLabel } from '../../../data/languages';
   import { fetchLiveCrews, fetchRoster } from '../../../scripts/hub-live';
   import { getSupabase } from '../../../scripts/supabase-client';
 
@@ -52,16 +56,32 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
   const search = document.getElementById('crew-search') as HTMLInputElement;
   const focusSel = document.getElementById('crew-focus') as HTMLSelectElement;
   const platSel = document.getElementById('crew-platform') as HTMLSelectElement;
+  const langSel = document.getElementById('crew-lang') as HTMLSelectElement;
+
+  // Language filter lists only languages that at least one shown crew uses
+  // (fixed list of ~40 in data/languages.ts, 2026-09-30). Rebuilt whenever
+  // the cards change (sample -> live), keeping the current choice if possible.
+  function buildLanguageOptions() {
+    const codes = new Set<string>();
+    root.querySelectorAll<HTMLElement>('.crew-card').forEach((c) => (c.dataset.languages ?? '').split('|').filter(Boolean).forEach((x) => codes.add(x)));
+    const keep = langSel.value;
+    const sorted = [...codes].sort((a, b) => languageLabel(a).localeCompare(languageLabel(b)));
+    langSel.innerHTML = '<option value="">All languages</option>' + sorted.map((c) => `<option value="${esc(c)}">${esc(languageLabel(c))}</option>`).join('');
+    langSel.value = codes.has(keep) ? keep : '';
+    langSel.hidden = codes.size === 0;
+  }
 
   function applyFilters() {
     const q = search.value.trim().toLowerCase();
     const f = focusSel.value;
     const p = platSel.value;
+    const l = langSel.value;
     let shown = 0;
     root.querySelectorAll<HTMLElement>('.crew-card').forEach((card) => {
       const ok =
         (!q || (card.dataset.search ?? '').includes(q)) &&
         (!f || (card.dataset.focus ?? '').split('|').includes(f)) &&
+        (!l || (card.dataset.languages ?? '').split('|').includes(l)) &&
         (!p || (card.dataset.platforms ?? '').split('|').includes(p));
       card.hidden = !ok;
       if (ok) shown++;
@@ -69,7 +89,8 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
     emptyEl.hidden = shown > 0;
   }
 
-  [search, focusSel, platSel].forEach((el) => el.addEventListener('input', applyFilters));
+  [search, focusSel, langSel, platSel].forEach((el) => el.addEventListener('input', applyFilters));
+  buildLanguageOptions();
   // Deep link from the leaderboard crew tag: /hub/crews/?q=TAG
   const q0 = new URLSearchParams(location.search).get('q');
   if (q0) { search.value = q0; applyFilters(); }
@@ -179,6 +200,7 @@ const initialHtml = sampleCrews.map((c) => crewCardHtml(c)).join('');
   let rosterMap = new Map<string, string[]>();
   function renderCards() {
     root.innerHTML = liveCrews.map((c) => crewCardHtml(c, rosterMap.get(c.crew_id!))).join('');
+    buildLanguageOptions();
     applyFilters();
   }
   async function refreshRoster() {

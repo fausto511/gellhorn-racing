@@ -14,11 +14,6 @@ const classes = [...new Set(vehicleOptions.flatMap((v) => v.classes))].sort();
 const makes = [...new Set(vehicleOptions.map((v) => v.make))].sort();
 const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 
-// No per-vehicle photos are live yet. Until real photos exist, every tile
-// falls back to the shared garage placeholder image (explicitly approved by
-// Fausto for this reuse) with a "Photo pending" badge on top. Add a vehicle's
-// id -> real photo path here once one is confirmed for the public site.
-const photoOverrides: Record<string, string> = {};
 ---
 <Base
   title="The Garage — GTA VI Vehicle Database"
@@ -86,11 +81,17 @@ const photoOverrides: Record<string, string> = {};
           >
             <a class="v-tile-link" href={`${base}garage/vehicles/${v.id}/`} aria-label={`View ${v.make} ${v.model}`}></a>
             <div class="v-photo">
-              {v.acquisition && (
-                <span class="v-badge">{acquisitionLabels[v.acquisition]}</span>
-              )}
-              {photoOverrides[v.id] ? (
-                <img src={photoOverrides[v.id]} alt={`${v.make} ${v.model}`} loading="lazy" width="640" height="360" />
+              <div class="v-badges">
+                {v.acquisition && (
+                  <span class="v-badge">{acquisitionLabels[v.acquisition]}</span>
+                )}
+              </div>
+              {v.photo ? (
+                <img
+                  src={`${base}images/vehicles/${v.id}-640.webp`}
+                  srcset={`${base}images/vehicles/${v.id}-640.webp 640w, ${base}images/vehicles/${v.id}-1280.webp 1280w`}
+                  sizes="(max-width: 700px) 100vw, 400px"
+                  alt={`${v.make} ${v.model} in GTA 6`} loading="lazy" width="640" height="360" />
               ) : (
                 <>
                   <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="640" height="360" />
@@ -174,7 +175,9 @@ const photoOverrides: Record<string, string> = {};
   .v-photo { position: relative; aspect-ratio: 16/9; background: rgba(160,160,198,.08); overflow: hidden; }
   .v-photo > img { width: 100%; height: 100%; object-fit: cover; }
   .v-photo-fallback { opacity: .4; filter: saturate(.7); }
-  .v-badge { position: absolute; top: .6rem; left: .6rem; z-index: 2; padding: .25rem .6rem; border-radius: 999px; background: var(--gh-red); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+  /* Pills top left: "Owned" always first (added by script), edition next to it (2026-09-30) */
+  .v-badges { position: absolute; top: .6rem; left: .6rem; right: 3rem; z-index: 2; display: flex; flex-wrap: wrap; gap: .35rem; pointer-events: none; }
+  .v-badge { padding: .25rem .6rem; border-radius: 999px; background: var(--gh-red); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
   .v-photo-pending { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,20,26,.7); border: 1px solid rgba(252,250,247,.12); padding: .35rem .75rem; border-radius: 999px; color: var(--gh-muted); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
   .v-name { position: absolute; left: 0; right: 0; bottom: 0; padding: .6rem .75rem; background: linear-gradient(to top, rgba(20,20,26,.95), transparent); display: flex; flex-direction: column; gap: .25rem; }
   .v-name strong { font-size: .92rem; }
@@ -211,7 +214,7 @@ const photoOverrides: Record<string, string> = {};
 }
   /* Owned by the signed-in driver (RS-0032) */
   :global(.v-tile.is-owned) { border-color: var(--gh-yellow); }
-  :global(.v-owned) { display: inline-flex; align-items: center; margin-left: .45rem; padding: .08rem .45rem; border-radius: 999px; background: var(--gh-yellow); color: #1a1206; font-size: .64rem; font-weight: 800; letter-spacing: .03em; text-transform: uppercase; vertical-align: 1px; }
+  :global(.v-owned) { padding: .25rem .6rem; border-radius: 999px; background: var(--gh-yellow); color: #1a1206; font-size: .6rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 </style>
 
 <script>
@@ -329,7 +332,7 @@ const photoOverrides: Record<string, string> = {};
       const tile = document.querySelector<HTMLElement>(`.v-tile[data-id="${CSS.escape(id)}"]`);
       if (!tile || tile.classList.contains('is-owned')) return;
       tile.classList.add('is-owned');
-      tile.querySelector('.v-name strong')?.insertAdjacentHTML('beforeend', '<span class="v-owned" title="In My Garage">Owned</span>');
+      tile.querySelector('.v-badges')?.insertAdjacentHTML('afterbegin', '<span class="v-owned" title="In My Garage">Owned</span>');
     });
   })();
 </script>

@@ -6,6 +6,8 @@
 import '../styles/hub.css';
 import { eventTypeLabels, focusLabels, platformLabels } from '../data/hub';
 import { PLATFORMS, comingLater } from '../data/platforms';
+import { crewLanguages, mainCrewLanguages } from '../data/languages';
+const moreLanguages = Object.keys(crewLanguages).filter((k) => !mainCrewLanguages.includes(k)).sort((a, b) => crewLanguages[a].localeCompare(crewLanguages[b]));
 interface Props { mode: 'moderator' | 'crew' | 'events'; }
 const { mode } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -68,7 +70,15 @@ const base = import.meta.env.BASE_URL;
                 {Object.entries(focusLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="focus" value={k} /> {v}</label>)}
               </fieldset>
               <label>Region<input type="text" name="region" maxlength="40" placeholder="e.g. Europe" /></label>
-              <label>Language<input type="text" name="language" maxlength="40" placeholder="e.g. English" /></label>
+              <fieldset class="span2 lang-set"><legend>Languages <small>pick all your crew speaks</small></legend>
+                {mainCrewLanguages.map((k) => <label class="check"><input type="checkbox" name="languages" value={k} /> {crewLanguages[k]}</label>)}
+                <details class="lang-more">
+                  <summary>More languages</summary>
+                  <div class="lang-more-list">
+                    {moreLanguages.map((k) => <label class="check"><input type="checkbox" name="languages" value={k} /> {crewLanguages[k]}</label>)}
+                  </div>
+                </details>
+              </fieldset>
               <label class="span2">Description <small><span id="crew-desc-count">0</span>/400</small><textarea name="description" maxlength="400" rows="3"></textarea></label>
               <label>Discord invite<input type="url" name="discord_url" placeholder="https://discord.gg/…" /></label>
               <label>Social Club page<input type="url" name="social_club_url" placeholder="https://socialclub.rockstargames.com/…" /></label>
@@ -225,6 +235,10 @@ const base = import.meta.env.BASE_URL;
   .color-row input[type="text"] { flex: 1; min-width: 0; }
   fieldset { border: 1px solid var(--gh-line); border-radius: var(--gh-radius); padding: .6rem .8rem .7rem; margin: 0; display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
   fieldset legend { padding: 0 .3rem; }
+  .lang-more { flex-basis: 100%; }
+  .lang-more summary { cursor: pointer; color: var(--gh-muted); font-size: .82rem; font-weight: 700; }
+  .lang-more[open] summary { margin-bottom: .45rem; }
+  .lang-more-list { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; }
   fieldset[hidden] { display: none; }
   .hc-form label.check.is-soon { color: var(--gh-muted); cursor: not-allowed; }
   .check.is-soon input { cursor: not-allowed; }
@@ -489,7 +503,7 @@ const base = import.meta.env.BASE_URL;
       platforms: platformsFrom(fd) as any,
       focus: fd.getAll('focus') as any,
       region: blank(fd.get('region')),
-      language: blank(fd.get('language')),
+      languages: fd.getAll('languages').map(String),
       description: blank(fd.get('description')),
       member_count: mc === null ? null : Math.max(0, Math.round(Number(mc))),
       discord_url: blank(fd.get('discord_url')),
@@ -528,7 +542,7 @@ const base = import.meta.env.BASE_URL;
     slugTouched = Boolean(row);
     $('crew-form-title').textContent = row ? `Edit: ${row.name}` : 'New crew';
     const r = row ?? { color: '#ed253d', platforms: [], focus: [], sort_order: 0 };
-    for (const k of ['name', 'tag', 'slug', 'region', 'language', 'description', 'discord_url', 'social_club_url']) cf[k].value = r[k] ?? '';
+    for (const k of ['name', 'tag', 'slug', 'region', 'description', 'discord_url', 'social_club_url']) cf[k].value = r[k] ?? '';
     cf.color.value = r.color ?? '#ed253d';
     cf.color_picker.value = r.color ?? '#ed253d';
     cf.member_count.value = r.member_count ?? '';
@@ -539,6 +553,9 @@ const base = import.meta.env.BASE_URL;
     ps.textContent = r.is_published ? 'Live on the site' : 'Draft — a moderator publishes it';
     crewForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value) || (ACTIVE_PLATFORMS.length === 1 && i.hasAttribute('data-locked'))));
     crewForm.querySelectorAll<HTMLInputElement>('input[name="focus"]').forEach((i) => (i.checked = (r.focus ?? []).includes(i.value)));
+    crewForm.querySelectorAll<HTMLInputElement>('input[name="languages"]').forEach((i) => (i.checked = (r.languages ?? []).includes(i.value)));
+    // open "More languages" when one of them is already picked
+    crewForm.querySelector<HTMLDetailsElement>('.lang-more')!.open = [...crewForm.querySelectorAll<HTMLInputElement>('.lang-more input')].some((i) => i.checked);
     resetDelete(crewForm, Boolean(row));
     markInvalid(crewForm, []);
     msg(crewForm, '');

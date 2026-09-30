@@ -26,16 +26,15 @@ const vehicleIndex = vehicleOptions.map((v) => ({
   href: `${base}garage/vehicles/${v.id}/`,
 }));
 
-// No per-vehicle photos are live yet. Until real photos exist, the page
-// falls back to the shared garage placeholder image with a "Photo pending"
-// badge on top -- add a vehicle's id -> real photo path here once confirmed.
-const photoOverrides: Record<string, string> = {};
-const photo = photoOverrides[vehicle.id];
+// Vehicles with vehicle.photo use their garage photo (public/images/vehicles/);
+// all others fall back to the shared placeholder with a "Photo pending" badge.
+const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
 ---
 <Base
   title={`${vehicle.make} ${vehicle.model} — GTA VI Car Specs & Performance`}
   description={`Check the ${vehicle.make} ${vehicle.model} in GTA VI: price, top speed, specs, performance, and comparisons to see whether it deserves a place in your garage.`}
   section="garage"
+  ogImage={vehicle.photo ? `images/vehicles/${vehicle.id}-1280.webp` : undefined}
 >
   <section class="wrap v-toolbar">
     <div class="v-search-wrap">
@@ -57,7 +56,11 @@ const photo = photoOverrides[vehicle.id];
       )}
       <button type="button" id="v-compare-mark" class="v-compare-mark" data-id={vehicle.id} aria-pressed="false" aria-label={`Add ${vehicle.make} ${vehicle.model} to compare`}>＋</button>
       {photo ? (
-        <img src={photo} alt={`${vehicle.make} ${vehicle.model}`} width="1672" height="941" />
+        <img
+          src={`${photo}-1280.webp`}
+          srcset={`${photo}-640.webp 640w, ${photo}-1280.webp 1280w, ${photo}-1920.webp 1920w`}
+          sizes="(max-width: 900px) 100vw, 60vw"
+          alt={`${vehicle.make} ${vehicle.model} in GTA 6`} width="1920" height="1080" fetchpriority="high" />
       ) : (
         <>
           <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="1672" height="941" />

@@ -86,7 +86,7 @@ const base = import.meta.env.BASE_URL;
     mine = data ?? null;
     let crew: any = null;
     if (mine?.status === 'active') {
-      const c = await sb.from('crews').select('crew_id,slug,name,tag,color,platforms,focus,region,language,description,member_count,discord_url,social_club_url,is_partner').eq('crew_id', mine.crew_id).maybeSingle();
+      const c = await sb.from('crews').select('crew_id,slug,name,tag,color,platforms,focus,region,languages,description,member_count,discord_url,social_club_url,is_partner').eq('crew_id', mine.crew_id).maybeSingle();
       crew = c.data;
     }
     render(crew);
