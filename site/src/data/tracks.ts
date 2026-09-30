@@ -73,7 +73,9 @@ export function trackRowHtml(t: CommunityTrack, opts: { sample?: boolean } = {})
     <p class="tr-dates">Added ${esc(fmtDate(t.created_at))}${edited ? ` · updated ${esc(fmtDate(t.updated_at))}` : ''}</p>
   </div>
   <div class="tr-side">
-    ${sc ? `<a class="btn btn-outline tr-sc" href="${esc(sc)}" target="_blank" rel="noopener">Social Club ↗</a>` : ''}
+    ${sc
+      ? `<a class="btn btn-primary tr-sc" href="${esc(sc)}" target="_blank" rel="noopener" title="Open the job on Social Club to bookmark it for the game">Open in Social Club <span aria-hidden="true">↗</span></a>`
+      : `<span class="btn btn-primary tr-sc is-disabled" aria-disabled="true" title="Sample track — no real job">Open in Social Club <span aria-hidden="true">↗</span></span>`}
     ${!opts.sample ? `<a class="ev-report" href="${esc(`${import.meta.env.BASE_URL}report-content/`)}" title="Report this track to the moderators">Report</a>` : ''}
   </div>
 </article>`;
