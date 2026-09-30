@@ -61,6 +61,18 @@ export const platformLabels: Record<Platform, string> = { ps5: 'PS5', xbox: 'Xbo
 /** Platform chips: only active platforms (DEC-0073: PS5 at launch). */
 const platformChips = (list: Platform[]) => list.filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p)).map((p) => `<span class="chip chip-platform">${esc(platformShort[p] ?? p)}</span>`).join('');
 export const platformShort: Record<Platform, string> = { ps5: 'PS5', xbox: 'XBOX' };
+/** Card image per event type (home page strip). All types share one
+ *  PLACEHOLDER until Fausto delivers a fixed image per type -- then only
+ *  this map changes (02-Feature-und-Tool-Ideen: feste Event-Bilder). */
+export const eventTypeImages: Record<EventType, string> = {
+  race: 'images/hub/hub-events',
+  'time-attack': 'images/hub/hub-events',
+  league: 'images/hub/hub-events',
+  'car-meet': 'images/hub/hub-events',
+  cruise: 'images/hub/hub-events',
+  other: 'images/hub/hub-events',
+};
+
 export const focusLabels: Record<CrewFocus, string> = {
   racing: 'Racing',
   'time-attack': 'Time Attack',
@@ -279,6 +291,7 @@ export function localizeTimes(root: ParentNode): void {
     el.querySelectorAll<HTMLElement>('[data-fmt]').forEach((part) => {
       if (part.dataset.fmt === 'wd') part.textContent = d.toLocaleDateString('en-GB', { weekday: 'short' });
       if (part.dataset.fmt === 'day') part.textContent = d.toLocaleDateString('en-GB', { day: '2-digit' });
+      if (part.dataset.fmt === 'dnum') part.textContent = d.toLocaleDateString('en-GB', { day: 'numeric' });
       if (part.dataset.fmt === 'mon') part.textContent = d.toLocaleDateString('en-GB', { month: 'short' });
     });
   });

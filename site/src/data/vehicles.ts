@@ -30,7 +30,7 @@ export const vehicleOptions: VehicleOption[] = [
   { id: "grotti-cheetah-95", classes: ["Sports Classics"], make: "Grotti", model: "Cheetah '95", logoSlug: "grotti", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
   { id: "schyster-deviant", classes: ["Muscle"], make: "Schyster", model: "Deviant", logoSlug: "schyster", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
   { id: "declasse-mamba-gt", classes: ["Sports Classics"], make: "Declasse", model: "Mamba GT", logoSlug: "declasse", seats: 2, drive: "RWD", acquisition: "ultimate-edition", photo: true },
-  { id: "vapid-riata-classic", classes: ["SUVs"], make: "Vapid", model: "Riata Classic", logoSlug: "vapid", seats: 2, drive: "n/a", acquisition: "ultimate-edition" },
+  { id: "vapid-riata-classic", classes: ["SUVs"], make: "Vapid", model: "Riata Classic", logoSlug: "vapid", seats: 2, drive: "n/a", acquisition: "ultimate-edition", photo: true },
   { id: "dundreary-sirius", classes: ["Muscle"], make: "Dundreary", model: "Sirius", logoSlug: "dundreary", seats: 2, drive: "n/a", acquisition: "ultimate-edition", photo: true },
   { id: "obey-8f-drafter", classes: ["Sports"], make: "Obey", model: "8F Drafter", logoSlug: "obey", seats: 2, drive: "AWD" },
   { id: "vapid-aleutian", classes: ["SUVs"], make: "Vapid", model: "Aleutian", logoSlug: "vapid", seats: 4, drive: "AWD" },

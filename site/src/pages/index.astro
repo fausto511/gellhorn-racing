@@ -200,10 +200,16 @@ const jsonLd = [
   :global(.hc-name) { display: block; margin: 0; font-weight: 800; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   :global(.hc-sub) { display: block; margin: .1rem 0 0; color: var(--gh-muted); font-size: .76rem; }
   :global(.hc-chips) { display: flex; flex-wrap: wrap; gap: .3rem; }
-  :global(.he-date) { display: flex; align-items: baseline; gap: .45rem; color: var(--gh-muted); font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-  :global(.he-day) { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.6rem; color: var(--gh-text); letter-spacing: 0; }
-  :global(.he-title) { display: block; margin: 0; font-weight: 800; font-size: .95rem; line-height: 1.3; }
-  :global(.he-meta) { display: block; margin: 0; color: var(--gh-muted); font-size: .78rem; }
+  /* event card: image by type, title first, date small (2026-09-30) */
+  :global(.he-card) { padding: 0; gap: 0; overflow: hidden; }
+  :global(.he-img) { position: relative; display: block; aspect-ratio: 16 / 8; background: rgba(160,160,198,.08); }
+  :global(.he-img img) { display: block; width: 100%; height: 100%; object-fit: cover; }
+  :global(.he-type) { position: absolute; top: .6rem; left: .6rem; background: rgba(20,20,26,.8); }
+  :global(.he-body) { display: flex; flex-direction: column; gap: .35rem; padding: .85rem 1rem 1rem; }
+  :global(.he-title) { display: block; margin: 0; font-weight: 800; font-size: 1.02rem; line-height: 1.3; }
+  :global(.he-when) { display: block; color: var(--gh-text); font-size: .8rem; font-weight: 600; }
+  :global(.he-tz) { color: var(--gh-muted); font-size: .7rem; font-weight: 500; }
+  :global(.he-meta) { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; margin: 0; color: var(--gh-muted); font-size: .78rem; }
 
   .home-strip-sep { position: relative; margin-top: clamp(2rem, 4.5vw, 3rem); }
   /* hairline across the content width only, like the header line style */

@@ -7,7 +7,7 @@
 // (.hero-grid min-height 21rem / 35rem below 860px).
 // Images: <name>-640/1080/1672.webp + <name>-1672.jpg under /images/.
 interface Props {
-  image: 'hub' | 'gellhorn';
+  image: 'hub' | 'hub-events' | 'hub-crews' | 'hub-tracks' | 'gellhorn';
   eyebrow: string;
   title: string;
   lede: string;
@@ -17,6 +17,10 @@ const base = import.meta.env.BASE_URL;
 const images = {
   // Visual/Cars/carmeet1.png (chosen by Fausto, 2026-09-25), 1672x940
   hub: { path: `${base}images/hub/hub-carmeet`, w: 1672, h: 940, pos: '60% 45%', posMobile: '58% 70%' },
+  // Hub subpages (2026-09-30, Fausto: own image per page, placeholders until final art)
+  'hub-events': { path: `${base}images/hub/hub-events`, w: 1672, h: 941, pos: '50% 55%', posMobile: '55% 55%' }, // Crews and Events/carmeet2.png
+  'hub-crews': { path: `${base}images/hub/hub-crews`, w: 1672, h: 940, pos: '55% 35%', posMobile: '62% 40%' }, // Crews and Events/crews (2).jpg
+  'hub-tracks': { path: `${base}images/hub/hub-tracks`, w: 1672, h: 941, pos: '50% 60%', posMobile: '62% 70%' }, // Racing/hotlap-gir-3 (1).png
   // same image as the Gellhorn track page hero
   gellhorn: { path: `${base}images/gellhorn-raceway`, w: 1672, h: 941, pos: '50% 50%', posMobile: '50% 50%' },
 };

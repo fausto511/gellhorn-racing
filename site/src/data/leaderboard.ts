@@ -238,7 +238,7 @@ export function vehicleSelectHtml(all: LbEntry[], s: LbState): string {
 
 /** Vehicles Needed: vehicles that have times but no verified record first,
  *  then fast garage cars nobody has driven yet. */
-export function vehiclesNeededHtml(all: LbEntry[], max = 4): string {
+export function vehiclesNeededHtml(all: LbEntry[], max = 6): string {
   const withTimes = new Map<string, LbEntry>();
   const verified = new Set<string>();
   for (const e of all) { withTimes.set(e.vehicle_id, e); if (e.verified) verified.add(e.vehicle_id); }

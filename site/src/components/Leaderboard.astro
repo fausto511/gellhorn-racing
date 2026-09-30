@@ -116,13 +116,17 @@ const needed = vehiclesNeededHtml(sampleEntries);
   :global(.logo-chip img) { width: 100%; height: 100%; object-fit: contain; display: block; }
   :global(.logo-chip-lg) { width: 40px; height: 40px; padding: 5px; }
 
-  .needed { display: flex; flex-wrap: wrap; gap: 1.5rem; justify-content: space-between; margin-top: 1.25rem; padding: var(--gh-pad-card); }
+  /* 6 vehicles as a fixed grid next to the heading (Fausto, 2026-09-30): 3x2 desktop, 2 cols tablet, 1 col phone */
+  .needed { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr; gap: 1.5rem; align-items: start; margin-top: 1.25rem; padding: var(--gh-pad-card); }
   .needed-title { display: flex; align-items: center; gap: .5rem; }
   .needed-title svg { color: var(--gh-yellow); flex: none; }
   .needed-head h3 { margin: 0; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.3rem; }
   .needed-head p { margin: .3rem 0 0; max-width: 30ch; color: var(--gh-muted); font-size: .82rem; }
-  .needed ul { display: flex; flex-wrap: wrap; gap: .75rem; list-style: none; margin: 0; padding: 0; flex: 1; justify-content: flex-end; }
-  :global(.needed li) { display: flex; align-items: center; gap: .6rem; padding: .7rem .95rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); min-width: 13rem; }
+  .needed ul { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; list-style: none; margin: 0; padding: 0; }
+  @media (max-width: 1100px) { .needed { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .needed ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 520px) { .needed ul { grid-template-columns: 1fr; } }
+  :global(.needed li) { display: flex; align-items: center; gap: .6rem; padding: .7rem .95rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); min-width: 0; }
   :global(.needed-text) { display: flex; flex-direction: column; gap: .2rem; }
   :global(.needed-text strong) { font-size: .82rem; }
   :global(.needed-text span) { color: var(--gh-muted); font-size: .7rem; }
@@ -136,8 +140,6 @@ const needed = vehiclesNeededHtml(sampleEntries);
     :global(.lb-table .lb-crew-tag) { margin-left: .3rem; }
     :global(.lb-table .lb-vehicle .logo-chip) { display: none; }
     .lb-head { align-items: flex-start; }
-    .needed { justify-content: flex-start; }
-    .needed ul { justify-content: flex-start; }
   }
 
   :global(.sr-only) { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
