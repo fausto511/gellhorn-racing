@@ -3,10 +3,15 @@
 // across page loads (Astro pages are separate documents, no shared JS state).
 const KEY = 'gellhorn-compare-selected';
 
+// Vehicle ids that were renamed; old ids stored in a visitor's browser are
+// mapped to the new one (2026-09-30: Caracara -> Caracara 4x4).
+const RENAMED: Record<string, string> = { 'vapid-caracara': 'vapid-caracara-4x4' };
+
 export function getSelected(): string[] {
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as string[]) : [];
+    const ids = raw ? (JSON.parse(raw) as string[]) : [];
+    return [...new Set(ids.map((id) => RENAMED[id] ?? id))];
   } catch {
     return [];
   }

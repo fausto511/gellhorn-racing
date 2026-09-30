@@ -23,10 +23,12 @@ export default defineConfig({
       // search -- excluded from the sitemap and separately set to
       // noindex on the page itself (see Base.astro).
       // /hub/ stays out while it only shows sample data (noindex, RS-0022).
-      // Forwarding pages (/time-attack/, /tracks/…) are not content either.
+      // Forwarding pages (/time-attack/, /tracks/…, the old /garage/vehicles/vapid-caracara/)
+      // are not content either.
       filter: (page) =>
         !page.includes('/account/') && !page.includes('/moderator/') && !page.includes('/hub/') &&
-        !page.endsWith('/time-attack/') && !page.includes('/tracks/') && !page.includes('/report/') && !page.includes('/report-content/') && !page.endsWith('.txt'),
+        !page.endsWith('/time-attack/') && !page.includes('/tracks/') && !page.includes('/report/') && !page.includes('/report-content/') && !page.endsWith('.txt') &&
+        !page.endsWith('/garage/vehicles/vapid-caracara/'),
     }),
   ],
   // Forwarding URLs (/time-attack/ and the old /tracks/gellhorn-international-raceway/)

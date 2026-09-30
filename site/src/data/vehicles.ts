@@ -115,7 +115,7 @@ export const vehicleOptions: VehicleOption[] = [
   { id: "pegassi-zorrusso", classes: ["Super"], make: "Pegassi", model: "Zorrusso", logoSlug: "pegassi", seats: 2, drive: "RWD" },
   // Added 2026-09-19, sourced from gtabase.com's dedicated GTA 6 pages (seats/drive/class confirmed there):
   { id: "karin-rebel", classes: ["Off-Road"], make: "Karin", model: "Rebel", logoSlug: "karin", seats: 2, drive: "AWD" },
-  { id: "vapid-caracara", classes: ["Off-Road"], make: "Vapid", model: "Caracara", logoSlug: "vapid", seats: 5, drive: "AWD" },
+  { id: "vapid-caracara-4x4", classes: ["Off-Road"], make: "Vapid", model: "Caracara 4x4", logoSlug: "vapid", seats: 4, drive: "AWD" },
   { id: "pfister-neon", classes: ["Sports"], make: "Pfister", model: "Neon", logoSlug: "pfister", seats: 4, drive: "AWD" },
   { id: "annis-hellion", classes: ["Off-Road"], make: "Annis", model: "Hellion", logoSlug: "annis", seats: 2, drive: "AWD" },
   { id: "pegassi-infernus-classic", classes: ["Sports Classics"], make: "Pegassi", model: "Infernus Classic", logoSlug: "pegassi", seats: 2, drive: "RWD" },
