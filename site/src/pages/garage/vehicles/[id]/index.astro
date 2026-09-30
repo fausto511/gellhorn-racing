@@ -2,6 +2,7 @@
 import Base from '../../../../layouts/Base.astro';
 import { vehicleOptions } from '../../../../data/vehicles';
 import { vehicleCopy } from '../../../../data/vehicle-copy';
+import { releaseById, formatReleaseDate } from '../../../../data/releases';
 
 export function getStaticPaths() {
   return vehicleOptions.map((v) => ({ params: { id: v.id }, props: { vehicle: v } }));
@@ -16,6 +17,18 @@ const acquisitionLabels: Record<string, string> = {
   'ultimate-edition': 'Ultimate Edition',
   'gta-plus': 'GTA+',
 };
+
+// Release Info (RS-0047, DEC-0084). No releaseId = not officially announced
+// (leak-only): neutral wording, never "leaked" on the public site.
+const release = vehicle.releaseId ? releaseById[vehicle.releaseId] : undefined;
+const releaseDateText = release?.date ? formatReleaseDate(release.date) : 'TBA';
+const addedWithText = release ? release.name : 'Not announced';
+const acquisitionNotes: Record<string, string> = {
+  'pre-order': 'Pre-order bonus (Vintage Vice City Pack)',
+  'ultimate-edition': 'Ultimate Edition exclusive',
+  'gta-plus': 'GTA+ members only',
+};
+const addedWithNote = release && vehicle.acquisition ? acquisitionNotes[vehicle.acquisition] : undefined;
 
 // Lightweight index for the quick vehicle search/switch dropdown above the
 // stage -- id/name/href only, so the client script doesn't need the full
@@ -88,9 +101,11 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
 
   <section class="wrap v-performance">
     <h2>Release Info</h2>
-    <div class="v-performance-grid">
-      <div class="panel v-metric"><span>Release Date</span><strong class="status-pending"><span class="status-dot"></span>Data pending</strong></div>
-      <div class="panel v-metric"><span>DLC</span><strong class="status-pending"><span class="status-dot"></span>Data pending</strong></div>
+    <div class="v-performance-grid v-release-grid">
+      <div class="panel v-metric"><span>Release Date</span>{release?.date ? <strong><time datetime={release.date}>{releaseDateText}</time></strong> : <strong class="v-muted">{releaseDateText}</strong>}</div>
+      <div class="panel v-metric"><span>Added With</span><strong class={release ? undefined : 'v-muted'}>{addedWithText}</strong>{addedWithNote && <small>{addedWithNote}</small>}</div>
+      <div class="panel v-metric"><span>First Seen In</span><strong class={vehicle.firstSeenIn ? undefined : 'v-muted'}>{vehicle.firstSeenIn ?? 'Not officially revealed'}</strong></div>
+      <div class="panel v-metric"><span>Real-Life Inspiration</span>{vehicle.realLifeInspiration ? <strong>{vehicle.realLifeInspiration}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</div>
     </div>
   </section>
 
@@ -153,6 +168,11 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
   .v-metric { padding: var(--gh-pad-card); display: flex; flex-direction: column; gap: .5rem; }
   .v-metric span { color: var(--gh-muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; }
   .v-metric strong { font-size: .95rem; }
+  .v-metric strong.v-muted { color: var(--gh-muted); font-weight: 600; }
+  .v-metric small { color: var(--gh-muted); font-size: .75rem; margin-top: -.25rem; }
+  .v-release-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 1100px) { .v-release-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 480px) { .v-release-grid { grid-template-columns: 1fr; } }
 
   .v-description { padding-top: var(--gh-gap-card); padding-bottom: var(--gh-gap-section); }
   .v-description-panel { padding: var(--gh-pad-card); color: var(--gh-muted); font-size: .8rem; line-height: 1.6; }
