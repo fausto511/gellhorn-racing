@@ -1,7 +1,7 @@
 ---
 // Same visual language as TimeAttackSubnav.astro -- kept in sync intentionally.
 interface Props {
-  active?: 'overview' | 'events' | 'crews' | null;
+  active?: 'overview' | 'events' | 'crews' | 'tracks' | null;
 }
 const { active = null } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -9,6 +9,7 @@ const links = [
   { key: 'overview', label: 'Overview', href: `${base}hub/` },
   { key: 'events', label: 'Events', href: `${base}hub/events/` },
   { key: 'crews', label: 'Crews', href: `${base}hub/crews/` },
+  { key: 'tracks', label: 'Tracks', href: `${base}hub/tracks/` },
 ];
 ---
 <div class="subnav-bar">
@@ -29,5 +30,10 @@ const links = [
   .subnav-tab.is-active { color: var(--gh-text); border-bottom-color: var(--gh-red); }
   @media (max-width: 760px) {
     .subnav-tabs { gap: .25rem; overflow-x: auto; }
+  }
+  /* phone: all four tabs visible without sideways scrolling (Tracks added, RS-0045) */
+  @media (max-width: 480px) {
+    .subnav-tabs { gap: 0; justify-content: space-between; }
+    .subnav-tab { padding: .7rem .45rem; font-size: .78rem; }
   }
 </style>

@@ -22,7 +22,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
   <section class="wrap hub-body">
     <div class="hub-entry-grid">
       <a class="hub-entry" href={`${base}hub/events/`}>
-        <img class="hub-entry-img" src={`${base}images/hub/hub-entry-events-640.webp`} srcset={`${base}images/hub/hub-entry-events-640.webp 640w, ${base}images/hub/hub-entry-events-1280.webp 1280w`} sizes="(max-width: 700px) 100vw, 600px" alt="" width="640" height="360" loading="lazy" />
+        <img class="hub-entry-img" src={`${base}images/hub/hub-entry-events-640.webp`} srcset={`${base}images/hub/hub-entry-events-640.webp 640w, ${base}images/hub/hub-entry-events-1280.webp 1280w`} sizes="(max-width: 700px) 100vw, 400px" alt="" width="640" height="360" loading="lazy" />
         <span class="hub-entry-body">
           <span class="eyebrow">Calendar</span>
           <strong class="display hub-entry-title">Events</strong>
@@ -31,12 +31,21 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
         </span>
       </a>
       <a class="hub-entry" href={`${base}hub/crews/`}>
-        <img class="hub-entry-img" style="object-position: 50% 15%" src={`${base}images/hub/hub-entry-crews-640.webp`} srcset={`${base}images/hub/hub-entry-crews-640.webp 640w, ${base}images/hub/hub-entry-crews-1280.webp 1280w`} sizes="(max-width: 700px) 100vw, 600px" alt="" width="640" height="360" loading="lazy" />
+        <img class="hub-entry-img" style="object-position: 50% 15%" src={`${base}images/hub/hub-entry-crews-640.webp`} srcset={`${base}images/hub/hub-entry-crews-640.webp 640w, ${base}images/hub/hub-entry-crews-1280.webp 1280w`} sizes="(max-width: 700px) 100vw, 400px" alt="" width="640" height="360" loading="lazy" />
         <span class="hub-entry-body">
           <span class="eyebrow">Directory</span>
           <strong class="display hub-entry-title">Crews</strong>
           <span class="hub-entry-copy">Racing crews, leagues and meet communities on PS5.</span>
           <span class="hub-entry-cta">Browse crews →</span>
+        </span>
+      </a>
+      <a class="hub-entry" href={`${base}hub/tracks/`}>
+        <img class="hub-entry-img" src={`${base}images/hub/hub-entry-tracks-640.webp`} srcset={`${base}images/hub/hub-entry-tracks-640.webp 640w, ${base}images/hub/hub-entry-tracks-1280.webp 1280w`} sizes="(max-width: 700px) 100vw, 400px" alt="" width="640" height="360" loading="lazy" />
+        <span class="hub-entry-body">
+          <span class="eyebrow">Race jobs</span>
+          <strong class="display hub-entry-title">Tracks</strong>
+          <span class="hub-entry-copy">Circuits and point-to-point runs built by the community, with lobby size and vehicle classes.</span>
+          <span class="hub-entry-cta">Find tracks →</span>
         </span>
       </a>
     </div>
@@ -58,11 +67,12 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
 </Base>
 
 <style>
-  .hub-entry-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: var(--gh-gap-card); margin-bottom: 1rem; }
+  .hub-entry-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gh-gap-card); margin-bottom: 1rem; }
   .hub-entry { display: flex; flex-direction: column; overflow: hidden; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); text-decoration: none; transition: border-color .15s; }
   .hub-entry-img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 7; object-fit: cover; object-position: 50% 40%; background: rgba(160,160,198,.08); }
   .hub-entry-body { display: flex; flex-direction: column; gap: .5rem; padding: var(--gh-pad-card); }
   .hub-entry:hover { border-color: var(--gh-muted); }
+  @media (max-width: 900px) { .hub-entry-grid { grid-template-columns: 1fr; } }
   .hub-entry-title { font-size: 2rem; }
   .hub-entry-copy { color: var(--gh-muted); font-size: .92rem; line-height: 1.55; }
   .hub-entry-cta { margin-top: .4rem; color: var(--gh-red); font-weight: 800; font-size: .85rem; }

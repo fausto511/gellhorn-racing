@@ -28,6 +28,7 @@ Status: GTA VI has not been released yet. The site is built ahead of launch; lea
 - [The Hub](${u('hub/')}): GTA VI racing community overview
 - [Event Calendar](${u('hub/events/')}): race nights, league rounds, time attack sessions and car meets
 - [Crews](${u('hub/crews/')}): racing crews and car meet communities
+- [Tracks](${u('hub/tracks/')}): community race jobs (GTA 6 / GTA VI) with Social Club links, filterable by race type, layout, vehicle class and lobby size; creators submit, moderators check and publish
 
 ## About
 

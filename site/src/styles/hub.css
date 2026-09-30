@@ -157,3 +157,18 @@ a.ev-dc:hover { color: #aab2ff; text-decoration: underline; text-underline-offse
 /* Report links (RS-0039): deliberately quiet -- visible, but not inviting. */
 .crew-report, .ev-report { color: var(--gh-muted); font-size: .72rem; font-weight: 600; text-decoration: underline; text-decoration-color: var(--gh-line); text-underline-offset: 2px; }
 .crew-report:hover, .ev-report:hover { color: var(--gh-text); }
+
+/* ---- Community tracks (RS-0045) ----------------------------------------- */
+.tr-list { display: flex; flex-direction: column; gap: .75rem; }
+.tr-row { display: grid; grid-template-columns: 1fr auto; gap: 1.1rem; align-items: center; padding: 1rem 1.1rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); }
+.tr-row[hidden] { display: none; }
+.tr-main { min-width: 0; }
+.tr-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: .2rem .7rem; margin: 0 0 .35rem; font-size: 1.05rem; font-weight: 800; }
+.tr-classes { color: var(--gh-text); }
+.tr-dates { margin: .4rem 0 0; color: var(--gh-muted); font-size: .72rem; }
+.tr-side { display: flex; flex-direction: column; align-items: flex-end; gap: .6rem; }
+.tr-sc { padding: .5rem .9rem; font-size: .8rem; white-space: nowrap; }
+@media (max-width: 640px) {
+  .tr-row { grid-template-columns: 1fr; gap: .7rem; padding: .85rem; }
+  .tr-side { flex-direction: row; justify-content: space-between; align-items: center; }
+}

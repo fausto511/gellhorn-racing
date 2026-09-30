@@ -1,0 +1,99 @@
+---
+// Hub > Tracks (RS-0045, 2026-09-30): community race jobs. Same page
+// structure as the Event Calendar. Creators submit tracks in My Account >
+// Tracks; moderators check them against the Social Club link and publish.
+// Until real tracks are published, flagged sample tracks are shown.
+import Base from '../../../layouts/Base.astro';
+import PageHero from '../../../components/PageHero.astro';
+import HubSubnav from '../../../components/HubSubnav.astro';
+import '../../../styles/hub.css';
+import { sampleTracks, trackRowHtml, raceTypeLabels, layoutLabels, trackVehicleClasses } from '../../../data/tracks';
+const base = import.meta.env.BASE_URL;
+const initialHtml = sampleTracks.map((t) => trackRowHtml(t, { sample: true })).join('');
+---
+<Base
+  title="GTA VI Community Tracks — Race Jobs by Creators"
+  description="Find GTA VI race jobs built by the community. Filter by race type, circuit or point to point, vehicle class and lobby size, and open each track on Social Club."
+  section="hub"
+  noindex={true /* until real tracks replace the sample data */}
+>
+  <PageHero image="hub" eyebrow="Community Race Jobs" title="Tracks" lede="Race jobs built by the GTA VI community. Find a circuit or a point-to-point run that fits your lobby and your cars, then open it on Social Club." />
+
+  <HubSubnav active="tracks" />
+
+  <section class="wrap hub-body">
+    <div class="hub-toolbar">
+      <div class="hub-filters">
+        <select class="ui-select" id="tr-type" aria-label="Filter by race type">
+          <option value="">All race types</option>
+          {Object.entries(raceTypeLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+        <select class="ui-select" id="tr-layout" aria-label="Filter by layout">
+          <option value="">Circuit & point to point</option>
+          {Object.entries(layoutLabels).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+        <select class="ui-select" id="tr-class" aria-label="Filter by vehicle class">
+          <option value="">All vehicle classes</option>
+          {trackVehicleClasses.map((c) => <option value={c}>{c}</option>)}
+        </select>
+        <select class="ui-select" id="tr-players" aria-label="Filter by lobby size">
+          <option value="">Any lobby size</option>
+          {[2, 4, 8, 12, 16, 24, 30].map((n) => <option value={n}>{n} players</option>)}
+        </select>
+        <select class="ui-select" id="tr-sort" aria-label="Sort tracks">
+          <option value="updated">Recently updated</option>
+          <option value="new">Newest</option>
+          <option value="short">Shortest</option>
+          <option value="long">Longest</option>
+        </select>
+      </div>
+      <span class="hub-sample-flag" id="tr-flag">Sample data — example tracks, not real</span>
+    </div>
+
+    <div class="tr-list" id="tr-root" set:html={initialHtml} />
+    <p class="hub-empty" id="tr-empty" hidden>No tracks match these filters.</p>
+
+    <p class="hub-note">Building race jobs? Apply as creator in <a href={`${base}account/tracks/`}>My Account</a>. Creators submit their tracks with the Social Club link; a moderator checks the details and publishes them. Every edit goes back to a quick check.</p>
+  </section>
+</Base>
+
+<script>
+  import { sampleTracks, trackRowHtml, type CommunityTrack } from '../../../data/tracks';
+  import { fetchLiveTracks } from '../../../scripts/hub-live';
+
+  const root = document.getElementById('tr-root')!;
+  const emptyEl = document.getElementById('tr-empty')!;
+  const flagEl = document.getElementById('tr-flag')!;
+  const sel = (id: string) => document.getElementById(id) as HTMLSelectElement;
+  const typeSel = sel('tr-type'), layoutSel = sel('tr-layout'), classSel = sel('tr-class'), playersSel = sel('tr-players'), sortSel = sel('tr-sort');
+
+  let tracks: CommunityTrack[] = sampleTracks;
+  let live = false;
+
+  function render() {
+    const t = typeSel.value, l = layoutSel.value, c = classSel.value, n = Number(playersSel.value) || 0;
+    const list = tracks.filter((x) =>
+      (!t || x.race_types.includes(t as never)) &&
+      (!l || x.layout === l) &&
+      (!c || x.vehicle_classes.includes(c)) &&
+      (!n || (x.players_min <= n && n <= x.players_max)));
+    const s = sortSel.value;
+    list.sort((a, b) =>
+      s === 'new' ? b.created_at.localeCompare(a.created_at)
+      : s === 'short' ? a.length_km - b.length_km
+      : s === 'long' ? b.length_km - a.length_km
+      : b.updated_at.localeCompare(a.updated_at));
+    root.innerHTML = list.map((x) => trackRowHtml(x, { sample: !live })).join('');
+    emptyEl.hidden = list.length > 0;
+  }
+
+  [typeSel, layoutSel, classSel, playersSel, sortSel].forEach((el) => el.addEventListener('input', render));
+  render();
+  fetchLiveTracks().then((rows) => {
+    if (!rows) return;
+    tracks = rows;
+    live = true;
+    flagEl.hidden = true;
+    render();
+  });
+</script>

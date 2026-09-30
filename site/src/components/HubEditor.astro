@@ -1,14 +1,16 @@
 ---
 // The Hub editor (crews, events, roles, role requests), RS-0022/0023/0026.
 // mode="moderator": full admin view in /moderator/hub/.
-// mode="crew" / "events": personal view inside My Account -- only the crews
-// the driver leads / the events they run. RLS enforces the same rules.
+// mode="crew" / "events" / "tracks": personal view inside My Account -- only the
+// crews the driver leads / the events they run / the tracks they built (RS-0045).
+// RLS enforces the same rules.
 import '../styles/hub.css';
 import { eventTypeLabels, focusLabels, platformLabels } from '../data/hub';
 import { PLATFORMS, comingLater } from '../data/platforms';
 import { crewLanguages, mainCrewLanguages } from '../data/languages';
+import { raceTypeLabels, layoutLabels, trackVehicleClasses } from '../data/tracks';
 const moreLanguages = Object.keys(crewLanguages).filter((k) => !mainCrewLanguages.includes(k)).sort((a, b) => crewLanguages[a].localeCompare(crewLanguages[b]));
-interface Props { mode: 'moderator' | 'crew' | 'events'; }
+interface Props { mode: 'moderator' | 'crew' | 'events' | 'tracks'; }
 const { mode } = Astro.props;
 const base = import.meta.env.BASE_URL;
 ---
@@ -30,6 +32,7 @@ const base = import.meta.env.BASE_URL;
       <div class="hc-tabs" role="tablist">
         <button type="button" class="hc-tab is-active" data-kind="crews" role="tab" aria-selected="true">Crews</button>
         <button type="button" class="hc-tab" data-kind="events" role="tab" aria-selected="false">Events</button>
+        <button type="button" class="hc-tab" data-kind="tracks" role="tab" aria-selected="false" data-mod-only hidden>Tracks</button>
         <button type="button" class="hc-tab" data-kind="roles" role="tab" aria-selected="false" data-mod-only hidden>Roles</button>
         <button type="button" class="hc-tab" data-kind="requests" role="tab" aria-selected="false" data-mod-only hidden>Requests</button>
       </div>
@@ -135,6 +138,37 @@ const base = import.meta.env.BASE_URL;
             </div>
           </form>
 
+          <!-- TRACK FORM (RS-0045) -->
+          <form id="track-form" class="hc-form" hidden novalidate>
+            <div class="form-head">
+              <h2 id="track-form-title">New track</h2>
+              <label class="pub-toggle" data-mod-only><input type="checkbox" name="is_published" /> <span>Published</span></label>
+              <span class="pub-state" data-creator-only hidden></span>
+            </div>
+            <p class="track-note" id="track-review-note" hidden></p>
+            <div class="grid">
+              <label class="span2">Track name *<input type="text" name="title" maxlength="60" required /></label>
+              <label class="span2">Social Club link * <small>the job's page on Social Club — we check the details there</small><input type="url" name="social_club_url" placeholder="https://socialclub.rockstargames.com/job/…" required /></label>
+              <label>Layout *<select name="layout">{Object.entries(layoutLabels).map(([k, v]) => <option value={k}>{v}</option>)}</select></label>
+              <label>Length (km) * <small>as shown on Social Club</small><input type="number" name="length_km" min="0.1" max="500" step="0.01" required /></label>
+              <label>Players from *<input type="number" name="players_min" min="1" max="64" step="1" value="2" required /></label>
+              <label>Players up to *<input type="number" name="players_max" min="1" max="64" step="1" value="16" required /></label>
+              <fieldset class="span2"><legend>Race type * <small>one or more</small></legend>
+                {Object.entries(raceTypeLabels).map(([k, v]) => <label class="check"><input type="checkbox" name="race_types" value={k} /> {v}</label>)}
+              </fieldset>
+              <fieldset class="span2"><legend>Vehicle classes * <small>one or more</small></legend>
+                {trackVehicleClasses.map((c) => <label class="check"><input type="checkbox" name="vehicle_classes" value={c} /> {c}</label>)}
+              </fieldset>
+              <label class="span2" data-mod-only>Note to the creator <small>optional, e.g. what to fix before publishing</small><textarea name="review_note" maxlength="300" rows="2"></textarea></label>
+            </div>
+            <div class="preview-wrap"><p class="preview-label">Preview</p><div class="tr-list preview" id="track-preview"></div></div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-outline-red" data-action="delete" hidden>Delete</button>
+              <p class="form-msg" data-role="msg" aria-live="polite"></p>
+            </div>
+          </form>
+
           <!-- ROLE REQUESTS (moderators only, RS-0026) -->
           <div id="requests-panel" class="hc-form" hidden>
             <div class="form-head"><h2 id="req-title">Request</h2><span class="pub-state" id="req-state"></span></div>
@@ -162,6 +196,7 @@ const base = import.meta.env.BASE_URL;
               <fieldset class="span2"><legend>Role</legend>
                 <label class="check"><input type="radio" name="role" value="crew_leader" checked /> Crew Leader — manages one crew (card, join requests, members)</label>
                 <label class="check"><input type="radio" name="role" value="event_host" /> Event Host — publishes own events in the calendar</label>
+                <label class="check"><input type="radio" name="role" value="creator" /> Creator — submits own race jobs to Tracks (a moderator publishes them)</label>
               </fieldset>
               <label class="span2" id="role-crew-wrap">Crew<select id="role-crew"></select></label>
             </div>
@@ -271,12 +306,14 @@ const base = import.meta.env.BASE_URL;
   :global(.req-row a) { color: var(--gh-text); }
   @media (max-width: 640px) { :global(.req-row) { grid-template-columns: 1fr; gap: .2rem; } }
   .req-note { margin-top: 1.2rem; }
+  .track-note { margin: -.4rem 0 1.1rem; padding: .6rem .8rem; border-left: 3px solid var(--gh-yellow); background: rgba(255,215,76,.06); font-size: .85rem; }
 </style>
 
 <script>
   import { getSupabase, backendConfigured } from '../scripts/supabase-client';
   import { crewCardHtml, eventRowHtml, crewTagHtml, esc, localizeTimes, type HubCrew, type HubEvent } from '../data/hub';
   import { ACTIVE_PLATFORMS } from '../data/platforms';
+  import { trackRowHtml, type CommunityTrack } from '../data/tracks';
   // DEC-0073: only active platforms can be saved; PS5 is always set while it is the only one.
   const platformsFrom = (fd: FormData) => {
     const picked = (fd.getAll('platforms') as string[]).filter((p) => (ACTIVE_PLATFORMS as readonly string[]).includes(p as never));
@@ -288,11 +325,11 @@ const base = import.meta.env.BASE_URL;
     if (box && ACTIVE_PLATFORMS.length === 1) { ev.preventDefault(); box.checked = true; }
   });
 
-  type Kind = 'crews' | 'events' | 'roles' | 'requests';
+  type Kind = 'crews' | 'events' | 'tracks' | 'roles' | 'requests';
   // 'moderator' = full admin view (/moderator/hub/); 'crew' / 'events' =
   // personal view in My Account (RS-0026): only crews I lead / my events,
   // even for moderators (they use the moderator panel for everything else).
-  const MODE = (document.getElementById('hc-root')!.dataset.mode ?? 'moderator') as 'moderator' | 'crew' | 'events';
+  const MODE = (document.getElementById('hc-root')!.dataset.mode ?? 'moderator') as 'moderator' | 'crew' | 'events' | 'tracks';
   const PERSONAL = MODE !== 'moderator';
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -308,10 +345,12 @@ const base = import.meta.env.BASE_URL;
   const placeholderEl = $('editor-placeholder');
   const crewForm = $<HTMLFormElement>('crew-form');
   const eventForm = $<HTMLFormElement>('event-form');
+  const trackForm = $<HTMLFormElement>('track-form');
 
   let kind: Kind = 'crews';
   let crews: any[] = [];
   let events: any[] = [];
+  let tracks: any[] = [];
   let selectedId: string | null = null; // null + form visible = creating new
   let ownDriverId: string | null = null;
   // Access model (RS-0023): moderators see/edit everything; crew leaders
@@ -320,6 +359,7 @@ const base = import.meta.env.BASE_URL;
   // only shapes what the page offers.
   let isMod = false;
   let isHost = false;
+  let isCreator = false;
   let leaderCrewIds = new Set<string>();
   let memberCrewIds = new Set<string>(); // crews I'm an active member of (host crew choice)
   let roles: any[] = [];
@@ -329,9 +369,12 @@ const base = import.meta.env.BASE_URL;
   // RS-0027: events belong to event hosts only (crew leaders need the host role too).
   const visibleEvents = () => (isMod ? events : events.filter((e) => e.created_by === ownDriverId));
   const canCreateEvent = () => isMod || isHost;
+  // RS-0045: creators see their own tracks; moderators all (drafts first).
+  const visibleTracks = () => (isMod ? [...tracks].sort((a, b) => Number(a.is_published) - Number(b.is_published)) : tracks.filter((t) => t.created_by === ownDriverId));
   function applyRoleVisibility() {
     document.querySelectorAll<HTMLElement>('[data-mod-only]').forEach((el) => (el.hidden = !isMod));
     document.querySelectorAll<HTMLElement>('[data-leader-only]').forEach((el) => (el.hidden = isMod));
+    document.querySelectorAll<HTMLElement>('[data-creator-only]').forEach((el) => (el.hidden = isMod));
     const crewTab = document.querySelector<HTMLElement>('.hc-tab[data-kind="crews"]')!;
     crewTab.hidden = !isMod && leaderCrewIds.size === 0;
   }
@@ -366,7 +409,7 @@ const base = import.meta.env.BASE_URL;
   }
 
   // Clear a field's error mark (and the error line) as soon as it is edited.
-  [crewForm, eventForm].forEach((form) => form.addEventListener('input', (e) => {
+  [crewForm, eventForm, trackForm].forEach((form) => form.addEventListener('input', (e) => {
     const t = e.target as HTMLElement;
     if (t.getAttribute('aria-invalid')) {
       t.removeAttribute('aria-invalid');
@@ -378,6 +421,7 @@ const base = import.meta.env.BASE_URL;
   function renderList() {
     if (kind === 'roles') { renderRolesList(); return; }
     if (kind === 'requests') { renderRequestsList(); return; }
+    if (kind === 'tracks') { renderTracksList(); return; }
     const rows = kind === 'crews' ? visibleCrews() : visibleEvents();
     listTitleEl.textContent = kind === 'crews' ? (isMod ? 'Crews' : 'My crew') : (isMod ? 'Events' : 'My events');
     newBtn.textContent = kind === 'crews' ? '+ New crew' : '+ New event';
@@ -399,9 +443,10 @@ const base = import.meta.env.BASE_URL;
   async function loadAll() {
     listErrorEl.hidden = true;
     const sb = getSupabase();
-    const [c, e] = await Promise.all([
+    const [c, e, t] = await Promise.all([
       sb.from('crews').select('*').order('is_partner', { ascending: false }).order('sort_order').order('name'),
       sb.from('hub_events').select('*').order('starts_at', { ascending: false }),
+      sb.from('community_tracks').select('*').order('updated_at', { ascending: false }),
     ]);
     if (c.error || e.error) {
       listErrorEl.textContent = `Could not load: ${(c.error || e.error)!.message}`;
@@ -409,6 +454,10 @@ const base = import.meta.env.BASE_URL;
     }
     crews = c.data ?? [];
     events = e.data ?? [];
+    tracks = t.data ?? [];
+    const trTab = document.querySelector<HTMLElement>('.hc-tab[data-kind="tracks"]');
+    const toReview = isMod ? tracks.filter((x) => !x.is_published).length : 0;
+    if (trTab) trTab.innerHTML = `Tracks${toReview ? `<span class="tab-count">${toReview}</span>` : ''}`;
     if (isMod) await Promise.all([loadRoles(), loadRequests()]);
     await loadMembers();
     renderList();
@@ -429,6 +478,7 @@ const base = import.meta.env.BASE_URL;
     placeholderEl.hidden = which !== null;
     crewForm.hidden = which !== 'crews';
     eventForm.hidden = which !== 'events';
+    trackForm.hidden = which !== 'tracks';
     $('roles-panel').hidden = which !== 'roles';
     $('requests-panel').hidden = which !== 'requests';
     $('members-panel').hidden = which !== 'crews' || !selectedId;
@@ -701,6 +751,111 @@ const base = import.meta.env.BASE_URL;
     msg(eventForm, data.is_published ? 'Saved — live in the calendar.' : 'Saved — hidden (moderator setting).');
   });
 
+  // ------------------------------------------------------------ track form (RS-0045)
+  const tf = trackForm.elements as any;
+  const trackUrlOk = (u: string) => /^https:\/\/socialclub\.rockstargames\.com\//.test(u);
+
+  function renderTracksList() {
+    const rows = visibleTracks();
+    listTitleEl.textContent = isMod ? 'Tracks' : 'My tracks';
+    newBtn.textContent = '+ New track';
+    newBtn.hidden = !(isMod || isCreator);
+    listEl.innerHTML = rows.map((r) => {
+      const pill = r.is_published ? '<span class="li-pill pub">Live</span>' : '<span class="li-pill draft">In review</span>';
+      const when = new Date(r.updated_at).toLocaleDateString(undefined, { dateStyle: 'medium' });
+      return `<button type="button" class="li${r.track_id === selectedId ? ' is-active' : ''}" data-id="${esc(r.track_id)}"><span class="li-main"><span class="li-title">${esc(r.title)}</span><span class="li-sub">updated ${esc(when)}</span></span>${pill}</button>`;
+    }).join('');
+    listEmptyEl.hidden = rows.length > 0;
+    listEmptyEl.textContent = rows.length ? '' : (isMod ? 'No tracks submitted yet.' : 'You have not submitted a track yet.');
+  }
+
+  function trackFromForm() {
+    const fd = new FormData(trackForm);
+    const num = (k: string) => Number(String(fd.get(k) ?? '').replace(',', '.'));
+    return {
+      title: String(fd.get('title') ?? '').trim(),
+      social_club_url: String(fd.get('social_club_url') ?? '').trim(),
+      layout: String(fd.get('layout')),
+      race_types: fd.getAll('race_types').map(String),
+      vehicle_classes: fd.getAll('vehicle_classes').map(String),
+      players_min: Math.round(num('players_min')),
+      players_max: Math.round(num('players_max')),
+      length_km: Math.round(num('length_km') * 100) / 100,
+      is_published: fd.get('is_published') === 'on',
+      review_note: blank(fd.get('review_note')),
+    };
+  }
+  function validateTrack(t: ReturnType<typeof trackFromForm>): string[] {
+    const bad: string[] = [];
+    if (t.title.length < 2) bad.push('title');
+    if (!trackUrlOk(t.social_club_url)) bad.push('social_club_url');
+    if (!(t.length_km > 0 && t.length_km <= 500)) bad.push('length_km');
+    if (!(t.players_min >= 1 && t.players_min <= 64)) bad.push('players_min');
+    if (!(t.players_max >= 1 && t.players_max <= 64) || t.players_max < t.players_min) bad.push('players_max');
+    if (!t.race_types.length) bad.push('race_types');
+    if (!t.vehicle_classes.length) bad.push('vehicle_classes');
+    return bad;
+  }
+  const trackFieldHelp: Record<string, string> = {
+    title: 'track name (2–60 characters)', social_club_url: 'Social Club link (https://socialclub.rockstargames.com/…)', length_km: 'length in km (up to 500)',
+    players_min: 'players from (1–64)', players_max: 'players up to (1–64, not less than "from")', race_types: 'pick at least one race type', vehicle_classes: 'pick at least one vehicle class',
+  };
+
+  function renderTrackPreview() {
+    const t = trackFromForm();
+    const now = new Date().toISOString();
+    const row = selectedId ? tracks.find((x) => x.track_id === selectedId) : null;
+    const preview: CommunityTrack = {
+      track_id: 'preview', title: t.title || 'Track name', social_club_url: trackUrlOk(t.social_club_url) ? t.social_club_url : null,
+      layout: t.layout as any, race_types: t.race_types as any, vehicle_classes: t.vehicle_classes,
+      players_min: t.players_min || 1, players_max: t.players_max || t.players_min || 1, length_km: t.length_km || 0,
+      created_at: row?.created_at ?? now, updated_at: now,
+    };
+    $('track-preview').innerHTML = trackRowHtml(preview, { sample: true }).replace(/<span class="chip chip-sample"[^>]*>Sample<\/span>/, '');
+  }
+
+  function openTrack(row: any | null) {
+    selectedId = row?.track_id ?? null;
+    trackForm.reset();
+    $('track-form-title').textContent = row ? `Edit: ${row.title}` : 'New track';
+    const r = row ?? { layout: 'circuit', players_min: 2, players_max: 16, race_types: [], vehicle_classes: [] };
+    for (const k of ['title', 'social_club_url', 'layout', 'length_km', 'players_min', 'players_max', 'review_note']) tf[k].value = r[k] ?? '';
+    tf.is_published.checked = Boolean(r.is_published);
+    trackForm.querySelectorAll<HTMLInputElement>('input[name="race_types"]').forEach((i) => (i.checked = (r.race_types ?? []).includes(i.value)));
+    trackForm.querySelectorAll<HTMLInputElement>('input[name="vehicle_classes"]').forEach((i) => (i.checked = (r.vehicle_classes ?? []).includes(i.value)));
+    const ps = trackForm.querySelector<HTMLElement>('[data-creator-only]')!;
+    ps.textContent = !row ? 'New — a moderator checks and publishes it' : r.is_published ? 'Live on the Tracks page' : 'In review — a moderator checks it';
+    const note = $('track-review-note');
+    note.hidden = isMod || !r.review_note;
+    note.textContent = r.review_note ? `Moderator note: ${r.review_note}` : '';
+    resetDelete(trackForm, Boolean(row));
+    markInvalid(trackForm, []);
+    msg(trackForm, '');
+    showForm('tracks');
+    renderTrackPreview();
+    renderList();
+  }
+  trackForm.addEventListener('input', renderTrackPreview);
+  trackForm.addEventListener('change', renderTrackPreview);
+
+  trackForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const t: any = trackFromForm();
+    const bad = validateTrack(t);
+    markInvalid(trackForm, bad);
+    if (bad.length) { msg(trackForm, `Please fix: ${bad.map((b) => trackFieldHelp[b] ?? b).join('; ')}.`, true); return; }
+    if (!isMod) { delete t.is_published; delete t.review_note; }
+    const sb = getSupabase();
+    const q = selectedId
+      ? sb.from('community_tracks').update(t).eq('track_id', selectedId).select().single()
+      : sb.from('community_tracks').insert({ ...t, created_by: ownDriverId }).select().single();
+    const { data, error } = await q;
+    if (error) { msg(trackForm, /row-level security/.test(error.message) ? 'Not allowed — you need the creator role.' : dbError(error), true); return; }
+    await loadAll();
+    openTrack(data);
+    msg(trackForm, data.is_published ? 'Saved — live on the Tracks page.' : isMod ? 'Saved — not published.' : 'Saved — a moderator checks it before it goes live.');
+  });
+
   // ------------------------------------------------------------ delete (two-step, no browser dialog)
   function resetDelete(form: HTMLFormElement, show: boolean) {
     const b = form.querySelector<HTMLButtonElement>('[data-action="delete"]')!;
@@ -708,19 +863,19 @@ const base = import.meta.env.BASE_URL;
     b.dataset.armed = '';
     b.textContent = 'Delete';
   }
-  [crewForm, eventForm].forEach((form) => {
+  [crewForm, eventForm, trackForm].forEach((form) => {
     const b = form.querySelector<HTMLButtonElement>('[data-action="delete"]')!;
     b.addEventListener('click', async () => {
       if (!selectedId) return;
       if (!b.dataset.armed) {
         b.dataset.armed = '1';
-        b.textContent = form === crewForm ? 'Click again to delete this crew' : 'Click again to delete this event';
+        b.textContent = form === crewForm ? 'Click again to delete this crew' : form === trackForm ? 'Click again to delete this track' : 'Click again to delete this event';
         setTimeout(() => { if (b.dataset.armed) { b.dataset.armed = ''; b.textContent = 'Delete'; } }, 4000);
         return;
       }
       const sb = getSupabase();
-      const table = form === crewForm ? 'crews' : 'hub_events';
-      const key = form === crewForm ? 'crew_id' : 'event_id';
+      const table = form === crewForm ? 'crews' : form === trackForm ? 'community_tracks' : 'hub_events';
+      const key = form === crewForm ? 'crew_id' : form === trackForm ? 'track_id' : 'event_id';
       const { error } = await sb.from(table).delete().eq(key, selectedId);
       if (error) { msg(form, dbError(error), true); resetDelete(form, true); return; }
       selectedId = null;
@@ -731,7 +886,8 @@ const base = import.meta.env.BASE_URL;
   });
 
   // ------------------------------------------------------------ roles (moderators)
-  const roleLabel = (r: string) => (r === 'crew_leader' ? 'Crew Leader' : 'Event Host');
+  const roleLabel = (r: string) => (r === 'crew_leader' ? 'Crew Leader' : r === 'creator' ? 'Creator' : 'Event Host');
+  const roleShort = (r: string) => (r === 'crew_leader' ? 'Leader' : r === 'creator' ? 'Creator' : 'Host');
   let pickedDriver: { driver_id: string; display_name: string } | null = null;
 
   async function loadRoles() {
@@ -746,7 +902,7 @@ const base = import.meta.env.BASE_URL;
     newBtn.hidden = true;
     listEl.innerHTML = roles.map((r) => {
       const crew = crews.find((c) => c.crew_id === r.crew_id);
-      return `<button type="button" class="li${r.role_id === selectedId ? ' is-active' : ''}" data-id="${esc(r.role_id)}">${crew ? crewTagHtml(crew.tag, crew.color, 'sm') : ''}<span class="li-main"><span class="li-title">${esc(r.driver?.display_name ?? 'Unknown driver')}</span><span class="li-sub">${esc(roleLabel(r.role))}${crew ? ' · ' + esc(crew.name) : ''}</span></span><span class="li-role">${r.role === 'crew_leader' ? 'Leader' : 'Host'}</span></button>`;
+      return `<button type="button" class="li${r.role_id === selectedId ? ' is-active' : ''}" data-id="${esc(r.role_id)}">${crew ? crewTagHtml(crew.tag, crew.color, 'sm') : ''}<span class="li-main"><span class="li-title">${esc(r.driver?.display_name ?? 'Unknown driver')}</span><span class="li-sub">${esc(roleLabel(r.role))}${crew ? ' · ' + esc(crew.name) : ''}</span></span><span class="li-role">${roleShort(r.role)}</span></button>`;
     }).join('');
     listEmptyEl.hidden = roles.length > 0;
     listEmptyEl.textContent = roles.length ? '' : 'No roles granted yet.';
@@ -834,7 +990,7 @@ const base = import.meta.env.BASE_URL;
     newBtn.hidden = true;
     listEl.innerHTML = requests.map((r) => {
       const tag = r.role === 'crew_leader' ? (r.crew ? crewTagHtml(r.crew.tag, r.crew.color, 'sm') : crewTagHtml(r.new_crew_tag, r.new_crew_color, 'sm')) : '';
-      return `<button type="button" class="li${r.request_id === selectedId ? ' is-active' : ''}" data-id="${esc(r.request_id)}">${tag}<span class="li-main"><span class="li-title">${esc(r.driver?.display_name ?? 'Driver')}</span><span class="li-sub">${esc(roleLabel(r.role))}${r.role === 'crew_leader' ? ' · ' + esc(reqCrewLabel(r)) : ''}</span></span><span class="li-role">${r.role === 'crew_leader' ? 'Leader' : 'Host'}</span></button>`;
+      return `<button type="button" class="li${r.request_id === selectedId ? ' is-active' : ''}" data-id="${esc(r.request_id)}">${tag}<span class="li-main"><span class="li-title">${esc(r.driver?.display_name ?? 'Driver')}</span><span class="li-sub">${esc(roleLabel(r.role))}${r.role === 'crew_leader' ? ' · ' + esc(reqCrewLabel(r)) : ''}</span></span><span class="li-role">${roleShort(r.role)}</span></button>`;
     }).join('');
     listEmptyEl.hidden = requests.length > 0;
     listEmptyEl.textContent = requests.length ? '' : 'No open requests.';
@@ -898,13 +1054,14 @@ const base = import.meta.env.BASE_URL;
     placeholderEl.textContent = 'Select an entry on the left or create a new one.';
     renderList();
   }));
-  newBtn.addEventListener('click', () => (kind === 'crews' ? openCrew(null) : openEvent(null)));
+  newBtn.addEventListener('click', () => (kind === 'crews' ? openCrew(null) : kind === 'tracks' ? openTrack(null) : openEvent(null)));
   listEl.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLElement>('.li');
     if (!btn) return;
     const id = btn.dataset.id;
     if (kind === 'crews') openCrew(crews.find((c) => c.crew_id === id));
     else if (kind === 'events') openEvent(events.find((x) => x.event_id === id));
+    else if (kind === 'tracks') openTrack(tracks.find((x) => x.track_id === id));
     else if (kind === 'requests') openRequest(requests.find((x) => x.request_id === id));
     else openRole(roles.find((x) => x.role_id === id));
   });
@@ -930,26 +1087,29 @@ const base = import.meta.env.BASE_URL;
     isMod = realMod && !PERSONAL;
     const myRoles = (roleRes.data ?? []) as any[];
     isHost = myRoles.some((r) => r.role === 'event_host');
+    isCreator = myRoles.some((r) => r.role === 'creator');
     leaderCrewIds = new Set(myRoles.filter((r) => r.role === 'crew_leader').map((r) => r.crew_id));
     if (ownDriverId) {
       const mem = await sb.from('crew_memberships').select('crew_id').eq('driver_id', ownDriverId).eq('status', 'active');
       memberCrewIds = new Set(((mem.data ?? []) as any[]).map((m) => m.crew_id));
     }
-    const hasAccess = MODE === 'moderator' ? realMod : MODE === 'crew' ? leaderCrewIds.size > 0 : isHost;
+    const hasAccess = MODE === 'moderator' ? realMod : MODE === 'crew' ? leaderCrewIds.size > 0 : MODE === 'tracks' ? isCreator : isHost;
     if (notModEl) notModEl.hidden = hasAccess;
     contentEl.hidden = !hasAccess;
-    rootEl.dispatchEvent(new CustomEvent('hc-access', { bubbles: true, detail: { hasAccess, isHost, leaderCrewIds: [...leaderCrewIds], isMod: realMod, ownDriverId } }));
+    rootEl.dispatchEvent(new CustomEvent('hc-access', { bubbles: true, detail: { hasAccess, isHost, isCreator, leaderCrewIds: [...leaderCrewIds], isMod: realMod, ownDriverId } }));
     if (!hasAccess) return;
     applyRoleVisibility();
     if (PERSONAL) {
       (document.querySelector('.hc-tabs') as HTMLElement).hidden = true;
       if (MODE === 'events') (document.querySelector('.hc-tab[data-kind="events"]') as HTMLElement).click();
+      if (MODE === 'tracks') (document.querySelector('.hc-tab[data-kind="tracks"]') as HTMLElement).click();
     }
     syncRoleCrew();
     await loadAll();
     // A leader with exactly one crew: open it right away.
     if (MODE === 'crew' && visibleCrews().length === 1) openCrew(visibleCrews()[0]);
     if (MODE === 'events') placeholderEl.textContent = canCreateEvent() ? 'Select one of your events on the left or create a new one.' : 'Select an event on the left.';
+    if (MODE === 'tracks') placeholderEl.textContent = 'Select one of your tracks on the left or submit a new one.';
   }
 
   if (!backendConfigured) {

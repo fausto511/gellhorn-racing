@@ -4,6 +4,7 @@
 // showing the flagged sample data. Never throws.
 import { backendConfigured, getSupabase } from './supabase-client';
 import type { HubCrew, HubEvent } from '../data/hub';
+import type { CommunityTrack } from '../data/tracks';
 
 export async function fetchLiveCrews(): Promise<HubCrew[] | null> {
   if (!backendConfigured) return null;
@@ -65,4 +66,27 @@ export async function fetchRoster(): Promise<Map<string, string[]>> {
     }
   } catch { /* keep empty */ }
   return out;
+}
+
+/** Published community tracks (RS-0045), newest update first, with the
+ *  creator's display name (anonymised drivers are hidden by public_drivers). */
+export async function fetchLiveTracks(): Promise<CommunityTrack[] | null> {
+  if (!backendConfigured) return null;
+  try {
+    const { data, error } = await getSupabase()
+      .from('community_tracks')
+      .select('track_id,title,social_club_url,layout,race_types,vehicle_classes,players_min,players_max,length_km,created_at,updated_at,created_by')
+      .eq('is_published', true)
+      .order('updated_at', { ascending: false })
+      .limit(500);
+    if (error || !data || data.length === 0) return null;
+    const rows = data as unknown as (CommunityTrack & { created_by: string })[];
+    const ids = [...new Set(rows.map((r) => r.created_by))];
+    const { data: names } = await getSupabase().from('public_drivers').select('driver_id, display_name').in('driver_id', ids);
+    const byId = new Map(((names ?? []) as { driver_id: string; display_name: string | null }[]).map((n) => [n.driver_id, n.display_name]));
+    rows.forEach((r) => { r.creator_name = byId.get(r.created_by) ?? null; r.length_km = Number(r.length_km); });
+    return rows;
+  } catch {
+    return null;
+  }
 }

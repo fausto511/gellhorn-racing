@@ -1,8 +1,8 @@
 ---
 // Apply for ONE role (RS-0026, DEC-0068): Crew Leader on My Account > Crew,
-// Event Host on My Account > Events. Both requests can be open at the same
+// Event Host on My Account > Events, Creator on My Account > Tracks (RS-0045). Both requests can be open at the same
 // time (one open request per role). Moderators decide in Hub Content > Requests.
-interface Props { focus: 'crew_leader' | 'event_host'; }
+interface Props { focus: 'crew_leader' | 'event_host' | 'creator'; }
 const { focus } = Astro.props;
 ---
 <section class="ra" id="role-apply" data-focus={focus} hidden>
@@ -15,6 +15,12 @@ const { focus } = Astro.props;
         <h2 class="ra-title">Apply to become a Crew Leader</h2>
         <p class="ra-lede">Crew leaders list their crew in The Hub, keep the crew card up to date and accept join requests. Send an application — once a moderator approves it, your crew goes live and you can manage it here.</p>
       </Fragment>
+    ) : focus === 'creator' ? (
+      <Fragment>
+        <p class="ra-kicker">You are not a creator yet</p>
+        <h2 class="ra-title">Apply to become a Creator</h2>
+        <p class="ra-lede">Creators submit the race jobs they build to the Tracks page in The Hub. Send an application — once a moderator approves it, you can submit your tracks here.</p>
+      </Fragment>
     ) : (
       <Fragment>
         <p class="ra-kicker">You are not an event host yet</p>
@@ -23,12 +29,13 @@ const { focus } = Astro.props;
       </Fragment>
     )}
 
-    <button type="button" class="btn btn-outline" id="ra-open">{focus === 'crew_leader' ? 'Start crew leader application' : 'Start event host application'}</button>
+    <button type="button" class="btn btn-outline" id="ra-open">{focus === 'crew_leader' ? 'Start crew leader application' : focus === 'creator' ? 'Start creator application' : 'Start event host application'}</button>
     <form id="ra-form" novalidate hidden>
-      <p class="ra-form-note">Application — nothing is published until a moderator approves it. Crew leaders and event hosts are shown with their display name.</p>
+      <p class="ra-form-note">Application — nothing is published until a moderator approves it. Crew leaders, event hosts and creators are shown with their display name.</p>
       <div class="ra-choices" hidden>
         <label class="ra-choice" id="ra-choice-leader"><input type="checkbox" name="want_leader" /> <span><strong>Crew Leader</strong><small>list and manage your crew</small></span></label>
         <label class="ra-choice" id="ra-choice-host"><input type="checkbox" name="want_host" /> <span><strong>Event Host</strong><small>publish your own events</small></span></label>
+        <label class="ra-choice" id="ra-choice-creator"><input type="checkbox" name="want_creator" /> <span><strong>Creator</strong><small>submit your race jobs</small></span></label>
       </div>
 
       <fieldset class="ra-group" id="ra-leader" hidden>
@@ -54,6 +61,12 @@ const { focus } = Astro.props;
         <legend>Your events</legend>
         <label class="ra-full">What kind of events do you run? *<textarea name="host_message" maxlength="500" rows="3" placeholder="e.g. weekly car meets on PS5, monthly time attack nights …"></textarea></label>
         <label class="ra-full">Link <small>optional — Discord server, community page …</small><input type="url" name="link_url" placeholder="https://…" /></label>
+      </fieldset>
+
+      <fieldset class="ra-group" id="ra-creator" hidden>
+        <legend>Your tracks</legend>
+        <label class="ra-full">What kind of race jobs do you build? *<textarea name="creator_message" maxlength="500" rows="3" placeholder="e.g. street circuits around Vice City, off-road point-to-point runs …"></textarea></label>
+        <label class="ra-full">Social Club profile <small>optional — where we can see your jobs</small><input type="url" name="creator_link_url" placeholder="https://socialclub.rockstargames.com/member/…" /></label>
       </fieldset>
 
       <div class="ra-actions">
@@ -118,7 +131,7 @@ const { focus } = Astro.props;
   import { esc, crewTagHtml } from '../data/hub';
 
   const root = document.getElementById('role-apply')!;
-  const focus = root.dataset.focus as 'crew_leader' | 'event_host';
+  const focus = root.dataset.focus as 'crew_leader' | 'event_host' | 'creator';
   const form = document.getElementById('ra-form') as HTMLFormElement;
   const f = form.elements as any;
   const formWrap = document.getElementById('ra-form-wrap')!;
@@ -128,19 +141,22 @@ const { focus } = Astro.props;
   const msgEl = document.getElementById('ra-msg')!;
   const leaderBox = document.getElementById('ra-leader')!;
   const hostBox = document.getElementById('ra-host')!;
+  const creatorBox = document.getElementById('ra-creator')!;
 
   let me: string | null = null;
   let requests: any[] = [];
   let canLeader = true;
   let canHost = true;
+  let canCreator = true;
 
-  const roleLabel = (r: string) => (r === 'crew_leader' ? 'Crew Leader' : 'Event Host');
+  const roleLabel = (r: string) => (r === 'crew_leader' ? 'Crew Leader' : r === 'creator' ? 'Creator' : 'Event Host');
   function msg(t: string, err = false) { msgEl.textContent = t; msgEl.className = `ra-msg ${t ? (err ? 'is-error' : 'is-ok') : ''}`; }
   const blank = (v: unknown) => { const t = String(v ?? '').trim(); return t === '' ? null : t; };
 
   function syncGroups() {
     leaderBox.hidden = !(f.want_leader.checked && canLeader);
     hostBox.hidden = !(f.want_host.checked && canHost);
+    creatorBox.hidden = !(f.want_creator.checked && canCreator);
     const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
     document.getElementById('ra-new')!.hidden = existing;
     document.getElementById('ra-existing')!.hidden = !existing;
@@ -174,7 +190,7 @@ const { focus } = Astro.props;
 
   function validate(): string[] {
     const bad: string[] = [];
-    if (!(f.want_leader.checked && canLeader) && !(f.want_host.checked && canHost)) return ['none'];
+    if (!(f.want_leader.checked && canLeader) && !(f.want_host.checked && canHost) && !(f.want_creator.checked && canCreator)) return ['none'];
     if (f.want_leader.checked && canLeader) {
       const existing = (form.querySelector('input[name="crew_mode"]:checked') as HTMLInputElement).value === 'existing';
       if (existing) { if (!f.crew_id.value) bad.push('crew_id'); }
@@ -192,12 +208,18 @@ const { focus } = Astro.props;
       const l = String(f.link_url.value).trim();
       if (l && !/^https:\/\//.test(l)) bad.push('link_url');
     }
+    if (f.want_creator.checked && canCreator) {
+      if (String(f.creator_message.value).trim().length < 5) bad.push('creator_message');
+      const l = String(f.creator_link_url.value).trim();
+      if (l && !/^https:\/\//.test(l)) bad.push('creator_link_url');
+    }
     return bad;
   }
   const help: Record<string, string> = {
     none: 'You already have this role or an open request.', crew_id: 'choose your crew', new_crew_name: 'crew name (2–40 characters)',
     new_crew_tag: 'crew tag (exactly 4 letters/digits)', new_crew_color: 'crew color (#rrggbb)', new_crew_discord_url: 'Discord invite (https://discord.gg/…)',
     host_message: 'a few words about your events', link_url: 'link must start with https://',
+    creator_message: 'a few words about your race jobs', creator_link_url: 'link must start with https://',
   };
 
   form.addEventListener('submit', async (e) => {
@@ -214,6 +236,7 @@ const { focus } = Astro.props;
         : { driver_id: me, role: 'crew_leader', new_crew_name: String(f.new_crew_name.value).trim(), new_crew_tag: f.new_crew_tag.value, new_crew_color: f.new_crew_color.value.toLowerCase(), new_crew_discord_url: blank(f.new_crew_discord_url.value), new_crew_description: blank(f.new_crew_description.value), message: blank(f.leader_message.value) });
     }
     if (f.want_host.checked && canHost) rows.push({ driver_id: me, role: 'event_host', message: blank(f.host_message.value), link_url: blank(f.link_url.value) });
+    if (f.want_creator.checked && canCreator) rows.push({ driver_id: me, role: 'creator', message: blank(f.creator_message.value), link_url: blank(f.creator_link_url.value) });
     const btn = document.getElementById('ra-submit') as HTMLButtonElement;
     btn.disabled = true;
     const { error } = await getSupabase().from('hub_role_requests').insert(rows);
@@ -238,16 +261,21 @@ const { focus } = Astro.props;
     const open = new Set(requests.filter((x) => x.status === 'pending').map((x) => x.role));
     canLeader = !held.has('crew_leader') && !open.has('crew_leader');
     canHost = !held.has('event_host') && !open.has('event_host');
+    canCreator = !held.has('creator') && !open.has('creator');
     document.getElementById('ra-choice-leader')!.hidden = !canLeader;
     document.getElementById('ra-choice-host')!.hidden = !canHost;
+    document.getElementById('ra-choice-creator')!.hidden = !canCreator;
     // Each tab only offers its own role.
-    if (focus === 'crew_leader') canHost = false; else canLeader = false;
+    if (focus !== 'crew_leader') canLeader = false;
+    if (focus !== 'event_host') canHost = false;
+    if (focus !== 'creator') canCreator = false;
     f.want_leader.checked = canLeader;
     f.want_host.checked = canHost;
+    f.want_creator.checked = canCreator;
     const list = crews.data ?? [];
     f.crew_id.innerHTML = '<option value="">Choose your crew…</option>' + list.map((c: any) => `<option value="${esc(c.crew_id)}">${esc(c.tag)} · ${esc(c.name)}</option>`).join('');
     document.getElementById('ra-existing-opt')!.hidden = list.length === 0;
-    formWrap.hidden = !canLeader && !canHost;
+    formWrap.hidden = !canLeader && !canHost && !canCreator;
     renderRequests();
     root.hidden = formWrap.hidden && reqBox.hidden;
     syncGroups();

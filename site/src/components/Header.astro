@@ -179,16 +179,19 @@ const globalLinks = [
       accountLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}account/`);
       // Moderators: open Crew Leader / Event Host requests (RS-0026).
       if (isMod) {
-        const [rq, rp, cr] = await Promise.all([
+        const [rq, rp, cr, tr] = await Promise.all([
           supabase.from('hub_role_requests').select('request_id', { count: 'exact', head: true }).eq('status', 'pending'),
           supabase.from('run_reports').select('report_id', { count: 'exact', head: true }).eq('status', 'open'),
           supabase.from('content_reports').select('report_id', { count: 'exact', head: true }).eq('status', 'open'),
+          supabase.from('community_tracks').select('track_id', { count: 'exact', head: true }).eq('is_published', false),
         ]);
-        const count = (rq.count ?? 0) + (rp.count ?? 0) + (cr.count ?? 0);
+        // tracks waiting for review (RS-0045) count too; they live in Hub Content
+        const count = (rq.count ?? 0) + (rp.count ?? 0) + (cr.count ?? 0) + (tr.count ?? 0);
         if (count) moderatorLinkEl.textContent = `Moderator (${count} new)`;
         // Content reports first (possibly illegal content), then time reports.
         if (!rq.count && cr.count) moderatorLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}moderator/content/`);
         else if (!rq.count && rp.count) moderatorLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}moderator/reports/`);
+        else if (rq.count || tr.count) moderatorLinkEl.setAttribute('href', `${import.meta.env.BASE_URL}moderator/hub/`);
       }
       // Crew leaders: open join requests -> straight to My Account > Crew.
       const own = await supabase.from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
