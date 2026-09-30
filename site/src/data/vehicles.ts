@@ -148,6 +148,20 @@ export const vehicleOptions: VehicleOption[] = [
   { id: "vapid-dominator-67-buggy", classes: ["Off-Road"], make: "Vapid", model: "Dominator '67 Buggy", logoSlug: "vapid", seats: 2, drive: "n/a", acquisition: "ultimate-edition", photo: true, releaseId: "base-game", firstSeenIn: "Ultimate Edition reveal", realLifeInspiration: "Ford Mustang (first generation)" },
 ];
 
+// Garage tile order (RS-0049, DEC-0086, Fausto 2026-09-30):
+//  1. vehicles with a photo first (only matters while photos are missing;
+//     once every vehicle has one, this step has no effect),
+//  2. then special-access vehicles (any `acquisition`: pre-order, Ultimate Edition, GTA+, ...),
+//  3. then alphabetical by model name.
+// The garage never relies on the order of vehicleOptions in this file.
+export function compareGarageOrder(a: VehicleOption, b: VehicleOption): number {
+  return (Number(!!b.photo) - Number(!!a.photo))
+    || (Number(!!b.acquisition) - Number(!!a.acquisition))
+    || a.model.localeCompare(b.model, 'en', { numeric: true, sensitivity: 'base' })
+    || a.make.localeCompare(b.make, 'en', { sensitivity: 'base' });
+}
+export const garageOrderedVehicles: VehicleOption[] = [...vehicleOptions].sort(compareGarageOrder);
+
 // Seen in GTA VI material, in-game name NOT verified -> not on the site and
 // not in the database (class/seats/drive unknown, nothing to reference it).
 // Once Rockstar names it: add it to vehicleOptions with the real name, add

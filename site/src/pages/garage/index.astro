@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { vehicleOptions } from '../../data/vehicles';
+import { vehicleOptions, garageOrderedVehicles } from '../../data/vehicles';
 
 const base = import.meta.env.BASE_URL;
 
@@ -70,7 +70,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
       </div>
 
       <section class="garage-grid" id="garage-grid" aria-label="Vehicle tiles">
-        {vehicleOptions.map((v) => (
+        {garageOrderedVehicles.map((v) => (
           <article
             class="v-tile"
             data-id={v.id}
