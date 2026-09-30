@@ -1,0 +1,319 @@
+---
+// Moderator: vehicle data (RS-0052, DEC-0089). The database is the single
+// source of vehicle data; the public site picks up changes with the next
+// build (scheduled every 3 hours, or run "Deploy site to GitHub Pages" by hand).
+// Base data is edited in place (every change is logged in vehicle_change_log);
+// measured values are never overwritten: a new value supersedes the old one
+// and keeps its source, game version and evidence.
+import Base from '../../../layouts/Base.astro';
+import ModeratorNav from '../../../components/ModeratorNav.astro';
+import { readdirSync } from 'node:fs';
+import path from 'node:path';
+
+// Manufacturer logos that exist in public/images/logos (<slug>-gta-6-logo.webp)
+const logoSlugs = readdirSync(path.join(process.cwd(), 'public/images/logos'))
+  .filter((f) => f.endsWith('-gta-6-logo.webp')).map((f) => f.replace('-gta-6-logo.webp', '')).sort();
+---
+<Base title="Vehicles — Moderator" description="Internal: maintain vehicle data." section="moderator" noindex>
+  <section class="wrap mod-wrap">
+    <ModeratorNav active="vehicles" />
+    <p class="eyebrow">The Garage Operations</p>
+    <h1 class="display mod-title">Vehicles</h1>
+    <p class="mod-lede">The database is the only source of vehicle data. Changes appear on the site with the next build: automatically every 3 hours, or right away if you run <em>Deploy site to GitHub Pages</em> in GitHub → Actions. Measured values are never overwritten — a new value replaces the current one and the old one stays in the history.</p>
+
+    <div id="vx-backend" class="notice" hidden><strong>Backend not connected.</strong><span>Vehicles cannot be loaded from this build.</span></div>
+    <div id="vx-auth" class="panel vx-box" hidden><p>Sign in as a moderator to edit vehicles.</p></div>
+    <div id="vx-notmod" class="panel vx-box" hidden><p>This page is for moderators only.</p></div>
+
+    <div id="vx-body" class="vx-grid" hidden>
+      <aside class="panel vx-listbox">
+        <div class="vx-listhead">
+          <input type="search" id="vx-search" placeholder="Search vehicle" aria-label="Search vehicles" />
+          <button type="button" class="btn btn-outline" id="vx-new">+ New</button>
+        </div>
+        <p class="vx-count" id="vx-count"></p>
+        <ul id="vx-list" class="vx-list"></ul>
+      </aside>
+
+      <div class="vx-main">
+        <p id="vx-msg" class="vx-msg" hidden></p>
+        <p id="vx-empty" class="vx-empty">Pick a vehicle on the left or create a new one.</p>
+
+        <form id="vx-form" class="panel vx-form" hidden>
+          <h2 class="vx-h2" id="vx-form-title">Vehicle</h2>
+          <div class="vx-fields">
+            <label>ID (URL slug) *<input name="vehicle_id" required pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="bravado-banshee" /><small>Cannot be changed later (links, runs and owned vehicles use it).</small></label>
+            <label>Manufacturer *<input name="make" required maxlength="40" /></label>
+            <label>Model *<input name="model" required maxlength="60" /></label>
+            <label>Logo *<select name="manufacturer_logo_slug" required>{logoSlugs.map((s) => <option value={s}>{s}</option>)}</select></label>
+            <fieldset class="vx-classes"><legend>GTA class(es) *</legend><div id="vx-class-boxes"></div></fieldset>
+            <label>Seats<input name="seats" type="number" min="1" max="16" step="1" /></label>
+            <label>Drive<select name="drive"><option value="">Unknown (n/a)</option><option>RWD</option><option>FWD</option><option>AWD</option></select></label>
+            <label>Access requirement<select name="acquisition"><option value="">None</option><option value="pre-order">Pre-order bonus</option><option value="ultimate-edition">Ultimate Edition</option><option value="gta-plus">GTA+</option></select></label>
+            <label>Added with (release)<select name="release_id" id="vx-release"></select><small>Empty = not officially announced (page shows "TBA" and is not indexed).</small></label>
+            <label>First seen in<input name="first_seen_in" list="vx-firstseen" maxlength="60" /><datalist id="vx-firstseen"></datalist></label>
+            <label>Real-life inspiration<input name="real_life_inspiration" maxlength="80" /></label>
+            <label class="vx-check"><input type="checkbox" name="has_photo" /> Garage photo exists (<code>public/images/vehicles/&lt;id&gt;-640/1280/1920.webp</code>)</label>
+          </div>
+          <div class="vx-actions">
+            <button type="submit" class="btn btn-primary" id="vx-save">Save vehicle</button>
+            <span class="vx-meta" id="vx-updated"></span>
+          </div>
+        </form>
+
+        <section id="vx-values" class="panel vx-form" hidden>
+          <h2 class="vx-h2">Measured values</h2>
+          <p class="vx-hint">Price, top speed and the Gellhorn reference lap. Each value keeps where it came from. Adding a new value makes the previous one "superseded".</p>
+          <div id="vx-value-list"></div>
+          <form id="vx-value-form" class="vx-fields vx-value-form">
+            <label>Value *<select name="metric" id="vx-metric"><option value="price_gtad">Price (GTA$)</option><option value="top_speed_mph">Top speed (mph)</option><option value="gellhorn_reference_lap_ms">Gellhorn reference lap (m:ss.mmm)</option></select></label>
+            <label>Amount *<input name="value" id="vx-value" required placeholder="e.g. 1250000" /></label>
+            <label>Source *<select name="source_type"><option value="in_game">In-game (shown in the game)</option><option value="controlled_test">Measured (controlled test)</option><option value="rockstar">Rockstar (official)</option><option value="community">Community</option><option value="derived">Calculated</option></select></label>
+            <label>Method<input name="method" maxlength="40" placeholder="e.g. LR-TS-1" /><small>Methodology version, once decided.</small></label>
+            <label>Game version<select name="game_release_id" id="vx-value-release"></select></label>
+            <label>Platform<select name="platform"><option value="">—</option><option value="ps5">PS5</option><option value="xbox">Xbox Series X|S</option></select></label>
+            <label>Measured on<input name="measured_at" type="date" /></label>
+            <label>Evidence link<input name="evidence_url" type="url" placeholder="https://…" /></label>
+            <label class="vx-wide">Note<input name="note" maxlength="300" /></label>
+            <div class="vx-actions vx-wide"><button type="submit" class="btn btn-primary">Add value</button></div>
+          </form>
+        </section>
+
+        <section id="vx-log" class="panel vx-form" hidden>
+          <h2 class="vx-h2">Change history</h2>
+          <div id="vx-log-list"></div>
+        </section>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  [hidden] { display: none !important; }
+  .mod-wrap { padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4.5rem); }
+  .mod-title { margin: .4rem 0 .6rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+  .mod-lede { margin: 0 0 1.5rem; color: var(--gh-muted); font-size: .92rem; max-width: 52rem; }
+  .vx-box { padding: 1rem 1.2rem; } .vx-box p { margin: 0; }
+  .vx-grid { display: grid; grid-template-columns: 18rem 1fr; gap: var(--gh-gap-card); align-items: start; }
+  .vx-listbox { padding: .9rem; position: sticky; top: calc(var(--gh-header-h) + 1rem); }
+  .vx-listhead { display: flex; gap: .4rem; }
+  .vx-listhead input { flex: 1; min-width: 0; }
+  .vx-count { margin: .5rem 0; color: var(--gh-muted); font-size: .75rem; }
+  .vx-list { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow-y: auto; }
+  :global(.vx-list button) { width: 100%; text-align: left; padding: .4rem .5rem; border: 0; border-radius: var(--gh-radius); background: transparent; color: var(--gh-text); font: inherit; font-size: .82rem; cursor: pointer; }
+  :global(.vx-list button:hover), :global(.vx-list button.is-active) { background: rgba(160,160,198,.14); }
+  :global(.vx-list small) { color: var(--gh-muted); }
+  .vx-main { display: grid; gap: var(--gh-gap-card); min-width: 0; }
+  .vx-form { padding: 1.1rem 1.2rem; }
+  .vx-h2 { margin: 0 0 .8rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.05rem; }
+  .vx-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: .8rem 1rem; }
+  .vx-fields label, .vx-classes { display: flex; flex-direction: column; gap: .3rem; font-size: .78rem; font-weight: 700; color: var(--gh-muted); }
+  .vx-fields small, .vx-hint { font-weight: 400; color: var(--gh-muted); font-size: .72rem; }
+  .vx-hint { margin: 0 0 .8rem; font-size: .8rem; }
+  .vx-wide { grid-column: 1 / -1; }
+  .vx-classes { grid-column: 1 / -1; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); padding: .5rem .7rem; }
+  :global(#vx-class-boxes) { display: flex; flex-wrap: wrap; gap: .3rem 1rem; }
+  :global(#vx-class-boxes label) { flex-direction: row; align-items: center; gap: .35rem; font-weight: 600; color: var(--gh-text); }
+  .vx-check { flex-direction: row !important; align-items: center; grid-column: 1 / -1; color: var(--gh-text) !important; font-weight: 600 !important; }
+  .mod-wrap input:not([type="checkbox"]), .mod-wrap select { padding: .45rem .6rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-bg); color: var(--gh-text); font: inherit; font-size: .85rem; }
+  .mod-wrap input[aria-invalid="true"] { border-color: var(--gh-red); }
+  .vx-actions { display: flex; flex-wrap: wrap; gap: .7rem; align-items: center; margin-top: 1rem; }
+  .vx-meta, .vx-empty { color: var(--gh-muted); font-size: .8rem; }
+  .vx-msg { margin: 0; padding: .6rem .8rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); font-size: .85rem; }
+  .vx-msg.is-error { border-color: var(--gh-red); color: #ff8a8a; }
+  .vx-msg.is-ok { border-color: #27c281; color: #7be0b0; }
+  :global(.vx-table) { width: 100%; border-collapse: collapse; font-size: .8rem; margin-bottom: 1rem; }
+  :global(.vx-table th), :global(.vx-table td) { text-align: left; padding: .45rem .4rem; border-bottom: 1px solid var(--gh-line); vertical-align: top; }
+  :global(.vx-table th) { color: var(--gh-muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
+  :global(.vx-table .is-old) { color: var(--gh-muted); }
+  :global(.vx-table button) { font-size: .72rem; padding: .25rem .55rem; }
+  :global(.vx-log-row) { font-size: .78rem; color: var(--gh-muted); margin: 0 0 .5rem; overflow-wrap: anywhere; }
+  :global(.vx-log-row strong) { color: var(--gh-text); }
+  @media (max-width: 860px) { .vx-grid { grid-template-columns: 1fr; } .vx-listbox { position: static; } }
+</style>
+
+<script>
+  import { backendConfigured, getSupabase } from '../../../scripts/supabase-client';
+  import { esc } from '../../../data/hub';
+
+  const CLASSES = ['Super', 'Sports', 'Sports Classics', 'Muscle', 'Coupes', 'Sedans', 'Compacts', 'SUVs', 'Off-Road', 'Vans', 'Utility', 'Motorcycles', 'Cycles', 'Open Wheel', 'Industrial', 'Commercial', 'Service', 'Emergency', 'Military'];
+  const METRIC: Record<string, string> = { price_gtad: 'Price', top_speed_mph: 'Top speed', gellhorn_reference_lap_ms: 'Gellhorn ref. lap' };
+  const SOURCE: Record<string, string> = { in_game: 'In-game', controlled_test: 'Measured', rockstar: 'Rockstar', community: 'Community', derived: 'Calculated' };
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const form = $<HTMLFormElement>('vx-form');
+  const valueForm = $<HTMLFormElement>('vx-value-form');
+  let vehicles: any[] = [];
+  let releases: any[] = [];
+  let selected: any = null; // null + form visible = new vehicle
+
+  function msg(text: string, kind: 'ok' | 'error' = 'ok') {
+    const m = $('vx-msg'); m.hidden = !text; m.textContent = text; m.className = `vx-msg is-${kind}`;
+  }
+  const fmtValue = (metric: string, v: number) => {
+    if (metric === 'price_gtad') return `GTA$ ${Math.round(v).toLocaleString('en-US')}`;
+    if (metric === 'top_speed_mph') return `${Number(v).toFixed(1)} mph`;
+    const ms = Math.round(v); return `${Math.floor(ms / 60000)}:${((ms % 60000) / 1000).toFixed(3).padStart(6, '0')}`;
+  };
+  function parseValue(metric: string, raw: string): number | null {
+    raw = raw.trim().replace(/[,\s$]/g, '').replace(/^GTA/i, '');
+    if (metric === 'gellhorn_reference_lap_ms') {
+      const m = raw.match(/^(\d+):(\d{1,2})\.(\d{1,3})$/); if (!m) return null;
+      return Number(m[1]) * 60000 + Number(m[2]) * 1000 + Number(m[3].padEnd(3, '0'));
+    }
+    const n = Number(raw); return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  function renderList() {
+    const q = $<HTMLInputElement>('vx-search').value.trim().toLowerCase();
+    const list = vehicles.filter((v) => `${v.make} ${v.model} ${v.vehicle_id}`.toLowerCase().includes(q));
+    $('vx-count').textContent = `${list.length} of ${vehicles.length} vehicles`;
+    $('vx-list').innerHTML = list.map((v) => `<li><button type="button" data-id="${esc(v.vehicle_id)}" class="${selected?.vehicle_id === v.vehicle_id ? 'is-active' : ''}">${esc(v.make)} ${esc(v.model)}${v.release_id ? '' : ' <small>· not announced</small>'}</button></li>`).join('');
+  }
+
+  function fillReleaseSelects() {
+    const opts = releases.map((r) => `<option value="${esc(r.release_id)}">${esc(r.name)}${r.release_date ? ` (${esc(r.release_date)})` : ''}</option>`).join('');
+    $('vx-release').innerHTML = `<option value="">— not announced —</option>${opts}`;
+    $('vx-value-release').innerHTML = `<option value="">—</option>${opts}`;
+    const seen = [...new Set(vehicles.map((v) => v.first_seen_in).filter(Boolean))].sort();
+    $('vx-firstseen').innerHTML = seen.map((s) => `<option value="${esc(s)}"></option>`).join('');
+  }
+
+  function openVehicle(v: any | null) {
+    selected = v;
+    msg('');
+    $('vx-empty').hidden = true;
+    form.hidden = false;
+    $('vx-form-title').textContent = v ? `${v.make} ${v.model}` : 'New vehicle';
+    const el = form.elements as any;
+    el.vehicle_id.value = v?.vehicle_id ?? ''; el.vehicle_id.readOnly = Boolean(v);
+    el.make.value = v?.make ?? ''; el.model.value = v?.model ?? '';
+    el.manufacturer_logo_slug.value = v?.manufacturer_logo_slug ?? '';
+    el.seats.value = v?.seats ?? ''; el.drive.value = v?.drive ?? '';
+    el.acquisition.value = v?.acquisition ?? ''; el.release_id.value = v?.release_id ?? '';
+    el.first_seen_in.value = v?.first_seen_in ?? ''; el.real_life_inspiration.value = v?.real_life_inspiration ?? '';
+    el.has_photo.checked = Boolean(v?.has_photo);
+    const cls = new Set<string>(v?.classes ?? []);
+    const extra = [...cls].filter((c) => !CLASSES.includes(c));
+    $('vx-class-boxes').innerHTML = [...CLASSES, ...extra].map((c) => `<label><input type="checkbox" name="classes" value="${esc(c)}" ${cls.has(c) ? 'checked' : ''} /> ${esc(c)}</label>`).join('');
+    $('vx-updated').textContent = v?.updated_at ? `Last change ${new Date(v.updated_at).toLocaleString()}` : '';
+    $('vx-values').hidden = !v; $('vx-log').hidden = !v;
+    renderList();
+    if (v) { loadValues(); loadLog(); }
+  }
+
+  async function loadVehicles() {
+    const sb = getSupabase();
+    const [vr, rr] = await Promise.all([
+      sb.from('vehicles').select('vehicle_id, make, model, manufacturer_logo_slug, classes, seats, drive, acquisition, has_photo, release_id, first_seen_in, real_life_inspiration, updated_at').order('make').order('model'),
+      sb.from('game_releases').select('release_id, name, release_date').order('sort_order'),
+    ]);
+    if (vr.error || rr.error) { msg(`Could not load: ${(vr.error ?? rr.error)!.message}`, 'error'); return; }
+    vehicles = vr.data ?? []; releases = rr.data ?? [];
+    fillReleaseSelects(); renderList();
+  }
+
+  async function loadValues() {
+    const { data, error } = await getSupabase().from('vehicle_values')
+      .select('value_id, metric, value, source_type, method, game_release_id, platform, measured_at, evidence_url, note, status, created_at, creator:drivers!vehicle_values_created_by_fkey(display_name)')
+      .eq('vehicle_id', selected.vehicle_id).order('created_at', { ascending: false });
+    if (error) { $('vx-value-list').innerHTML = `<p class="vx-meta">Could not load values: ${esc(error.message)}</p>`; return; }
+    $('vx-value-list').innerHTML = data?.length ? `<table class="vx-table"><thead><tr><th>Value</th><th>Amount</th><th>Source</th><th>Version</th><th>Measured</th><th>Status</th><th></th></tr></thead><tbody>${data.map((r: any) => `
+      <tr class="${r.status === 'current' ? '' : 'is-old'}">
+        <td>${esc(METRIC[r.metric] ?? r.metric)}</td>
+        <td>${esc(fmtValue(r.metric, Number(r.value)))}${r.evidence_url ? ` <a href="${esc(r.evidence_url)}" target="_blank" rel="noopener">evidence</a>` : ''}${r.note ? `<br><small>${esc(r.note)}</small>` : ''}</td>
+        <td>${esc(SOURCE[r.source_type] ?? r.source_type)}${r.method ? ` · ${esc(r.method)}` : ''}${r.platform ? ` · ${esc(r.platform.toUpperCase())}` : ''}</td>
+        <td>${esc(releases.find((x) => x.release_id === r.game_release_id)?.name ?? '—')}</td>
+        <td>${esc(r.measured_at ?? '—')}<br><small>by ${esc(r.creator?.display_name ?? '?')}</small></td>
+        <td>${esc(r.status)}</td>
+        <td>${r.status === 'current' ? `<button type="button" class="btn btn-outline" data-reject="${esc(r.value_id)}">Reject</button>` : ''}</td>
+      </tr>`).join('')}</tbody></table>` : '<p class="vx-meta">No values yet — the site shows "Data pending".</p>';
+  }
+
+  async function loadLog() {
+    const { data } = await getSupabase().from('vehicle_change_log').select('changed_at, action, old_row, new_row, driver:drivers(display_name)')
+      .eq('vehicle_id', selected.vehicle_id).order('changed_at', { ascending: false }).limit(15);
+    const skip = new Set(['updated_at', 'updated_by', 'created_at']);
+    $('vx-log-list').innerHTML = data?.length ? data.map((r: any) => {
+      const changes = r.action === 'insert' ? 'created' : Object.keys(r.new_row ?? {}).filter((k) => !skip.has(k) && JSON.stringify(r.old_row?.[k]) !== JSON.stringify(r.new_row?.[k]))
+        .map((k) => `${k}: ${JSON.stringify(r.old_row?.[k])} → ${JSON.stringify(r.new_row?.[k])}`).join('; ') || 'no field change';
+      return `<p class="vx-log-row"><strong>${esc(new Date(r.changed_at).toLocaleString())}</strong> · ${esc(r.driver?.display_name ?? 'system')} · ${esc(changes)}</p>`;
+    }).join('') : '<p class="vx-meta">No changes recorded yet.</p>';
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const el = form.elements as any;
+    const classes = [...form.querySelectorAll<HTMLInputElement>('input[name="classes"]:checked')].map((c) => c.value);
+    if (!classes.length) { msg('Pick at least one GTA class.', 'error'); return; }
+    const row: any = {
+      make: el.make.value.trim(), model: el.model.value.trim(), manufacturer_logo_slug: el.manufacturer_logo_slug.value,
+      classes, seats: el.seats.value ? Number(el.seats.value) : null, drive: el.drive.value || null,
+      acquisition: el.acquisition.value || null, release_id: el.release_id.value || null,
+      first_seen_in: el.first_seen_in.value.trim() || null, real_life_inspiration: el.real_life_inspiration.value.trim() || null,
+      has_photo: el.has_photo.checked,
+    };
+    const sb = getSupabase();
+    let res;
+    if (selected) res = await sb.from('vehicles').update(row).eq('vehicle_id', selected.vehicle_id).select().single();
+    else {
+      const id = el.vehicle_id.value.trim();
+      if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) { msg('ID: lowercase letters, digits and dashes only (e.g. bravado-banshee).', 'error'); return; }
+      if (vehicles.some((v) => v.vehicle_id === id)) { msg('This ID already exists.', 'error'); return; }
+      res = await sb.from('vehicles').insert({ vehicle_id: id, ...row }).select().single();
+    }
+    if (res.error) { msg(`Could not save: ${res.error.message}`, 'error'); return; }
+    await loadVehicles();
+    openVehicle(vehicles.find((v) => v.vehicle_id === res.data.vehicle_id) ?? res.data);
+    msg('Saved. The site shows it after the next build.', 'ok');
+  });
+
+  valueForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const el = valueForm.elements as any;
+    const value = parseValue(el.metric.value, el.value.value);
+    if (value == null) { msg(el.metric.value === 'gellhorn_reference_lap_ms' ? 'Lap time format: m:ss.mmm (e.g. 1:24.642).' : 'Enter a positive number.', 'error'); return; }
+    const { error } = await getSupabase().from('vehicle_values').insert({
+      vehicle_id: selected.vehicle_id, metric: el.metric.value, value, source_type: el.source_type.value,
+      method: el.method.value.trim() || null, game_release_id: el.game_release_id.value || null, platform: el.platform.value || null,
+      measured_at: el.measured_at.value || null, evidence_url: el.evidence_url.value.trim() || null, note: el.note.value.trim() || null,
+    });
+    if (error) { msg(`Could not add the value: ${error.message}`, 'error'); return; }
+    valueForm.reset(); fillReleaseSelects();
+    await loadValues();
+    msg('Value added. The site shows it after the next build.', 'ok');
+  });
+
+  $('vx-metric').addEventListener('change', () => {
+    const m = ($('vx-metric') as HTMLSelectElement).value;
+    ($('vx-value') as HTMLInputElement).placeholder = m === 'price_gtad' ? 'e.g. 1250000' : m === 'top_speed_mph' ? 'e.g. 124.5' : 'e.g. 1:24.642';
+  });
+  $('vx-value-list').addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-reject]'); if (!b) return;
+    if (!confirm('Reject this value? The site will show "Data pending" until a new value is added.')) return;
+    const { error } = await getSupabase().from('vehicle_values').update({ status: 'rejected' }).eq('value_id', b.dataset.reject!);
+    if (error) { msg(`Could not reject: ${error.message}`, 'error'); return; }
+    await loadValues();
+  });
+  $('vx-list').addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-id]'); if (!b) return;
+    openVehicle(vehicles.find((v) => v.vehicle_id === b.dataset.id));
+  });
+  $('vx-search').addEventListener('input', renderList);
+  $('vx-new').addEventListener('click', () => openVehicle(null));
+
+  async function init(session: any) {
+    $('vx-auth').hidden = Boolean(session); $('vx-body').hidden = true; $('vx-notmod').hidden = true;
+    if (!session) return;
+    const sb = getSupabase();
+    const mod = await sb.from('moderators').select('driver_id').limit(1);
+    if (mod.error || !mod.data?.length) { $('vx-notmod').hidden = false; return; }
+    $('vx-body').hidden = false;
+    await loadVehicles();
+  }
+  if (!backendConfigured) $('vx-backend').hidden = false;
+  else {
+    const sb = getSupabase();
+    sb.auth.getSession().then(({ data }) => init(data?.session ?? null));
+    sb.auth.onAuthStateChange((ev, s) => { if (ev === 'SIGNED_IN' || ev === 'SIGNED_OUT') init(s); });
+  }
+</script>

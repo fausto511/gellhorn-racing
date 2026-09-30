@@ -1,6 +1,6 @@
 ---
 import Base from '../../../../layouts/Base.astro';
-import { vehicleOptions } from '../../../../data/vehicles';
+import { vehicleOptions, vehicleValues, formatVehicleValue, valueSourceLabels, type VehicleValue } from '../../../../data/vehicles';
 import { vehicleCopy } from '../../../../data/vehicle-copy';
 import { releaseById, formatReleaseDate } from '../../../../data/releases';
 import { classHref, makeHref } from '../../../../data/garage-taxonomy';
@@ -42,6 +42,9 @@ const metaDescription = release
   ? `${fullName} in GTA VI: ${classText}, ${vehicle.seats} seats, ${vehicle.drive === 'n/a' ? 'drivetrain TBA' : vehicle.drive}. Release info, first appearance and real-life inspiration. Stats after launch.`
   : `${fullName} in GTA VI: ${classText}. Not officially revealed by Rockstar yet; known details and real-life inspiration.`;
 const makeLink = makeHref(vehicle);
+// Measured values with provenance (RS-0052); missing = "Data pending"
+const vals = vehicleValues[vehicle.id] ?? {};
+const valueTitle = (v: VehicleValue) => [valueSourceLabels[v.source_type], v.game_release_id && releaseById[v.game_release_id]?.name, v.measured_at].filter(Boolean).join(' · ');
 
 // Lightweight index for the quick vehicle search/switch dropdown above the
 // stage -- id/name/href only, so the client script doesn't need the full
@@ -116,11 +119,11 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
         {makeLink && <> · <a href={`${base}${makeLink}`}>More {vehicle.make} cars</a></>}
       </p>
       <dl class="v-key">
-        <div><dt>Price</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
+        <div><dt>Price</dt>{vals.price_gtad ? <dd title={valueTitle(vals.price_gtad)}>{formatVehicleValue(vals.price_gtad)} <small class="v-src">{valueSourceLabels[vals.price_gtad.source_type]}</small></dd> : <dd class="status-pending"><span class="status-dot"></span>Data pending</dd>}</div>
         <div><dt>Seats</dt><dd>{vehicle.seats}</dd></div>
         <div><dt>Drive</dt><dd>{vehicle.drive}</dd></div>
-        <div><dt>Top Speed</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
-        <div><dt>Gellhorn Lab Time</dt><dd class="status-pending"><span class="status-dot"></span>Data pending</dd></div>
+        <div><dt>Top Speed</dt>{vals.top_speed_mph ? <dd title={valueTitle(vals.top_speed_mph)}>{formatVehicleValue(vals.top_speed_mph)} <small class="v-src">{valueSourceLabels[vals.top_speed_mph.source_type]}</small></dd> : <dd class="status-pending"><span class="status-dot"></span>Data pending</dd>}</div>
+        <div><dt>Gellhorn Lab Time</dt>{vals.gellhorn_reference_lap_ms ? <dd title={valueTitle(vals.gellhorn_reference_lap_ms)}>{formatVehicleValue(vals.gellhorn_reference_lap_ms)} <small class="v-src">{valueSourceLabels[vals.gellhorn_reference_lap_ms.source_type]}</small></dd> : <dd class="status-pending"><span class="status-dot"></span>Data pending</dd>}</div>
       </dl>
     </aside>
   </section>
@@ -190,6 +193,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
   .v-key > div { display: flex; justify-content: space-between; border-top: 1px solid var(--gh-line); padding-top: .6rem; }
   .v-key dt { color: var(--gh-muted); font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; margin: 0; }
   .v-key dd { margin: 0; font-size: .85rem; font-weight: 600; }
+  .v-src { color: var(--gh-muted); font-size: .68rem; font-weight: 600; margin-left: .3rem; }
 
   .v-performance { padding-top: var(--gh-gap-card); }
   .v-performance h2 { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.1rem; margin: 0 0 1rem; }

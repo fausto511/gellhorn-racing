@@ -1,6 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { vehicleOptions, garageOrderedVehicles } from '../../data/vehicles';
+import { vehicleOptions, garageOrderedVehicles, vehicleValues, formatVehicleValue } from '../../data/vehicles';
 import { classPages, manufacturerPages } from '../../data/garage-taxonomy';
 import LaunchStatus from '../../components/LaunchStatus.astro';
 
@@ -112,14 +112,14 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
             </div>
             <button type="button" class="v-compare-mark" data-id={v.id} aria-pressed="false" aria-label={`Add ${v.make} ${v.model} to compare`}>＋</button>
             <div class="v-data">
-              <span>Price<strong class="status-pending"><span class="status-dot"></span>Data pending</strong></span>
+              <span>Price{vehicleValues[v.id]?.price_gtad ? <strong>{formatVehicleValue(vehicleValues[v.id]!.price_gtad!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
               <span>GTA Class<strong>{v.classes.join(' / ')}</strong></span>
             </div>
             <details class="v-expand">
               <summary>Racing data</summary>
               <div class="v-inner">
-                <span>Gellhorn Lap<strong class="status-pending"><span class="status-dot"></span>Data pending</strong></span>
-                <span>Top Speed<strong class="status-pending"><span class="status-dot"></span>Data pending</strong></span>
+                <span>Gellhorn Lap{vehicleValues[v.id]?.gellhorn_reference_lap_ms ? <strong>{formatVehicleValue(vehicleValues[v.id]!.gellhorn_reference_lap_ms!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
+                <span>Top Speed{vehicleValues[v.id]?.top_speed_mph ? <strong>{formatVehicleValue(vehicleValues[v.id]!.top_speed_mph!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
                 <span>Drive<strong>{v.drive}</strong></span>
               </div>
             </details>

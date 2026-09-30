@@ -1,6 +1,6 @@
 ---
 // Switch between the internal moderator tools. Internal pages only.
-interface Props { active: 'laps' | 'hub' | 'reports' | 'content'; }
+interface Props { active: 'laps' | 'hub' | 'reports' | 'content' | 'vehicles'; }
 const { active } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const links = [
@@ -8,6 +8,7 @@ const links = [
   { key: 'hub', label: 'Hub Content', href: `${base}moderator/hub/` },
   { key: 'reports', label: 'Time Reports', href: `${base}moderator/reports/` },
   { key: 'content', label: 'Content Reports', href: `${base}moderator/content/` },
+  { key: 'vehicles', label: 'Vehicles', href: `${base}moderator/vehicles/` },
 ];
 ---
 <nav class="modnav" aria-label="Moderator tools">

@@ -21,6 +21,10 @@ on:
       - 'site/**'
       - '.github/workflows/deploy-pages.yml'
   workflow_dispatch: {}
+  # RS-0052: vehicle data lives in Supabase; rebuild regularly so moderator
+  # edits (Moderator > Vehicles) go live without a push.
+  schedule:
+    - cron: '17 */3 * * *'
 
 permissions:
   contents: read
@@ -46,6 +50,13 @@ jobs:
       - name: Install dependencies
         working-directory: site
         run: npm ci
+
+      - name: Fetch vehicle data from Supabase (RS-0052)
+        working-directory: site
+        env:
+          PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: node scripts/fetch-vehicles.mjs
 
       - name: Build
         working-directory: site

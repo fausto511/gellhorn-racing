@@ -1,6 +1,6 @@
-// Content releases that add vehicles (RS-0047, DEC-0084). Mirrors
-// public.game_releases in Supabase -- keep both in sync. Later updates/DLCs get
-// their own entry; vehicles point at it via VehicleOption.releaseId.
+// Content releases that add vehicles (RS-0047, DEC-0084), read from
+// public.game_releases (RS-0052). Later updates/DLCs get their own row;
+// vehicles point at it via VehicleOption.releaseId.
 export interface GameRelease {
   id: string;
   name: string;
@@ -8,9 +8,12 @@ export interface GameRelease {
   date: string | null; // ISO date; null = not announced
 }
 
-export const gameReleases: GameRelease[] = [
-  { id: 'base-game', name: 'Base Game', kind: 'base-game', date: '2026-11-19' },
-];
+import generated from './vehicles.generated.json';
+
+// From the database (RS-0052): game_releases, pulled by site/scripts/fetch-vehicles.mjs.
+export const gameReleases: GameRelease[] = generated.releases.map((r) => ({
+  id: r.release_id, name: r.name, kind: r.kind as GameRelease['kind'], date: r.release_date ?? null,
+}));
 
 export const releaseById = Object.fromEntries(gameReleases.map((r) => [r.id, r])) as Record<string, GameRelease>;
 
