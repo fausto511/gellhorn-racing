@@ -195,6 +195,7 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
   let currentFilter = 'pending';
   let currentModeratorDriverId = null;
   let allVehicles = [];
+  let allReleases = []; // game_releases (RS-0048): game version per run
 
   const REVIEW_STATUS_OPTIONS = [
     ['draft', 'Draft'],
@@ -315,6 +316,31 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
       .join('');
   }
 
+  function releaseLabel(id) {
+    if (!id) return '—';
+    const r = allReleases.find((x) => x.release_id === id);
+    return r ? r.name : id;
+  }
+
+  // Game version is set automatically from the lap date (DB trigger, RS-0048);
+  // this dropdown only exists to correct edge cases, e.g. laps on update day.
+  function releaseOptionsHtml(selectedId) {
+    const opts = allReleases
+      .map((r) => `<option value="${r.release_id}" ${r.release_id === selectedId ? 'selected' : ''}>${r.name}${r.release_date ? ` (from ${r.release_date})` : ''}</option>`)
+      .join('');
+    return `<option value="" ${selectedId ? '' : 'selected'}>—</option>${opts}`;
+  }
+
+  async function loadReleases() {
+    if (allReleases.length) return;
+    const { data, error } = await getSupabase()
+      .from('game_releases')
+      .select('release_id, name, release_date')
+      .order('release_date', { ascending: true, nullsFirst: false })
+      .order('sort_order', { ascending: true });
+    if (!error && data) allReleases = data;
+  }
+
   // Fetched once per session and cached — the vehicle list barely changes
   // and every review panel render needs it for the override dropdown.
   async function loadVehicles() {
@@ -364,7 +390,7 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
     if (isModerator) {
       notModNoticeEl.hidden = true;
       modContentEl.hidden = false;
-      await Promise.all([loadOwnDriverId(), loadVehicles()]);
+      await Promise.all([loadOwnDriverId(), loadVehicles(), loadReleases()]);
       await loadQueue();
     } else {
       notModNoticeEl.hidden = false;
@@ -535,7 +561,7 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
           <div class="fact-row"><span>Lap time</span><strong>${formatLapTime(run.lap_time_ms)}</strong></div>
           <div class="fact-row"><span>Track</span><strong>${run.tracks?.name ?? '—'}</strong></div>
           <div class="fact-row"><span>Platform</span><strong>${platformLabel(run.platform)}</strong></div>
-          <div class="fact-row"><span>Game version</span><strong>${run.game_version || '—'}</strong></div>
+          <div class="fact-row"><span>Game version</span><strong>${releaseLabel(run.game_version)}</strong></div>
           <div class="fact-row"><span>Standard</span><strong>${run.standard_version || '—'}</strong></div>
           <div class="fact-row"><span>Display name consent</span><strong>${run.display_name_consent ? 'Yes' : 'No'}</strong></div>
           <div class="fact-row"><span>Submitted</span><strong>${formatDate(run.submitted_at ?? run.created_at)}</strong></div>
@@ -559,7 +585,7 @@ import ModeratorNav from '../../components/ModeratorNav.astro';
             </select>
           </label>
           <label>Game version
-            <input type="text" id="override-gameversion" value="${run.game_version ?? ''}" />
+            <select id="override-gameversion">${releaseOptionsHtml(run.game_version)}</select>
           </label>
           <label>Standard
             <input type="text" id="override-standard" value="${run.standard_version ?? ''}" />
