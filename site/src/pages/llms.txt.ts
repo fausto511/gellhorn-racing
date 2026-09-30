@@ -9,13 +9,13 @@ export const GET: APIRoute = ({ site }) => {
   const u = (p: string) => new URL(`${base}${p}`, site).href;
   const body = `# ${SITE_NAME}
 
-> ${SITE_NAME} is an independent racing database and community for Grand Theft Auto VI (GTA 6): a database of confirmed GTA VI vehicles with verified classes ("The Garage"), proof-based Time Attack lap-time leaderboards starting at Gellhorn International Raceway, and an event calendar and crew directory for the racing scene ("The Hub"). ${SITE_DISCLAIMER}
+> ${SITE_NAME} is an independent racing database and community for Grand Theft Auto VI (GTA 6): a GTA VI vehicle database built from Rockstar's official material, with in-game classes, release info and real-world inspirations ("The Garage"), proof-based Time Attack lap-time leaderboards starting at Gellhorn International Raceway, and an event calendar and crew directory for the racing scene ("The Hub"). ${SITE_DISCLAIMER}
 
-Status: GTA VI has not been released yet. The site is built ahead of launch; leaderboards, lap data and most Hub content are sample data until real gameplay can be tested. The rule set ("Gellhorn Standard") is a draft. Time Attack currently runs on PS5 only; Xbox Series X|S and PC are planned for later.
+Status: GTA VI releases on November 19, 2026 (PS5, Xbox Series X|S). The site is built ahead of launch: leaderboards and lap data are sample data until real laps can be submitted from launch day, and the rule set ("Gellhorn Standard") is a draft until it has been tested in the game. Time Attack is planned to open on PS5 first. A few vehicles in The Garage are known only from pre-release footage and are marked "Not officially revealed". Crews and events in The Hub can already be created; sample entries are labeled as such.
 
 ## The Garage
 
-- [The Garage](${u('garage/')}): GTA VI vehicles confirmed so far, with verified in-game classes; prices, top speeds and lap data are added once they can be checked
+- [The Garage](${u('garage/')}): GTA VI vehicles with class, seats, drivetrain, release info, first appearance and real-world inspiration; prices, top speeds and lap data are added after launch once they can be checked
 
 ## Time Attack
 

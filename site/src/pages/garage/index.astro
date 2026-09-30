@@ -1,6 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { vehicleOptions, garageOrderedVehicles } from '../../data/vehicles';
+import { classPages, manufacturerPages } from '../../data/garage-taxonomy';
+import LaunchStatus from '../../components/LaunchStatus.astro';
 
 const base = import.meta.env.BASE_URL;
 
@@ -17,12 +19,13 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 ---
 <Base
   title="The Garage — GTA VI Vehicle Database"
-  description="Find your next car in GTA VI. Compare specs, prices, and performance, see how the cars stack up, and organize the vehicles you own."
+  description="Browse the GTA VI vehicle database: class, seats, drivetrain, release info and real-life inspiration for every car. Prices and stats follow after launch."
   section="garage"
+  breadcrumbs={[{ name: 'The Garage', path: 'garage/' }]}
 >
   <section class="hero">
     <picture>
-      <img src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" width="1672" height="941" loading="eager" fetchpriority="high" />
+      <img src={`${base}images/garage/garage-hero-placeholder.webp`} srcset={`${base}images/garage/garage-hero-placeholder-640.webp 640w, ${base}images/garage/garage-hero-placeholder-1080.webp 1080w, ${base}images/garage/garage-hero-placeholder.webp 1672w`} sizes="100vw" alt="" width="1672" height="941" loading="eager" fetchpriority="high" />
     </picture>
     <div class="hero-veil" aria-hidden="true"></div>
     <div class="wrap hero-grid">
@@ -31,6 +34,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
         <h1 class="display hero-title">The Garage</h1>
         <p class="hero-lede">Find your next car in GTA VI. Check the specs, see how the cars stack up, and decide what deserves a place in your garage. Compare prices and performance before you spend your money. Keep track of the cars you own and organize your collection in one place.</p>
       </div>
+      <LaunchStatus area="garage" />
     </div>
   </section>
 
@@ -123,6 +127,18 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
         ))}
       </section>
       <p class="garage-empty" id="garage-empty" hidden>No vehicles match that search.</p>
+
+      <!-- Crawlable class + manufacturer pages (RS-0050, DEC-0087) -->
+      <nav class="garage-browse" aria-label="Browse the garage">
+        <div>
+          <h2 class="garage-browse-title">Browse by class</h2>
+          <ul>{classPages.map((c) => <li><a href={`${base}garage/classes/${c.slug}/`}>{c.name}</a></li>)}</ul>
+        </div>
+        <div>
+          <h2 class="garage-browse-title">Browse by manufacturer</h2>
+          <ul>{manufacturerPages.map((m) => <li><a href={`${base}garage/manufacturers/${m.slug}/`}>{m.name}</a></li>)}</ul>
+        </div>
+      </nav>
     </div>
 
     <div class="garage-panel" data-panel="compare" hidden>
@@ -136,6 +152,12 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 </Base>
 
 <style>
+  .garage-browse { display: grid; grid-template-columns: 1fr 2fr; gap: var(--gh-gap-card); margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gh-line); }
+  .garage-browse-title { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: .95rem; margin: 0 0 .8rem; }
+  .garage-browse ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
+  .garage-browse a { display: inline-block; padding: .4rem .75rem; border: 1px solid var(--gh-line); border-radius: 999px; color: var(--gh-muted); font-size: .78rem; font-weight: 700; text-decoration: none; }
+  .garage-browse a:hover { color: var(--gh-text); border-color: var(--gh-muted); }
+  @media (max-width: 760px) { .garage-browse { grid-template-columns: 1fr; } }
   .hero { position: relative; overflow: hidden; }
   .hero picture, .hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .hero-veil { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(20,20,26,.97) 15%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.85)); }
@@ -210,7 +232,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
   .compare-selected-list { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
   .compare-selected-list li { color: var(--gh-text); font-size: .85rem; font-weight: 600; }
 @media (max-width: 860px) {
-  .hero-grid { min-height: 35rem; padding-block: 2.5rem; }
+  .hero-grid { grid-template-columns: 1fr; min-height: 35rem; padding-block: 2.5rem; }
 }
   /* Owned by the signed-in driver (RS-0032) */
   :global(.v-tile.is-owned) { border-color: var(--gh-yellow); }

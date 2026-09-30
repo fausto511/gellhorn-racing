@@ -2,12 +2,14 @@
 import Base from '../../../layouts/Base.astro';
 import Leaderboard from '../../../components/Leaderboard.astro';
 import TimeAttackSubnav from '../../../components/TimeAttackSubnav.astro';
+import LaunchStatus from '../../../components/LaunchStatus.astro';
 const base = import.meta.env.BASE_URL;
 ---
 <Base
   title="Gellhorn International Raceway — GTA VI Time Attack"
   description="Submit your fastest GTA VI lap at Gellhorn International Raceway, check the Time Attack leaderboard, and see where you rank."
   section="time-attack"
+  breadcrumbs={[{ name: 'Gellhorn International Raceway', path: 'time-attack/gellhorn-international-raceway/' }]}
 >
   <section class="hero">
     <picture>
@@ -31,11 +33,7 @@ const base = import.meta.env.BASE_URL;
           </a>
         </div>
       </div>
-      <aside class="panel record-panel">
-        <p class="record-label">Verified Track Record</p>
-        <p class="display record-value">Opens at<br/>Launch</p>
-        <p class="record-note">Available once the game launches.</p>
-      </aside>
+      <LaunchStatus area="time-attack" />
     </div>
   </section>
 
@@ -53,7 +51,7 @@ const base = import.meta.env.BASE_URL;
 
   <section id="overview" class="story story-photo">
     <div class="story-photo-media" aria-hidden="true">
-      <img src={`${base}images/gellhorn-raceway-1080.webp`} alt="" loading="eager" />
+      <img src={`${base}images/gellhorn-raceway-1080.webp`} alt="" width="1080" height="608" loading="lazy" />
       <div class="story-photo-veil"></div>
     </div>
     <div class="wrap story-grid">
@@ -90,7 +88,7 @@ const base = import.meta.env.BASE_URL;
       </div>
       <div class="story-copy guide-copy">
         <p>A full section-by-section guide — braking points, racing lines, common mistakes — goes up after we've tested Gellhorn ourselves. Coming after launch.</p>
-        <img class="guide-image" src={`${base}images/gellhorn-raceway-640.webp`} alt="Gellhorn International Raceway" loading="eager" width="640" height="360" />
+        <img class="guide-image" src={`${base}images/gellhorn-raceway-640.webp`} alt="" loading="lazy" width="640" height="360" />
       </div>
     </div>
   </section>
@@ -103,14 +101,10 @@ const base = import.meta.env.BASE_URL;
   /* Fixed hero height -- kept in sync, literally, with garage/index.astro's .hero-grid so the header band is identical on every page that has one. Not viewport-fluid (clamp/vw) on purpose: it must not vary by content or screen width the way the old per-page clamp() values did. */
   .hero-grid { position: relative; display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: 2rem; min-height: 21rem; padding-block: 2rem; }
   .hero-title { font-size: 2.5rem; margin: .5rem 0 .8rem; }
-  .hero-lede { max-width: 38ch; color: var(--gh-muted); font-size: 1rem; margin: 0 0 1.1rem; } /* 1rem = same lede size as every other page hero (PageHero, Garage) */
-  .hero-copy { align-self: start; }
+  .hero-lede { max-width: 56ch; color: var(--gh-muted); font-size: 1rem; margin: 0 0 1.1rem; } /* same width as Garage/Hub (RS-0050) */ /* 1rem = same lede size as every other page hero (PageHero, Garage) */
+  .hero-copy { max-width: 46rem; align-self: start; }
   .hero-actions { display: flex; gap: .7rem; flex-wrap: wrap; }
   .hero-actions .btn { gap: .5rem; }
-  .record-panel { justify-self: end; max-width: 13rem; padding: 1rem 1.1rem; background: rgba(255,215,76,.1); border: 1px solid var(--gh-yellow); }
-  .record-label { margin: 0; color: var(--gh-yellow); font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-  .record-value { margin: .4rem 0; color: var(--gh-yellow); font-size: 1.25rem; line-height: 1; }
-  .record-note { margin: 0; color: var(--gh-yellow); font-size: .7rem; }
 
   .jump-nav { position: sticky; top: var(--gh-header-h); z-index: 30; background: rgba(20,20,26,.95); backdrop-filter: blur(10px); border-block: 1px solid var(--gh-line); }
   .jump-row { display: flex; justify-content: center; gap: 1.75rem; overflow-x: auto; }
@@ -139,11 +133,6 @@ const base = import.meta.env.BASE_URL;
 
   @media (max-width: 860px) {
     .hero-grid { grid-template-columns: 1fr; min-height: 35rem; padding-block: 2.5rem; }
-    /* The badge only has real content once the game has launched; until
-       then it duplicates nothing critical, and stacking it under the
-       hero-actions on narrow screens looked broken (and pushed this
-       page's mobile hero taller than Garage's). Hidden on mobile. */
-    .record-panel { display: none; }
     .story-grid { grid-template-columns: 1fr; }
     .guide-image { width: 100%; height: 11rem; }
   }

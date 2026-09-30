@@ -1,0 +1,10 @@
+---
+import GarageTaxonomy from '../../../components/GarageTaxonomy.astro';
+import { manufacturerPages, vehiclesByMake } from '../../../data/garage-taxonomy';
+
+export function getStaticPaths() {
+  return manufacturerPages.map((page) => ({ params: { slug: page.slug }, props: { page } }));
+}
+const { page } = Astro.props;
+---
+<GarageTaxonomy kind="manufacturer" page={page} vehicles={vehiclesByMake(page.slug)} label={`${page.name} Cars`} />

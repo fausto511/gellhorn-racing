@@ -1,0 +1,94 @@
+---
+// Class / manufacturer landing page body (RS-0050, DEC-0087). Static,
+// crawlable list of vehicles plus a short intro. Intro copy = Claude
+// placeholder until Codex has reviewed it (see data/garage-taxonomy.ts).
+import Base from '../layouts/Base.astro';
+import { compareGarageOrder, type VehicleOption } from '../data/vehicles';
+import { classPages, manufacturerPages, type TaxonomyPage } from '../data/garage-taxonomy';
+
+interface Props {
+  kind: 'class' | 'manufacturer';
+  page: TaxonomyPage;
+  vehicles: VehicleOption[];
+  /** Search-facing name, e.g. "Sports Cars" / "Bravado Cars". */
+  label: string;
+}
+const { kind, page, vehicles, label } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const list = [...vehicles].sort(compareGarageOrder);
+const path = `garage/${kind === 'class' ? 'classes' : 'manufacturers'}/${page.slug}/`;
+const metaTitle = kind === 'class' ? `GTA 6 ${label}` : `${label} in GTA 6`;
+const heading = kind === 'class' ? `GTA VI ${label}` : `${label} in GTA VI`;
+const metaDescription = kind === 'class'
+  ? `All ${list.length} ${page.name} vehicles in GTA VI with seats, drivetrain, release info and real-life inspiration. Performance data follows after launch.`
+  : `All ${list.length} ${page.name} vehicles in GTA VI with class, seats, drivetrain, release info and real-life inspiration. Performance data follows after launch.`;
+const siblings = kind === 'class' ? classPages : manufacturerPages;
+---
+<Base
+  title={metaTitle}
+  description={metaDescription}
+  section="garage"
+  breadcrumbs={[{ name: 'The Garage', path: 'garage/' }, { name: page.name, path }]}
+>
+  <section class="wrap tax-head">
+    <nav class="tax-crumbs" aria-label="Breadcrumb">
+      <a href={`${base}garage/`}>The Garage</a><span aria-hidden="true">/</span><span>{kind === 'class' ? 'Class' : 'Manufacturer'}: {page.name}</span>
+    </nav>
+    <p class="eyebrow">{kind === 'class' ? 'GTA VI Vehicle Class' : 'GTA VI Manufacturer'}</p>
+    <h1 class="display tax-title">{heading}</h1>
+    <div class="tax-intro">
+      {page.intro.map((p) => <p>{p}</p>)}
+      <p class="tax-count">{list.length} vehicles · prices and performance data follow after launch.</p>
+    </div>
+  </section>
+
+  <section class="wrap tax-grid" aria-label={`${page.name} vehicles`}>
+    {list.map((v) => (
+      <a class="tax-card" href={`${base}garage/vehicles/${v.id}/`}>
+        <span class="tax-photo">
+          {v.photo
+            ? <img src={`${base}images/vehicles/${v.id}-640.webp`} alt={`${v.make} ${v.model} in GTA VI`} width="640" height="360" loading="lazy" />
+            : <img class="tax-fallback" src={`${base}images/garage/garage-hero-placeholder-640.webp`} alt="" width="640" height="360" loading="lazy" />}
+        </span>
+        <span class="tax-body">
+          <span class="tax-make">{v.make}</span>
+          <strong class="tax-model">{v.model}</strong>
+          <span class="tax-meta">{v.classes.join(' / ')} · {v.seats} seats · {v.drive === 'n/a' ? 'Drive TBA' : v.drive}{!v.releaseId && ' · Not officially revealed'}</span>
+        </span>
+      </a>
+    ))}
+  </section>
+
+  <nav class="wrap tax-more" aria-label={kind === 'class' ? 'Other classes' : 'Other manufacturers'}>
+    <h2 class="tax-more-title">{kind === 'class' ? 'Other classes' : 'Other manufacturers'}</h2>
+    <ul>{siblings.filter((s) => s.slug !== page.slug).map((s) => <li><a href={`${base}garage/${kind === 'class' ? 'classes' : 'manufacturers'}/${s.slug}/`}>{s.name}</a></li>)}</ul>
+    <a class="tax-all" href={`${base}garage/`}>All vehicles in The Garage →</a>
+  </nav>
+</Base>
+
+<style>
+  .tax-head { padding-top: 1.75rem; }
+  .tax-crumbs { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 1.25rem; color: var(--gh-muted); font-size: .78rem; }
+  .tax-crumbs a { color: var(--gh-muted); }
+  .tax-crumbs a:hover { color: var(--gh-text); }
+  .tax-title { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: .4rem 0 .9rem; }
+  .tax-intro { max-width: 62ch; color: var(--gh-muted); font-size: 1rem; line-height: 1.6; }
+  .tax-intro p { margin: 0 0 .8rem; }
+  .tax-count { font-size: .82rem; }
+  .tax-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--gh-gap-card); padding-top: 1.25rem; }
+  .tax-card { display: flex; flex-direction: column; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; color: var(--gh-text); text-decoration: none; transition: border-color .15s; }
+  .tax-card:hover { border-color: var(--gh-muted); }
+  .tax-photo { aspect-ratio: 16/9; background: rgba(160,160,198,.08); }
+  .tax-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .tax-fallback { opacity: .4; filter: saturate(.7); }
+  .tax-body { display: flex; flex-direction: column; gap: .15rem; padding: .75rem .9rem .9rem; }
+  .tax-make { color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .tax-model { font-size: 1rem; }
+  .tax-meta { color: var(--gh-muted); font-size: .74rem; }
+  .tax-more { padding-block: 2.5rem var(--gh-gap-section); }
+  .tax-more-title { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: .95rem; margin: 0 0 .8rem; }
+  .tax-more ul { list-style: none; margin: 0 0 1.1rem; padding: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
+  .tax-more li a { display: inline-block; padding: .4rem .75rem; border: 1px solid var(--gh-line); border-radius: 999px; color: var(--gh-muted); font-size: .78rem; font-weight: 700; text-decoration: none; }
+  .tax-more li a:hover { color: var(--gh-text); border-color: var(--gh-muted); }
+  .tax-all { color: var(--gh-yellow); font-weight: 700; font-size: .88rem; text-decoration: none; }
+</style>

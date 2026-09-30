@@ -6,13 +6,16 @@
 // type are kept in sync, literally, with the Garage and Gellhorn heroes
 // (.hero-grid min-height 21rem / 35rem below 860px).
 // Images: <name>-640/1080/1672.webp + <name>-1672.jpg under /images/.
+import LaunchStatus from './LaunchStatus.astro';
 interface Props {
+  /** Pre-release status card on the right (RS-0050). */
+  status?: 'garage' | 'time-attack' | 'hub' | 'tracks';
   image: 'hub' | 'hub-events' | 'hub-crews' | 'hub-tracks' | 'gellhorn';
   eyebrow: string;
   title: string;
   lede: string;
 }
-const { image, eyebrow, title, lede } = Astro.props;
+const { image, eyebrow, title, lede, status } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const images = {
   // Visual/Cars/carmeet1.png (chosen by Fausto, 2026-09-25), 1672x940
@@ -32,12 +35,13 @@ const img = images[image];
     <img src={`${img.path}-1672.jpg`} alt="" width={img.w} height={img.h} loading="eager" fetchpriority="high" style={`--pos:${img.pos};--pos-m:${img.posMobile}`} />
   </picture>
   <div class="hero-veil" aria-hidden="true"></div>
-  <div class="wrap hero-grid">
+  <div class:list={['wrap', 'hero-grid', { 'has-aside': status }]}>
     <div class="hero-copy">
       <p class="eyebrow">{eyebrow}</p>
       <h1 class="display hero-title">{title}</h1>
       <p class="hero-lede">{lede}</p>
     </div>
+    {status && <LaunchStatus area={status} />}
   </div>
 </section>
 
@@ -49,11 +53,12 @@ const img = images[image];
   .hero img { object-position: var(--pos); }
   .hero-veil { position: absolute; inset: 0; background: linear-gradient(100deg, rgba(20,20,26,.97) 15%, rgba(20,20,26,.6) 60%, rgba(20,20,26,.85)); }
   .hero-grid { position: relative; display: grid; grid-template-columns: 1fr; /* no right-hand aside on hub pages */ align-items: center; gap: 2rem; min-height: 21rem; padding-block: 2rem; }
+  .hero-grid.has-aside { grid-template-columns: 1.5fr 1fr; } /* same split as Garage/Gellhorn (RS-0050) */
   .hero-copy { max-width: 46rem; align-self: start; }
   .hero-title { font-size: 2.5rem; margin: .5rem 0 .8rem; }
   .hero-lede { color: var(--gh-muted); font-size: 1rem; margin: 0; max-width: 56ch; }
   @media (max-width: 860px) {
-    .hero-grid { min-height: 35rem; padding-block: 2.5rem; }
+    .hero-grid, .hero-grid.has-aside { grid-template-columns: 1fr; min-height: 35rem; padding-block: 2.5rem; }
     .hero img { object-position: var(--pos-m); }
   }
 </style>

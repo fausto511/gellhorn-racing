@@ -1,5 +1,7 @@
 // robots.txt generated from `site` + `base` so it follows the domain switch
-// (DEC-0081) without a manual edit. Private areas stay out of search.
+// (DEC-0081) without a manual edit. No Disallow lines on purpose (RS-0050):
+// /account/ and /moderator/ carry `noindex` themselves, and Google only sees
+// that tag if it may crawl the page. Access control is Supabase auth/RLS.
 import type { APIRoute } from 'astro';
 
 export const GET: APIRoute = ({ site }) => {
@@ -8,8 +10,6 @@ export const GET: APIRoute = ({ site }) => {
   const body = [
     'User-agent: *',
     'Allow: /',
-    `Disallow: ${base}account/`,
-    `Disallow: ${base}moderator/`,
     '',
     `Sitemap: ${sitemap}`,
     '',

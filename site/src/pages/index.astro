@@ -4,6 +4,7 @@ import { SITE_NAME } from '../data/site';
 import '../styles/hub.css';
 import { sampleCrews, sampleEventsUpcoming } from '../data/hub';
 import { homeCrewCard, homeEventCard } from '../data/home';
+import { LAUNCH_DATE, LAUNCH_AT, LAUNCH_LABEL } from '../data/launch';
 const base = import.meta.env.BASE_URL;
 const home = new URL(base, Astro.site).href;
 const crewsHtml = sampleCrews.slice(0, 4).map(homeCrewCard).join('');
@@ -26,6 +27,7 @@ const jsonLd = [
     '@type': 'Organization',
     name: SITE_NAME,
     url: home,
+    logo: new URL(`${base}images/logo-512.png`, Astro.site).href,
     sameAs: ['https://discord.gg/hPGuBwXRqT'],
   },
 ];
@@ -58,11 +60,17 @@ const jsonLd = [
           </button>
           <a id="home-account" class="btn btn-white-tonal home-join" href={`${base}account/`} hidden>Go to My Account</a>
         </div>
+        <!-- Launch countdown (RS-0050): local midnight, date only (no unlock time announced) -->
+        <p class="home-launch" data-launch-date={LAUNCH_DATE} data-launch-at={LAUNCH_AT ?? ''}>
+          <span class="launch-dot" aria-hidden="true"></span>
+          GTA VI launches <span data-cd-when>{LAUNCH_LABEL}</span>
+          <span class="home-launch-row" data-cd-row hidden><strong data-cd="d">–</strong> days <strong data-cd="h">–</strong> hrs <strong data-cd="m">–</strong> min</span>
+        </p>
       </div>
 
       <div class="home-tiles">
         <a class="home-tile" href={`${base}garage/`}>
-          <img src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" width="1672" height="941" loading="eager" />
+          <img src={`${base}images/garage/garage-hero-placeholder-640.webp`} srcset={`${base}images/garage/garage-hero-placeholder-640.webp 640w, ${base}images/garage/garage-hero-placeholder-1080.webp 1080w`} sizes="(max-width: 760px) 80vw, 33vw" alt="" width="1672" height="941" loading="lazy" />
           <span class="home-tile-veil" aria-hidden="true"></span>
           <span class="home-tile-copy">
             <span class="eyebrow">Vehicles</span>
@@ -73,7 +81,7 @@ const jsonLd = [
         <a class="home-tile" href={`${base}time-attack/gellhorn-international-raceway/`}>
           <picture>
             <source type="image/webp" srcset={`${base}images/gellhorn-raceway-640.webp 640w, ${base}images/gellhorn-raceway-1080.webp 1080w`} sizes="(max-width: 760px) 80vw, 33vw" />
-            <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="" width="1672" height="941" loading="eager" />
+            <img src={`${base}images/gellhorn-raceway-1672.jpg`} alt="" width="1672" height="941" loading="lazy" />
           </picture>
           <span class="home-tile-veil" aria-hidden="true"></span>
           <span class="home-tile-copy">
@@ -85,7 +93,7 @@ const jsonLd = [
         <a class="home-tile" href={`${base}hub/`}>
           <picture>
             <source type="image/webp" srcset={`${base}images/hub/hub-carmeet-640.webp 640w, ${base}images/hub/hub-carmeet-1080.webp 1080w`} sizes="(max-width: 760px) 80vw, 33vw" />
-            <img src={`${base}images/hub/hub-carmeet-1672.jpg`} alt="" width="1672" height="940" loading="eager" />
+            <img src={`${base}images/hub/hub-carmeet-1672.jpg`} alt="" width="1672" height="940" loading="lazy" />
           </picture>
           <span class="home-tile-veil" aria-hidden="true"></span>
           <span class="home-tile-copy">
@@ -163,6 +171,10 @@ const jsonLd = [
   .home-intro { max-width: 64rem; margin-inline: auto; text-align: center; }
   .home-title { margin: .5rem 0 1rem; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1; text-wrap: balance; }
   .home-lede { margin: 0 auto 1.6rem; color: #d9d8e8; font-size: clamp(.95rem, 1.4vw, 1.08rem); line-height: 1.6; max-width: 46rem; }
+  .home-launch { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .45rem; margin: 1rem 0 0; color: var(--gh-muted); font-size: .8rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .home-launch-row[hidden] { display: none; }
+  .home-launch strong { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.1rem; color: var(--gh-text); }
+  .home-launch .launch-dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--gh-yellow); }
   .home-cta { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: .6rem 1rem; }
   /* Discord's own colour for the sign-in button, as in the header. */
   .home-join { gap: .6rem; padding: .95rem 1.5rem; font-size: 1rem; }
@@ -254,6 +266,7 @@ const jsonLd = [
 </style>
 
 <script>
+  import '../scripts/launch-countdown';
   import { backendConfigured, getSupabase } from '../scripts/supabase-client';
   import { fetchLiveCrews, fetchLiveEvents } from '../scripts/hub-live';
   import { homeCrewCard, homeEventCard } from '../data/home';
