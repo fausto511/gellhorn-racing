@@ -98,6 +98,20 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
 
   const isOver = (e: HubEvent) => new Date(e.ends_at ?? new Date(new Date(e.starts_at).getTime() + 3 * 3600e3).toISOString()) < new Date();
 
+  // COPY STATUS: Claude placeholders, to be reviewed by Codex.
+  function nextStepHtml(e: HubEvent, sample: boolean): string {
+    const discord = sample ? null : eventDiscord(e);
+    const psn = e.host_name ? esc(e.host_name) : '';
+    const psnPart = psn ? `<span class="ev-next-psn">Host on PlayStation: <strong>${psn}</strong> <button type="button" class="ev-next-copy" data-copy="${psn}">Copy</button></span>` : '';
+    if (sample) {
+      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Join the host\u2019s Discord so they can invite you. Sample event: no real Discord server.</p><span class="btn ev-next-dc is-disabled">Join the host\u2019s Discord</span></div>`;
+    }
+    if (discord) {
+      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Join the host\u2019s Discord so they can invite you to the lobby.</p><a class="btn ev-next-dc" href="${esc(discord)}" target="_blank" rel="noopener">Join the host\u2019s Discord</a>${psnPart}</div>`;
+    }
+    return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Add the host on PlayStation and send a message so they can invite you to the lobby.</p>${psnPart}</div>`;
+  }
+
   function renderRsvps() {
     root.querySelectorAll<HTMLElement>('[data-rsvp]').forEach((slot) => {
       const id = slot.dataset.rsvp!;
@@ -117,8 +131,13 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
       else if (closed) action = '';
       else if (full) action = '<span class="ev-full">Full</span>';
       else action = `<button type="button" class="btn btn-sm btn-primary ev-rsvp-btn" data-join="${esc(id)}">I'm in</button>`;
-      const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}${note.discord ? ` <a href="${esc(note.discord)}" target="_blank" rel="noopener">Join the host\u2019s Discord</a> to take part.` : ''}</span>` : '';
+      const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}</span>` : '';
       slot.innerHTML = `${list}${action}${msg}`;
+      // Next step after "I'm in" (Fausto, 2026-10-01): signing up alone is
+      // not enough -- the host has to be reached to get the invite.
+      const row = slot.closest('.ev-row');
+      row?.querySelector('.ev-next')?.remove();
+      if (row && mine.has(id) && e.status !== 'cancelled' && !isOver(e)) row.insertAdjacentHTML('beforeend', nextStepHtml(e, !live));
     });
   }
 
@@ -167,6 +186,11 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
   }
   root.addEventListener('click', (ev) => {
     const t = ev.target as HTMLElement;
+    const c = t.closest<HTMLButtonElement>('[data-copy]');
+    if (c) {
+      navigator.clipboard?.writeText(c.dataset.copy!).then(() => { c.textContent = 'Copied'; setTimeout(() => { c.textContent = 'Copy'; }, 1500); }).catch(() => {});
+      return;
+    }
     const j = t.closest<HTMLButtonElement>('[data-join]');
     const l = t.closest<HTMLButtonElement>('[data-leave]');
     if (j) { j.disabled = true; join(j.dataset.join!); }

@@ -37,6 +37,12 @@ const base = import.meta.env.BASE_URL;
       <div id="host-block" hidden>
         <h2 class="section-heading">My Events</h2>
         <p class="section-lede">Create and edit the events you run. Every event is public and shows up in the calendar right away — you can see who signed up in each event.</p>
+        <!-- Sign-ups overview for hosts (Fausto, 2026-10-01). Copy: Claude placeholder, Codex review pending. -->
+        <div class="panel host-signups" id="host-signups" hidden>
+          <p class="host-signups-title">Sign-ups to your upcoming events</p>
+          <div id="host-signups-list"></div>
+          <p class="host-signups-note">Players who sign up are told to join your Discord or add you on PlayStation, so make sure your invite or PSN name is set on each event.</p>
+        </div>
         <HubEditor mode="events" />
       </div>
 
@@ -60,6 +66,15 @@ const base = import.meta.env.BASE_URL;
   :global(.rsvp-row .rsvp-when) { color: var(--gh-muted); min-width: 10rem; }
   :global(.rsvp-row .rsvp-title) { flex: 1 1 12rem; font-weight: 700; }
   :global(.rsvp-row .btn) { font-size: .76rem; padding: .4rem .8rem; }
+  :global(.rsvp-psn) { color: var(--gh-muted); font-size: .8rem; }
+  :global(.rsvp-psn strong) { color: var(--gh-text); }
+  .host-signups { margin-bottom: 1.25rem; padding: 1rem 1.1rem; }
+  .host-signups-title { margin: 0 0 .6rem; font-weight: 800; }
+  .host-signups-note { margin: .6rem 0 0; color: var(--gh-muted); font-size: .8rem; }
+  :global(.hs-row) { display: flex; flex-wrap: wrap; gap: .25rem 1rem; padding: .6rem 0; border-top: 1px solid var(--gh-line); font-size: .86rem; }
+  :global(.hs-row .hs-title) { flex: 1 1 12rem; font-weight: 700; }
+  :global(.hs-row .hs-count) { color: var(--gh-text); }
+  :global(.hs-row .hs-names) { flex: 1 1 100%; color: var(--gh-muted); font-size: .8rem; }
   :global(.rsvp-empty) { margin: 0; color: var(--gh-muted); font-size: .88rem; }
 </style>
 
@@ -78,10 +93,10 @@ const base = import.meta.env.BASE_URL;
   let samplesActive: boolean | null = null;
   async function loadMine() {
     const since = new Date(Date.now() - 6 * 3600e3).toISOString();
-    const { data } = await getSupabase().from('hub_event_rsvps').select('event_id, event:hub_events(title, starts_at, status, discord_url, host:crews(name, tag, color, discord_url))').eq('driver_id', me!);
-    const rows: { id: string; title: string; starts_at: string; status: string; sample: boolean; discord?: string | null }[] = ((data ?? []) as any[])
+    const { data } = await getSupabase().from('hub_event_rsvps').select('event_id, event:hub_events(title, starts_at, status, discord_url, host_name, host:crews(name, tag, color, discord_url))').eq('driver_id', me!);
+    const rows: { id: string; title: string; starts_at: string; status: string; sample: boolean; discord?: string | null; psn?: string | null }[] = ((data ?? []) as any[])
       .filter((r) => r.event && r.event.starts_at >= since)
-      .map((r) => ({ id: r.event_id, title: r.event.title, starts_at: r.event.starts_at, status: r.event.status, sample: false, discord: r.event.status === 'cancelled' ? null : eventDiscord(r.event) }));
+      .map((r) => ({ id: r.event_id, title: r.event.title, starts_at: r.event.starts_at, status: r.event.status, sample: false, discord: r.event.status === 'cancelled' ? null : eventDiscord(r.event), psn: r.event.status === 'cancelled' ? null : r.event.host_name }));
     if (samplesActive === null) samplesActive = !(await fetchLiveEvents());
     if (samplesActive) {
       const picked = sampleRsvps();
@@ -89,7 +104,7 @@ const base = import.meta.env.BASE_URL;
     }
     rows.sort((a, b) => a.starts_at.localeCompare(b.starts_at));
     listEl.innerHTML = rows.length
-      ? rows.map((r) => `<div class="rsvp-row"><span class="rsvp-when">${esc(new Date(r.starts_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }))}</span><span class="rsvp-title">${r.status === 'cancelled' ? '✕ ' : ''}${esc(r.title)}${r.sample ? ' <span class="chip chip-sample" title="Example event — it will not take place">Sample</span>' : ''}</span>${r.discord ? `<a class="btn ev-discord" href="${esc(r.discord)}" target="_blank" rel="noopener">Host Discord</a>` : ''}<button type="button" class="btn btn-outline" data-cancel="${esc(r.id)}"${r.sample ? ' data-sample="1"' : ''}>Cancel</button></div>`).join('')
+      ? rows.map((r) => `<div class="rsvp-row"><span class="rsvp-when">${esc(new Date(r.starts_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }))}</span><span class="rsvp-title">${r.status === 'cancelled' ? '✕ ' : ''}${esc(r.title)}${r.sample ? ' <span class="chip chip-sample" title="Example event — it will not take place">Sample</span>' : ''}</span>${r.discord ? `<a class="btn ev-discord" href="${esc(r.discord)}" target="_blank" rel="noopener">Host Discord</a>` : r.psn ? `<span class="rsvp-psn">Host PSN: <strong>${esc(r.psn)}</strong></span>` : ''}<button type="button" class="btn btn-outline" data-cancel="${esc(r.id)}"${r.sample ? ' data-sample="1"' : ''}>Cancel</button></div>`).join('')
       : `<p class="rsvp-empty">You haven't signed up for any upcoming event. <a href="${base}hub/events/">Browse the calendar</a>.</p>`;
   }
   listEl.addEventListener('click', async (e) => {
@@ -106,7 +121,27 @@ const base = import.meta.env.BASE_URL;
     if (!session) return;
     const own = await getSupabase().from('drivers').select('driver_id').eq('auth_user_id', session.user.id).maybeSingle();
     me = own.data?.driver_id ?? null;
-    if (me) await loadMine();
+    if (me) { await loadMine(); await loadHostSignups(); }
+  }
+  // Hosts: sign-ups per own upcoming event, without opening each event.
+  async function loadHostSignups() {
+    const box = document.getElementById('host-signups')!;
+    const since = new Date(Date.now() - 6 * 3600e3).toISOString();
+    const sb = getSupabase();
+    const { data: evs } = await sb.from('hub_events').select('event_id, title, starts_at, status, max_participants').eq('created_by', me!).gte('starts_at', since).order('starts_at');
+    const list = (evs ?? []) as any[];
+    if (!list.length) { box.hidden = true; return; }
+    const { data: rs } = await sb.from('public_event_rsvps').select('event_id, display_name, created_at').in('event_id', list.map((e) => e.event_id)).order('created_at');
+    const by = new Map<string, (string | null)[]>();
+    for (const r of (rs ?? []) as any[]) { if (!by.has(r.event_id)) by.set(r.event_id, []); by.get(r.event_id)!.push(r.display_name); }
+    document.getElementById('host-signups-list')!.innerHTML = list.map((e) => {
+      const names = by.get(e.event_id) ?? [];
+      const named = names.filter(Boolean).map((n) => esc(n as string));
+      const anon = names.length - named.length;
+      const who = names.length ? `${named.join(', ')}${anon ? `${named.length ? ' + ' : ''}${anon} anonymous` : ''}` : 'No sign-ups yet';
+      return `<div class="hs-row"><span class="rsvp-when">${esc(new Date(e.starts_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }))}</span><span class="hs-title">${e.status === 'cancelled' ? '✕ ' : ''}${esc(e.title)}</span><span class="hs-count"><strong>${names.length}${e.max_participants ? ' / ' + e.max_participants : ''}</strong> going</span><span class="hs-names">${who}</span></div>`;
+    }).join('');
+    box.hidden = false;
   }
   if (backendConfigured) {
     const sb = getSupabase();
