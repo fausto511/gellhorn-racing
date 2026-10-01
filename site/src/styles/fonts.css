@@ -6,12 +6,9 @@
    /gellhorn-racing/ needs base-aware URLs everywhere, not just in page
    templates). */
 
-/* Display face = Barlow Condensed ExtraBold Italic (Fausto, 2026-10-01, RS-0053;
-   before: Roboto Condensed). OFL, see public/fonts/Barlow-Condensed-OFL.txt.
-   One ExtraBold file serves weights 800-900, so CSS using 900 gets no faux bold. */
 @font-face {
   font-family: 'Gellhorn Display';
-  src: url('../assets/fonts/barlow-condensed-extrabold-italic-latin.woff2') format('woff2');
+  src: url('../assets/fonts/roboto-condensed-italic-latin.woff2') format('woff2');
   font-style: italic;
   font-weight: 800 900;
   font-display: swap;
@@ -19,7 +16,7 @@
 }
 @font-face {
   font-family: 'Gellhorn Display';
-  src: url('../assets/fonts/barlow-condensed-extrabold-italic-latin-ext.woff2') format('woff2');
+  src: url('../assets/fonts/roboto-condensed-italic-latin-ext.woff2') format('woff2');
   font-style: italic;
   font-weight: 800 900;
   font-display: swap;
