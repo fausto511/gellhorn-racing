@@ -1,8 +1,7 @@
 ---
 // Pre-release status card for section headers (RS-0050, Fausto 2026-10-01).
-// Stays until launch; then set `showLaunchStatus` to false / remove it.
-// COPY STATUS: all texts here are PLACEHOLDERS by Claude, to be reviewed by
-// Codex before they count as approved copy.
+// Stays until launch, then remove it.
+// COPY STATUS: approved Codex copy (Freigegebene Website-Texte, 2026-10-01).
 import { LAUNCH_DATE, LAUNCH_AT, LAUNCH_LABEL } from '../data/launch';
 
 interface Props { area: 'garage' | 'time-attack' | 'hub' | 'tracks' }
@@ -11,16 +10,16 @@ const base = import.meta.env.BASE_URL;
 
 const lines: Record<Props['area'], string> = {
   'time-attack': 'Lap submissions open on launch day.',
-  garage: 'From launch, we list every vehicle in the base game.',
-  hub: 'Crews and events already work: create your crew or plan an event now.',
-  tracks: 'Community tracks open with the launch of the GTA VI online mode.',
+  garage: 'All GTA VI cars will be added after launch.',
+  hub: 'Create your crew or plan an event now.',
+  tracks: 'Community jobs open when creation tools are available.',
 };
 const countdown = area !== 'tracks';
 ---
 <aside class="launch-card" aria-label="Pre-release status">
-  <p class="launch-label"><span class="launch-dot" aria-hidden="true"></span>Pre-release</p>
-  <p class="launch-title">Building for launch</p>
-  <p class="launch-text">We’re building Leonida Racing ahead of GTA VI. You can already sign up with Discord.</p>
+  <p class="launch-label"><span class="launch-dot" aria-hidden="true"></span>GTA VI Pre-Release</p>
+  <p class="launch-title">Road to Launch</p>
+  <p class="launch-text">We’re building Leonida Racing ahead of GTA VI. Sign in with Discord now and get your profile ready.</p>
   <p class="launch-text launch-area">{lines[area]}</p>
   {countdown ? (
     <div class="launch-count" data-launch-date={LAUNCH_DATE} data-launch-at={LAUNCH_AT ?? ''}>
@@ -32,9 +31,9 @@ const countdown = area !== 'tracks';
       </span>
     </div>
   ) : (
-    <div class="launch-count"><span class="launch-count-label">Online mode: date to be announced</span></div>
+    <div class="launch-count"><span class="launch-count-label">Creation tools: availability to be announced</span></div>
   )}
-  <a class="launch-link" href={`${base}account/`}>Sign up with Discord →</a>
+  <a class="btn btn-red launch-btn" href={`${base}account/`}>Create Your Driver Profile</a>
 </aside>
 
 <script>
@@ -57,8 +56,7 @@ const countdown = area !== 'tracks';
   .launch-count-row[hidden] { display: none; }
   .launch-count-row span { display: flex; align-items: baseline; gap: .25rem; color: var(--gh-muted); font-size: .66rem; text-transform: uppercase; letter-spacing: .05em; }
   .launch-count-row strong { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 1.55rem; color: var(--gh-text); letter-spacing: 0; }
-  .launch-link { color: var(--gh-yellow); font-size: .8rem; font-weight: 700; text-decoration: none; }
-  .launch-link:hover { text-decoration: underline; }
+  .launch-btn { display: flex; width: 100%; justify-content: center; margin-top: .15rem; font-size: .8rem; }
   @media (max-width: 860px) {
     .launch-card { justify-self: stretch; max-width: none; align-self: end; }
   }

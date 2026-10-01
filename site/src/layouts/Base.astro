@@ -9,6 +9,8 @@ import { SITE_NAME, SITE_TAGLINE } from '../data/site';
 interface Props {
   title: string;
   description: string;
+  /** false = no " | Leonida Racing" suffix (vehicle detail pages). */
+  brandSuffix?: boolean;
   section?: 'time-attack' | 'garage' | 'hub' | 'account' | 'moderator' | null;
   noindex?: boolean;
   /** Path below the base, e.g. 'images/x.jpg'. Defaults to the 1200x630 share image of the section (RS-0050). */
@@ -28,15 +30,16 @@ const sectionOg: Record<string, { path: string; alt: string }> = {
   hub: { path: 'images/og/og-hub.jpg', alt: 'GTA VI car meet — The Hub' },
   default: { path: 'images/og/og-home.jpg', alt: 'Leonida Racing — GTA VI racing database & community' },
 };
-const { title, description, section = null, noindex = false, jsonLd = [], breadcrumbs = [] } = Astro.props;
+const { title, description, section = null, noindex = false, jsonLd = [], breadcrumbs = [], brandSuffix = true } = Astro.props;
 const og = sectionOg[section ?? 'default'] ?? sectionOg.default;
 const ogImage = Astro.props.ogImage ?? og.path;
 const ogImageAlt = Astro.props.ogImageAlt ?? og.alt;
 const ogImageWidth = Astro.props.ogImageWidth ?? (Astro.props.ogImage ? undefined : 1200);
 const ogImageHeight = Astro.props.ogImageHeight ?? (Astro.props.ogImage ? undefined : 630);
 const base = import.meta.env.BASE_URL;
-// Every page title ends with the brand (DEC-0082), unless it already starts with it (home).
-const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+// Every page title ends with the brand (DEC-0082), unless it already contains it (home)
+// or the page opts out (vehicle detail pages, approved copy 2026-10-01).
+const fullTitle = title.includes(SITE_NAME) || !brandSuffix ? title : `${title} | ${SITE_NAME}`;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(`${base}${ogImage}`, Astro.site).href;
 const allJsonLd = [...jsonLd];

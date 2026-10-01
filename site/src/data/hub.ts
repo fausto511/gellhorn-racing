@@ -121,12 +121,14 @@ export const sampleEvents: HubEvent[] = [
 
 /** Sample events moved into the near future (first one 3 days from today,
  *  same spacing and time of day as the fixed dates). Deterministic per UTC
- *  day, so the events page and My Account show the same dates. */
+ *  day, so the events page and My Account show the same dates. Never earlier
+ *  than the fixed dates, which start after the GTA VI launch (RS-0055: no
+ *  event before Nov 19, 2026, samples included). */
 export function sampleEventsUpcoming(now = new Date()): HubEvent[] {
   const DAY = 86400e3;
   const first = Date.parse(sampleEvents[0].starts_at);
   const firstDay = Math.floor(first / DAY) * DAY;
-  const targetDay = Math.floor(now.getTime() / DAY) * DAY + 3 * DAY;
+  const targetDay = Math.max(Math.floor(now.getTime() / DAY) * DAY + 3 * DAY, firstDay);
   const shift = targetDay - firstDay;
   const mv = (iso: string | null) => (iso ? new Date(Date.parse(iso) + shift).toISOString() : null);
   return sampleEvents.map((e) => ({ ...e, starts_at: mv(e.starts_at)!, ends_at: mv(e.ends_at) }));

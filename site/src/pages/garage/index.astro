@@ -19,7 +19,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 ---
 <Base
   title="The Garage — GTA VI Vehicle Database"
-  description="Browse the GTA VI vehicle database: class, seats, drivetrain, release info and real-life inspiration for every car. Prices and stats follow after launch."
+  description="Browse the GTA 6 vehicle database. Compare cars, key vehicle details, real-life inspirations, release information, and available performance data."
   section="garage"
   breadcrumbs={[{ name: 'The Garage', path: 'garage/' }]}
 >
@@ -32,7 +32,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
       <div class="hero-copy">
         <p class="eyebrow">GTA VI Vehicle Database</p>
         <h1 class="display hero-title">The Garage</h1>
-        <p class="hero-lede">Find your next car in GTA VI. Check the specs, see how the cars stack up, and decide what deserves a place in your garage. Compare prices and performance before you spend your money. Keep track of the cars you own and organize your collection in one place.</p>
+        <p class="hero-lede">Find your next car in GTA VI. Check the specs, see how the cars stack up, and decide what deserves a place in your garage. Compare key vehicle details before you spend your money, and see the real-life inspiration behind each model. Keep track of the cars you own and organize your collection in one place.</p>
       </div>
       <LaunchStatus area="garage" />
     </div>
@@ -131,11 +131,11 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
       <!-- Crawlable class + manufacturer pages (RS-0050, DEC-0087) -->
       <nav class="garage-browse" aria-label="Browse the garage">
         <div>
-          <h2 class="garage-browse-title">Browse by class</h2>
+          <h2 class="garage-browse-title">Browse by Class</h2>
           <ul>{classPages.map((c) => <li><a href={`${base}garage/classes/${c.slug}/`}>{c.name}</a></li>)}</ul>
         </div>
         <div>
-          <h2 class="garage-browse-title">Browse by manufacturer</h2>
+          <h2 class="garage-browse-title">Browse by Manufacturer</h2>
           <ul>{manufacturerPages.map((m) => <li><a href={`${base}garage/manufacturers/${m.slug}/`}>{m.name}</a></li>)}</ul>
         </div>
       </nav>

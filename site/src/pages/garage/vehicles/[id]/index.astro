@@ -31,16 +31,13 @@ const acquisitionNotes: Record<string, string> = {
 };
 const addedWithNote = release && vehicle.acquisition ? acquisitionNotes[vehicle.acquisition] : undefined;
 
-// SEO metadata (RS-0050). Title uses the common search spelling "GTA 6";
-// visible text keeps "GTA VI". The description only names data the page
-// actually shows (no price/top speed/performance until they exist).
+// SEO metadata: approved Codex copy (2026-10-01). Browser title "GTA VI"
+// without the brand suffix, meta description "GTA 6"; one template for all
+// vehicles, so unknown values never show up as "TBA" in search results.
 // Vehicles without an official release (leak-only) stay out of the index.
 const fullName = `${vehicle.make} ${vehicle.model}`;
-const metaTitle = `${fullName} – GTA 6 Car`;
-const classText = vehicle.classes.join('/');
-const metaDescription = release
-  ? `${fullName} in GTA VI: ${classText}, ${vehicle.seats} seats, ${vehicle.drive === 'n/a' ? 'drivetrain TBA' : vehicle.drive}. Release info, first appearance and real-life inspiration. Stats after launch.`
-  : `${fullName} in GTA VI: ${classText}. Not officially revealed by Rockstar yet; known details and real-life inspiration.`;
+const metaTitle = `${fullName} — GTA VI Car Specs & Performance`;
+const metaDescription = `Explore the ${fullName} in GTA 6, including key vehicle details, release information, real-life inspiration, and available performance data.`;
 const makeLink = makeHref(vehicle);
 // Measured values with provenance (RS-0052); missing = "Data pending"
 const vals = vehicleValues[vehicle.id] ?? {};
@@ -61,6 +58,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
 ---
 <Base
   title={metaTitle}
+  brandSuffix={false}
   description={metaDescription}
   section="garage"
   noindex={!vehicle.releaseId}
@@ -116,7 +114,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
         {vehicle.classes.map((c, i) => (
           <>{i > 0 && ' / '}{classHref(c) ? <a href={`${base}${classHref(c)}`}>{c}</a> : c}</>
         ))}
-        {makeLink && <> · <a href={`${base}${makeLink}`}>More {vehicle.make} cars</a></>}
+        {makeLink && <> · <a href={`${base}${makeLink}`}>More {vehicle.make} Cars</a></>}
       </p>
       <dl class="v-key">
         <div><dt>Price</dt>{vals.price_gtad ? <dd title={valueTitle(vals.price_gtad)}>{formatVehicleValue(vals.price_gtad)} <small class="v-src">{valueSourceLabels[vals.price_gtad.source_type]}</small></dd> : <dd class="status-pending"><span class="status-dot"></span>Data pending</dd>}</div>

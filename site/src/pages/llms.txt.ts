@@ -1,21 +1,22 @@
 // llms.txt (llmstxt.org): a plain-text summary for AI assistants and
 // answer engines (DEC-0082). Only facts that are true on the site today --
+// intro, status and Garage/Calendar/Tracks lines = approved Codex copy (2026-10-01);
 // update it when sections change. URLs follow `site` + `base`.
 import type { APIRoute } from 'astro';
-import { SITE_NAME, SITE_DISCLAIMER } from '../data/site';
+import { SITE_NAME } from '../data/site';
 
 export const GET: APIRoute = ({ site }) => {
   const base = import.meta.env.BASE_URL;
   const u = (p: string) => new URL(`${base}${p}`, site).href;
   const body = `# ${SITE_NAME}
 
-> ${SITE_NAME} is an independent racing database and community for Grand Theft Auto VI (GTA 6): a GTA VI vehicle database built from Rockstar's official material, with in-game classes, release info and real-world inspirations ("The Garage"), proof-based Time Attack lap-time leaderboards starting at Gellhorn International Raceway, and an event calendar and crew directory for the racing scene ("The Hub"). ${SITE_DISCLAIMER}
+> Leonida Racing is an independent Grand Theft Auto VI (GTA 6) racing database and community. The Garage covers GTA VI vehicles, classes, release information, first appearances, and real-life inspirations. Time Attack brings proof-based lap-time leaderboards to Gellhorn International Raceway. The Hub connects racers through crews and community events. Leonida Racing is not affiliated with Rockstar Games or Take-Two Interactive.
 
-Status: GTA VI releases on November 19, 2026 (PS5, Xbox Series X|S). The site is built ahead of launch: leaderboards and lap data are sample data until real laps can be submitted from launch day, and the rule set ("Gellhorn Standard") is a draft until it has been tested in the game. Time Attack is planned to open on PS5 first. A few vehicles in The Garage are known only from pre-release footage and are marked "Not officially revealed". Crews and events in The Hub can already be created; sample entries are labeled as such.
+Status: GTA VI is scheduled for release on November 19, 2026. Leonida Racing is live before the game: current leaderboard entries, lap data, crews, and events marked as samples are demonstration content. GTA VI Time Attack is planned to accept real submissions from launch day, and its rules will be tested against the released game. Vehicles known only from unofficial pre-release material are marked "Not officially revealed" and excluded from search indexing. Users can already create crews and schedule community events in The Hub.
 
 ## The Garage
 
-- [The Garage](${u('garage/')}): GTA VI vehicles with class, seats, drivetrain, release info, first appearance and real-world inspiration; prices, top speeds and lap data are added after launch once they can be checked
+- [The Garage](${u('garage/')}): browse GTA VI vehicles by class and manufacturer, with seats, drivetrain, release details, first appearance, and primary real-life inspiration; prices, tested top speeds, and lap data follow after launch
 
 ## Time Attack
 
@@ -26,9 +27,9 @@ Status: GTA VI releases on November 19, 2026 (PS5, Xbox Series X|S). The site is
 ## The Hub
 
 - [The Hub](${u('hub/')}): GTA VI racing community overview
-- [Event Calendar](${u('hub/events/')}): race nights, league rounds, time attack sessions and car meets
+- [Event Calendar](${u('hub/events/')}): GTA VI races, league rounds, community playlists, and car meets, with start times shown in each visitor’s local time zone
 - [Crews](${u('hub/crews/')}): racing crews and car meet communities
-- [Tracks](${u('hub/tracks/')}): community race jobs (GTA 6 / GTA VI) with Social Club links, filterable by race type, layout, vehicle class and lobby size; creators submit, moderators check and publish
+- [Tracks](${u('hub/tracks/')}): planned directory for GTA VI community race jobs, with creator submissions, moderation, and filters once compatible creation tools are available
 
 ## About
 

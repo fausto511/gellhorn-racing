@@ -1,7 +1,7 @@
 ---
 // Class / manufacturer landing page body (RS-0050, DEC-0087). Static,
-// crawlable list of vehicles plus a short intro. Intro copy = Claude
-// placeholder until Codex has reviewed it (see data/garage-taxonomy.ts).
+// crawlable list of vehicles plus a short intro. Intro copy: see the
+// copyStatus per page in data/garage-taxonomy.ts.
 import Base from '../layouts/Base.astro';
 import { compareGarageOrder, type VehicleOption } from '../data/vehicles';
 import { classPages, manufacturerPages, type TaxonomyPage } from '../data/garage-taxonomy';
@@ -17,11 +17,11 @@ const { kind, page, vehicles, label } = Astro.props;
 const base = import.meta.env.BASE_URL;
 const list = [...vehicles].sort(compareGarageOrder);
 const path = `garage/${kind === 'class' ? 'classes' : 'manufacturers'}/${page.slug}/`;
-const metaTitle = kind === 'class' ? `GTA 6 ${label}` : `${label} in GTA 6`;
+const metaTitle = kind === 'class' ? `GTA VI ${label}` : `${label} in GTA VI`;
 const heading = kind === 'class' ? `GTA VI ${label}` : `${label} in GTA VI`;
 const metaDescription = kind === 'class'
-  ? `All ${list.length} ${page.name} vehicles in GTA VI with seats, drivetrain, release info and real-life inspiration. Performance data follows after launch.`
-  : `All ${list.length} ${page.name} vehicles in GTA VI with class, seats, drivetrain, release info and real-life inspiration. Performance data follows after launch.`;
+  ? `Browse GTA 6 ${page.name} vehicles in The Garage. Compare models, key vehicle characteristics, real-life inspirations, release details, and available performance data.`
+  : `Explore ${page.name} vehicles in GTA 6. See the real-world inspiration behind each model and compare key characteristics and available performance data.`;
 const siblings = kind === 'class' ? classPages : manufacturerPages;
 ---
 <Base
@@ -38,7 +38,7 @@ const siblings = kind === 'class' ? classPages : manufacturerPages;
     <h1 class="display tax-title">{heading}</h1>
     <div class="tax-intro">
       {page.intro.map((p) => <p>{p}</p>)}
-      <p class="tax-count">{list.length} vehicles · prices and performance data follow after launch.</p>
+      <p class="tax-count">{list.length} vehicles · Compare models and find your next car</p>
     </div>
   </section>
 
