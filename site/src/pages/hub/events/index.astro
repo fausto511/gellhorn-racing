@@ -129,6 +129,7 @@ const initialHtml = groups.map((g) => `<h2 class="ev-month">${g.label}</h2><div 
       let action = '';
       if (mine.has(id)) action = `<button type="button" class="btn btn-sm ev-rsvp-btn is-in" data-leave="${esc(id)}" title="Click to cancel">Going ✓</button>`;
       else if (closed) action = '';
+      else if (e.registration === 'closed') action = '<span class="ev-full">Sign-ups closed</span>';
       else if (full) action = '<span class="ev-full">Full</span>';
       else action = `<button type="button" class="btn btn-sm btn-primary ev-rsvp-btn" data-join="${esc(id)}">I'm in</button>`;
       const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}</span>` : '';

@@ -33,6 +33,21 @@ export interface HubCrew {
   is_partner: boolean;
 }
 
+export type StreamPlatform = 'twitch' | 'youtube' | 'kick';
+export interface EventStream { platform: StreamPlatform; url: string; channel_name?: string | null; sort_order?: number }
+// Same patterns as the DB check hub_event_streams_url_check (RS-0058).
+const STREAM_RX: Record<StreamPlatform, RegExp> = {
+  twitch: /^https:\/\/(www\.)?twitch\.tv\/[A-Za-z0-9_]{3,25}\/?$/,
+  kick: /^https:\/\/(www\.)?kick\.com\/[A-Za-z0-9_-]{3,25}\/?$/,
+  youtube: /^https:\/\/((www|m)\.)?(youtube\.com\/(watch\?v=[A-Za-z0-9_-]{11}|live\/[A-Za-z0-9_-]{11}|@[A-Za-z0-9._-]{3,30}(\/live)?|channel\/UC[A-Za-z0-9_-]{22}(\/live)?)|youtu\.be\/[A-Za-z0-9_-]{11})$/,
+};
+export const streamPlatformLabels: Record<StreamPlatform, string> = { twitch: 'Twitch', youtube: 'YouTube', kick: 'Kick' };
+/** Platform of a stream URL, or null if it is not an accepted Twitch/YouTube/Kick link. */
+export function streamPlatform(url: string): StreamPlatform | null {
+  for (const p of Object.keys(STREAM_RX) as StreamPlatform[]) if (STREAM_RX[p].test(url)) return p;
+  return null;
+}
+
 export interface HubEvent {
   event_id: string;
   title: string;
@@ -51,6 +66,10 @@ export interface HubEvent {
   status: 'scheduled' | 'cancelled';
   host?: { name: string; tag: string; color: string; discord_url?: string | null } | null;
   max_participants?: number | null;
+  /** 'open' = "I'm in" possible; 'closed' = listed, no sign-ups (RS-0058) */
+  registration?: 'open' | 'closed';
+  /** stream links (RS-0058); own table, several per event possible */
+  streams?: EventStream[];
   /** sample events only: fictional drivers already signed up */
   sample_going?: string[];
 }
@@ -114,7 +133,7 @@ export const sampleEvents: HubEvent[] = [
   { event_id: 's1', title: 'Launch Night Grid Run', event_type: 'race', starts_at: '2026-11-21T19:00:00Z', ends_at: '2026-11-21T21:00:00Z', platforms: ['ps5'], host_name: 'Racer_01', location: 'Vice City Downtown', description: 'Open lobby, clean racing, stock vehicles. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-apex-syndicate'), max_participants: 16, sample_going: ['Racer_01', 'KerbHopper', 'ViceRacer', 'LateApex', 'SpeedyNomad', 'Nightshift', 'TurnInEarly'] },
   { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'GhostPedal', location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet'), sample_going: ['GhostPedal', 'Nightshift', 'NeonDrift', 'CoastalRun'] },
   { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['ps5'], host_name: 'SpeedyNomad', location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club'), max_participants: 12, sample_going: ['SpeedyNomad', 'ApexLimit', 'LateApex', 'Racer_01', 'Hillclimb', 'SolarFlare', 'MintyTires', 'ShadowLine', 'TarmacTom'] },
-  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'TurnInEarly', location: null, description: 'Qualifying plus two races. Registration required. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
+  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'TurnInEarly', location: null, description: 'Qualifying plus two races. Grid is set, sign-ups closed: watch it live on stream. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, registration: 'closed', streams: [{ platform: 'twitch', url: 'https://www.twitch.tv/sample_channel' }], sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
   { event_id: 's5', title: 'Everglades Sunday Cruise', event_type: 'cruise', starts_at: '2026-11-29T16:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'LatteBrake', location: 'Leonida Keys', description: 'Slow convoy, no racing. Sample event.', join_url: null, status: 'cancelled', host: sampleHost('sample-nordring-crew'), sample_going: ['LatteBrake', 'Hillclimb'] },
   { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'VelvetClutch', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null, sample_going: ['SolarFlare', 'NeonDrift', 'VelvetClutch'] },
 ];
@@ -163,6 +182,19 @@ export function eventDiscordHtml(e: HubEvent, sample = false): string {
   if (sample) return `<span class="ev-dc is-disabled" title="Sample event — no real Discord server">${iconDiscord}Join the host's Discord</span>`;
   const u = eventDiscord(e);
   return u ? `<a class="ev-dc" href="${esc(u)}" target="_blank" rel="noopener" title="Opens the host's Discord server">${iconDiscord}Join the host's Discord</a>` : '';
+}
+
+/** "Watch on Twitch/YouTube/Kick" links (RS-0058). Shown even when the
+ *  event is full or sign-ups are closed; sample events get a demo link.
+ *  COPY STATUS: Claude placeholder, Codex review pending. */
+export function eventStreamHtml(e: HubEvent, sample = false): string {
+  if (e.status === 'cancelled' || !e.streams?.length) return '';
+  const icon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  return [...e.streams].sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)).map((s) => {
+    const label = `Watch on ${streamPlatformLabels[s.platform] ?? 'stream'}`;
+    if (sample) return `<span class="ev-watch is-disabled" title="Sample event — no real stream">${icon}${label}</span>`;
+    return streamPlatform(s.url) ? `<a class="ev-watch" href="${esc(s.url)}" target="_blank" rel="noopener">${icon}${label}</a>` : '';
+  }).join('');
 }
 
 /** Social-Club-style crew tag: white plate, black tag, thin crew-colour bar at the bottom. */
@@ -271,6 +303,7 @@ export function eventRowHtml(e: HubEvent, opts: { rsvp?: boolean; sample?: boole
       <span class="ev-time">${iconClock}<span data-ts="${esc(e.starts_at)}" data-fmt="time">${esc(time)}</span>${end ? `–<span data-ts="${esc(e.ends_at)}" data-fmt="time">${esc(endTime)}</span>` : ''} <span class="ev-tz" data-tz="${esc(e.starts_at)}">UTC</span></span>
       ${e.location ? `<span class="ev-loc">${iconPin}${esc(e.location)}</span>` : ''}
       ${eventDiscordHtml(e, Boolean(opts.sample))}
+      ${eventStreamHtml(e, Boolean(opts.sample))}
       ${join && !cancelled ? `<a class="ev-info" href="${esc(join)}" target="_blank" rel="noopener">Event info ↗</a>` : ''}
       ${!opts.sample ? `<a class="ev-report" href="${esc(`${import.meta.env.BASE_URL}report-content/?event=${encodeURIComponent(e.event_id)}`)}" title="Report this event to the moderators">Report</a>` : ''}
     </p>
