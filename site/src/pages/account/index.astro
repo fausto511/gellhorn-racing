@@ -104,6 +104,8 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
      this base rule the first time round. */
   :global(.records-table td) { padding: .8rem 1.1rem; border-bottom: 1px solid var(--gh-line); white-space: nowrap; }
   :global(.records-table tbody tr:last-child td) { border-bottom: none; }
+  :global(.rec-link) { color: var(--gh-text); text-decoration: underline; text-decoration-color: var(--gh-muted); text-underline-offset: 3px; }
+  :global(.rec-link:hover) { color: var(--gh-yellow); text-decoration-color: currentColor; }
   /* :global() below: these classes are only ever added at runtime via
      innerHTML in the <script> block (record rows are rendered from live
      Supabase data), so Astro's scoped-CSS attribute is never attached to
@@ -185,6 +187,25 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
   function vehicleLabel(v) {
     if (!v) return 'Unknown Vehicle';
     return `${v.make} ${v.model}`;
+  }
+
+  // Cross-links (Fausto, 2026-10-01): vehicle -> its Garage page, track ->
+  // its leaderboard filtered to that vehicle, so you see where you stand.
+  const BASE = import.meta.env.BASE_URL;
+  const TRACK_PAGES = { 'gellhorn-international-raceway': 'time-attack/gellhorn-international-raceway/' };
+  const linkAttr = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  function vehicleCell(run) {
+    const label = vehicleLabel(run.vehicles);
+    return run.vehicle_id && run.vehicles ? `<a class="rec-link" href="${BASE}garage/vehicles/${linkAttr(run.vehicle_id)}/">${label}</a>` : label;
+  }
+  function leaderboardHref(run) {
+    const page = TRACK_PAGES[run.track_id];
+    return page ? `${BASE}${page}?vehicle=${encodeURIComponent(run.vehicle_id)}#leaderboard` : null;
+  }
+  function trackCell(run) {
+    const name = run.tracks?.name ?? '—';
+    const href = leaderboardHref(run);
+    return href ? `<a class="rec-link" href="${href}">${name}</a>` : name;
   }
 
   // review_status/publication_status -> a single human label + pill style,
@@ -330,8 +351,8 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
           canAddVideo ? '<button type="button" class="btn btn-outline add-video-btn" data-run-id="' + run.run_id + '">+ Video</button>' : '',
         ].filter(Boolean).join(' ') || '—';
         tr.innerHTML = `
-          <td>${vehicleLabel(run.vehicles)}</td>
-          <td>${run.tracks?.name ?? '—'}</td>
+          <td>${vehicleCell(run)}</td>
+          <td>${trackCell(run)}</td>
           <td>${formatLapTime(run.lap_time_ms)}</td>
           <td><span class="status-pill ${info.cls}">${info.label}</span></td>
           <td>${formatDate(run.submitted_at ?? run.created_at)}</td>
@@ -385,10 +406,10 @@ import AccountSubnav from '../../components/AccountSubnav.astro';
           rankCell = `#${faster + 1}`;
         }
         tr.innerHTML = `
-          <td>${vehicleLabel(run.vehicles)}</td>
+          <td>${vehicleCell(run)}</td>
           <td>${formatLapTime(run.lap_time_ms)}</td>
-          <td>${run.tracks?.name ?? '—'}</td>
-          <td class="rank-cell">${rankCell}</td>
+          <td>${trackCell(run)}</td>
+          <td class="rank-cell">${rankCell !== '—' && leaderboardHref(run) ? `<a class="rec-link" href="${leaderboardHref(run)}" title="Open this vehicle's leaderboard">${rankCell}</a>` : rankCell}</td>
         `;
         recordsTbodyEl.appendChild(tr);
       }

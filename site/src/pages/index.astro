@@ -5,7 +5,16 @@ import '../styles/hub.css';
 import { sampleCrews, sampleEventsUpcoming } from '../data/hub';
 import { homeCrewCard, homeEventCard } from '../data/home';
 import { LAUNCH_DATE, LAUNCH_AT, LAUNCH_LABEL } from '../data/launch';
+import VehicleTile from '../components/VehicleTile.astro';
+import { vehicleOptions } from '../data/vehicles';
 const base = import.meta.env.BASE_URL;
+// Featured Cars on the home page (Fausto, 2026-10-01). Change the ids here.
+const FEATURED_CAR_IDS = ['grotti-cheetah-95', 'declasse-mamba-gt', 'dundreary-sirius', 'schyster-deviant'];
+const featuredCars = FEATURED_CAR_IDS.map((id) => {
+  const v = vehicleOptions.find((x) => x.id === id);
+  if (!v) throw new Error(`Featured car not found: ${id}`);
+  return v;
+});
 const home = new URL(base, Astro.site).href;
 const crewsHtml = sampleCrews.slice(0, 4).map(homeCrewCard).join('');
 const eventsHtml = sampleEventsUpcoming().filter((e) => e.status !== 'cancelled').slice(0, 4).map(homeEventCard).join('');
@@ -124,6 +133,19 @@ const jsonLd = [
     </div>
     <p class="home-strip-lede">Find races, league rounds, community playlists, and car meets. All start times are shown in your time zone.</p>
     <div class="home-row" id="home-events" set:html={eventsHtml} />
+  </section>
+
+  <!-- Featured Cars (Fausto, 2026-10-01): four hand-picked vehicles with photos,
+       same tile as The Garage. -->
+  <section class="wrap home-strip home-strip-sep">
+    <div class="home-strip-head">
+      <h2 class="display home-strip-title">Featured Cars</h2>
+      <a class="home-strip-link" href={`${base}garage/`}>All vehicles →</a>
+    </div>
+    <p class="home-strip-lede">Check the specs. Find your next car.</p>
+    <div class="home-row home-cars" id="home-cars">
+      {featuredCars.map((v) => <VehicleTile vehicle={v} />)}
+    </div>
   </section>
 
   <!-- Discord band (Fausto, 2026-09-28): full-width, Discord blurple,
@@ -259,11 +281,17 @@ const jsonLd = [
     .home-tiles, .home-row { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: var(--wrap-pad, 1.25rem); gap: .75rem; margin-inline: calc(-1 * var(--wrap-pad, 1.25rem)); padding-inline: var(--wrap-pad, 1.25rem); scrollbar-width: none; }
     .home-tiles::-webkit-scrollbar, .home-row::-webkit-scrollbar { display: none; }
     .home-tile, :global(.home-row > .hc-card) { flex: 0 0 78%; scroll-snap-align: start; }
+    :global(.home-cars > .v-tile) { flex: 0 0 78%; scroll-snap-align: start; }
     .home-tile { aspect-ratio: 16 / 9; }
     .home-cta-logo { display: none; }
     .home-band-btn { flex: 1 1 100%; }
   }
 </style>
+
+<script>
+  import { initVehicleTiles } from '../scripts/vehicle-tiles';
+  initVehicleTiles(document.getElementById('home-cars') ?? document);
+</script>
 
 <script>
   import '../scripts/launch-countdown';

@@ -1,16 +1,12 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { vehicleOptions, garageOrderedVehicles, vehicleValues, formatVehicleValue } from '../../data/vehicles';
+import { vehicleOptions, garageOrderedVehicles } from '../../data/vehicles';
 import { classPages, manufacturerPages } from '../../data/garage-taxonomy';
 import LaunchStatus from '../../components/LaunchStatus.astro';
+import VehicleTile from '../../components/VehicleTile.astro';
 
 const base = import.meta.env.BASE_URL;
 
-const acquisitionLabels: Record<string, string> = {
-  'pre-order': 'Pre-Order',
-  'ultimate-edition': 'Ultimate Edition',
-  'gta-plus': 'GTA+',
-};
 
 const classes = [...new Set(vehicleOptions.flatMap((v) => v.classes))].sort();
 const makes = [...new Set(vehicleOptions.map((v) => v.make))].sort();
@@ -75,55 +71,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 
       <section class="garage-grid" id="garage-grid" aria-label="Vehicle tiles">
         {garageOrderedVehicles.map((v) => (
-          <article
-            class="v-tile"
-            data-id={v.id}
-            data-search={`${v.make} ${v.model}`.toLowerCase()}
-            data-classes={v.classes.join('|')}
-            data-make={v.make}
-            data-drive={v.drive}
-          >
-            <a class="v-tile-link" href={`${base}garage/vehicles/${v.id}/`} aria-label={`View ${v.make} ${v.model}`}></a>
-            <div class="v-photo">
-              <div class="v-badges">
-                {v.acquisition && (
-                  <span class="v-badge">{acquisitionLabels[v.acquisition]}</span>
-                )}
-              </div>
-              {v.photo ? (
-                <img
-                  src={`${base}images/vehicles/${v.id}-640.webp`}
-                  srcset={`${base}images/vehicles/${v.id}-640.webp 640w, ${base}images/vehicles/${v.id}-1280.webp 1280w`}
-                  sizes="(max-width: 700px) 100vw, 400px"
-                  alt={`${v.make} ${v.model} in GTA 6`} loading="lazy" width="640" height="360" />
-              ) : (
-                <>
-                  <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="640" height="360" />
-                  <span class="v-photo-pending">Photo pending</span>
-                </>
-              )}
-              <div class="v-name">
-                <strong>{v.make} {v.model}</strong>
-                <span>
-                  <img class="v-logo" src={`${base}images/logos/${v.logoSlug}-gta-6-logo.webp`} alt="" width="18" height="18" loading="lazy" />
-                  {v.make}
-                </span>
-              </div>
-            </div>
-            <button type="button" class="v-compare-mark" data-id={v.id} aria-pressed="false" aria-label={`Add ${v.make} ${v.model} to compare`}>＋</button>
-            <div class="v-data">
-              <span>Price{vehicleValues[v.id]?.price_gtad ? <strong>{formatVehicleValue(vehicleValues[v.id]!.price_gtad!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
-              <span>GTA Class<strong>{v.classes.join(' / ')}</strong></span>
-            </div>
-            <details class="v-expand">
-              <summary>Racing data</summary>
-              <div class="v-inner">
-                <span>Gellhorn Lap{vehicleValues[v.id]?.gellhorn_reference_lap_ms ? <strong>{formatVehicleValue(vehicleValues[v.id]!.gellhorn_reference_lap_ms!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
-                <span>Top Speed{vehicleValues[v.id]?.top_speed_mph ? <strong>{formatVehicleValue(vehicleValues[v.id]!.top_speed_mph!)}</strong> : <strong class="status-pending"><span class="status-dot"></span>Data pending</strong>}</span>
-                <span>Drive<strong>{v.drive}</strong></span>
-              </div>
-            </details>
-          </article>
+          <VehicleTile vehicle={v} />
         ))}
       </section>
       <p class="garage-empty" id="garage-empty" hidden>No vehicles match that search.</p>
@@ -131,11 +79,11 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
       <!-- Crawlable class + manufacturer pages (RS-0050, DEC-0087) -->
       <nav class="garage-browse" aria-label="Browse the garage">
         <div>
-          <h2 class="garage-browse-title">Browse by Class</h2>
+          <h2 class="garage-browse-title"><a href={`${base}garage/classes/`}>Browse by Class</a></h2>
           <ul>{classPages.map((c) => <li><a href={`${base}garage/classes/${c.slug}/`}>{c.name}</a></li>)}</ul>
         </div>
         <div>
-          <h2 class="garage-browse-title">Browse by Manufacturer</h2>
+          <h2 class="garage-browse-title"><a href={`${base}garage/manufacturers/`}>Browse by Manufacturer</a></h2>
           <ul>{manufacturerPages.map((m) => <li><a href={`${base}garage/manufacturers/${m.slug}/`}>{m.name}</a></li>)}</ul>
         </div>
       </nav>
@@ -154,6 +102,8 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 <style>
   .garage-browse { display: grid; grid-template-columns: 1fr 2fr; gap: var(--gh-gap-card); margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--gh-line); }
   .garage-browse-title { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: .95rem; margin: 0 0 .8rem; }
+  .garage-browse .garage-browse-title a { display: inline; padding: 0; border: none; border-radius: 0; color: var(--gh-text); font-size: inherit; }
+  .garage-browse .garage-browse-title a:hover { color: var(--gh-yellow); }
   .garage-browse ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
   .garage-browse a { display: inline-block; padding: .4rem .75rem; border: 1px solid var(--gh-line); border-radius: 999px; color: var(--gh-muted); font-size: .78rem; font-weight: 700; text-decoration: none; }
   .garage-browse a:hover { color: var(--gh-text); border-color: var(--gh-muted); }
@@ -191,41 +141,6 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
   .garage-search { flex: 0 1 18rem; min-width: 12rem; }
 
   .garage-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: var(--gh-gap-card); }
-  .v-tile { position: relative; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; transition: border-color .15s; }
-  .v-tile:hover { border-color: var(--gh-muted); }
-  .v-tile-link { position: absolute; inset: 0; z-index: 1; }
-  .v-photo { position: relative; aspect-ratio: 16/9; background: rgba(160,160,198,.08); overflow: hidden; }
-  .v-photo > img { width: 100%; height: 100%; object-fit: cover; }
-  .v-photo-fallback { opacity: .4; filter: saturate(.7); }
-  /* Pills top left: "Owned" always first (added by script), edition next to it (2026-09-30) */
-  .v-badges { position: absolute; top: .6rem; left: .6rem; right: 3rem; z-index: 2; display: flex; flex-wrap: wrap; gap: .35rem; pointer-events: none; }
-  .v-badge { padding: .25rem .6rem; border-radius: 999px; background: var(--gh-red); color: #fff; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-  .v-photo-pending { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(20,20,26,.7); border: 1px solid rgba(252,250,247,.12); padding: .35rem .75rem; border-radius: 999px; color: var(--gh-muted); font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
-  .v-name { position: absolute; left: 0; right: 0; bottom: 0; padding: .6rem .75rem; background: linear-gradient(to top, rgba(20,20,26,.95), transparent); display: flex; flex-direction: column; gap: .25rem; }
-  .v-name strong { font-size: .92rem; }
-  .v-name span { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; color: var(--gh-muted); text-transform: uppercase; letter-spacing: .03em; }
-  .v-logo { width: 18px; height: 18px; flex-shrink: 0; filter: brightness(0) invert(1); opacity: .85; object-fit: contain; }
-
-  .v-compare-mark { position: absolute; top: .6rem; right: .6rem; z-index: 2; width: 1.9rem; height: 1.9rem; border-radius: 50%; border: 1px solid rgba(252,250,247,.35); background: rgba(20,20,26,.65); color: var(--gh-text); font-size: 1.1rem; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-  .v-compare-mark:hover { border-color: var(--gh-text); }
-  .v-compare-mark.is-selected { background: var(--gh-yellow); border-color: var(--gh-yellow); color: #1a1206; }
-
-  .v-data { position: relative; z-index: 2; pointer-events: none; display: flex; justify-content: space-between; padding: .6rem .9rem; font-size: .72rem; border-top: 1px solid var(--gh-line); }
-  .v-data span { display: flex; flex-direction: column; gap: .2rem; text-transform: uppercase; letter-spacing: .03em; color: var(--gh-muted); }
-  .v-data strong { color: var(--gh-text); font-size: .78rem; text-transform: none; letter-spacing: 0; }
-  .v-data strong.status-pending { color: var(--gh-muted); font-weight: 600; }
-
-  .v-expand { position: relative; z-index: 2; border-top: 1px solid var(--gh-line); }
-  .v-expand summary { cursor: pointer; padding: .55rem .9rem; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--gh-muted); list-style: none; }
-  .v-expand summary::-webkit-details-marker { display: none; }
-  .v-expand summary::before { content: '▸ '; }
-  .v-expand[open] summary::before { content: '▾ '; }
-  .v-expand summary:hover { color: var(--gh-text); }
-  .v-inner { display: flex; justify-content: space-between; padding: 0 .9rem .75rem; font-size: .72rem; }
-  .v-inner span { display: flex; flex-direction: column; gap: .2rem; text-transform: uppercase; letter-spacing: .03em; color: var(--gh-muted); }
-  .v-inner strong { color: var(--gh-text); font-size: .78rem; text-transform: none; letter-spacing: 0; }
-  .v-inner strong.status-pending { color: var(--gh-muted); font-weight: 600; }
-
   .garage-empty { color: var(--gh-muted); text-align: center; padding: 3rem 0; }
   .compare-placeholder { padding: var(--gh-pad-card); }
   .compare-placeholder p { color: var(--gh-muted); margin: .75rem 0 0; max-width: 52ch; }
@@ -234,13 +149,11 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
 @media (max-width: 860px) {
   .hero-grid { grid-template-columns: 1fr; min-height: 35rem; padding-block: 2.5rem; }
 }
-  /* Owned by the signed-in driver (RS-0032) */
-  :global(.v-tile.is-owned) { border-color: var(--gh-yellow); }
-  :global(.v-owned) { padding: .25rem .6rem; border-radius: 999px; background: var(--gh-yellow); color: #1a1206; font-size: .6rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 </style>
 
 <script>
-  import { getSelected, isSelected, toggleSelected } from '../../scripts/compare';
+  import { getSelected } from '../../scripts/compare';
+  import { initVehicleTiles } from '../../scripts/vehicle-tiles';
 
   const tabs = document.querySelectorAll<HTMLButtonElement>('.garage-tab');
   const panels = document.querySelectorAll<HTMLElement>('.garage-panel');
@@ -315,21 +228,7 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
     }
   }
 
-  grid.querySelectorAll<HTMLButtonElement>('.v-compare-mark').forEach((btn) => {
-    const id = btn.dataset.id!;
-    if (isSelected(id)) {
-      btn.classList.add('is-selected');
-      btn.setAttribute('aria-pressed', 'true');
-    }
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const nowSelected = toggleSelected(id);
-      btn.classList.toggle('is-selected', nowSelected);
-      btn.setAttribute('aria-pressed', String(nowSelected));
-      updateCompareUI();
-    });
-  });
+  initVehicleTiles(grid, updateCompareUI);
 
   updateCompareUI();
 
@@ -341,20 +240,9 @@ const drives = [...new Set(vehicleOptions.map((v) => v.drive))].sort();
   if (location.hash === '#compare') {
     activateTab(document.getElementById('compare') as HTMLButtonElement);
   }
+  // Header menu "Compare" while already on this page: only the hash changes.
+  window.addEventListener('hashchange', () => {
+    if (location.hash === '#compare') activateTab(document.getElementById('compare') as HTMLButtonElement);
+  });
 </script>
 
-<script>
-  // Mark the signed-in driver's own vehicles (RS-0032). Private data, only
-  // visible to that driver; nothing happens when signed out.
-  import { currentDriverId, fetchOwned } from '../../scripts/owned';
-  (async () => {
-    if (!(await currentDriverId())) return;
-    const owned = await fetchOwned();
-    owned.forEach((id) => {
-      const tile = document.querySelector<HTMLElement>(`.v-tile[data-id="${CSS.escape(id)}"]`);
-      if (!tile || tile.classList.contains('is-owned')) return;
-      tile.classList.add('is-owned');
-      tile.querySelector('.v-badges')?.insertAdjacentHTML('afterbegin', '<span class="v-owned" title="In My Garage">Owned</span>');
-    });
-  })();
-</script>

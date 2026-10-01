@@ -115,6 +115,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
           <>{i > 0 && ' / '}{classHref(c) ? <a href={`${base}${classHref(c)}`}>{c}</a> : c}</>
         ))}
         {makeLink && <> · <a href={`${base}${makeLink}`}>More {vehicle.make} Cars</a></>}
+        {vehicle.releaseId && <> · <a href={`${base}time-attack/gellhorn-international-raceway/?vehicle=${encodeURIComponent(vehicle.id)}#leaderboard`}>Gellhorn Leaderboard</a></>}
       </p>
       <dl class="v-key">
         <div><dt>Price</dt>{vals.price_gtad ? <dd title={valueTitle(vals.price_gtad)}>{formatVehicleValue(vals.price_gtad)} <small class="v-src">{valueSourceLabels[vals.price_gtad.source_type]}</small></dd> : <dd class="status-pending"><span class="status-dot"></span>Data pending</dd>}</div>

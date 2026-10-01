@@ -1,0 +1,107 @@
+---
+// Overview pages /garage/classes/ and /garage/manufacturers/ (2026-10-01):
+// no dead path above the class/manufacturer pages, and a landing page for
+// "GTA 6 vehicle classes" / "GTA 6 car manufacturers" searches.
+// COPY STATUS: intro + meta description are PLACEHOLDERS by Claude
+// (draft-claude) until Codex has written and Fausto approved them.
+import Base from '../layouts/Base.astro';
+import { compareGarageOrder, type VehicleOption } from '../data/vehicles';
+import type { TaxonomyPage } from '../data/garage-taxonomy';
+
+interface Props {
+  kind: 'class' | 'manufacturer';
+  pages: { page: TaxonomyPage; vehicles: VehicleOption[] }[];
+  title: string;
+  heading: string;
+  description: string;
+  intro: string;
+}
+const { kind, pages, title, heading, description, intro } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const dir = kind === 'class' ? 'classes' : 'manufacturers';
+const path = `garage/${dir}/`;
+const cards = pages.map(({ page, vehicles }) => {
+  const sorted = [...vehicles].sort(compareGarageOrder);
+  const cover = sorted.find((v) => v.photo);
+  // Only officially revealed models are named in the card text.
+  const named = sorted.filter((v) => v.releaseId).slice(0, 3).map((v) => (kind === 'class' ? `${v.make} ${v.model}` : v.model));
+  return { page, count: vehicles.length, cover, named, logo: vehicles[0]?.logoSlug };
+});
+const pageUrl = new URL(`${base}${path}`, Astro.site).href;
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: heading,
+  url: pageUrl,
+  description,
+  about: { '@type': 'VideoGame', name: 'Grand Theft Auto VI', alternateName: ['GTA VI', 'GTA 6'] },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: cards.length,
+    itemListElement: cards.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.page.name, url: new URL(`${base}garage/${dir}/${c.page.slug}/`, Astro.site).href })),
+  },
+}];
+---
+<Base
+  title={title}
+  description={description}
+  section="garage"
+  jsonLd={jsonLd}
+  breadcrumbs={[{ name: 'The Garage', path: 'garage/' }, { name: kind === 'class' ? 'Classes' : 'Manufacturers', path }]}
+>
+  <section class="wrap ti-head">
+    <nav class="ti-crumbs" aria-label="Breadcrumb">
+      <a href={`${base}garage/`}>The Garage</a><span aria-hidden="true">/</span><span>{kind === 'class' ? 'Classes' : 'Manufacturers'}</span>
+    </nav>
+    <p class="eyebrow">GTA VI Vehicle Database</p>
+    <h1 class="display ti-title">{heading}</h1>
+    <p class="ti-intro">{intro}</p>
+  </section>
+
+  <section class="wrap ti-grid" aria-label={heading}>
+    {cards.map((c) => (
+      <a class="ti-card" href={`${base}garage/${dir}/${c.page.slug}/`}>
+        <span class="ti-photo">
+          {c.cover
+            ? <img src={`${base}images/vehicles/${c.cover.id}-640.webp`} alt={`${c.cover.make} ${c.cover.model} in GTA VI`} width="640" height="360" loading="lazy" />
+            : <img class="ti-fallback" src={`${base}images/garage/garage-hero-placeholder-640.webp`} alt="" width="640" height="360" loading="lazy" />}
+        </span>
+        <span class="ti-body">
+          <span class="ti-name">
+            {kind === 'manufacturer' && c.logo && <img class="ti-logo" src={`${base}images/logos/${c.logo}-gta-6-logo.webp`} alt="" width="22" height="22" loading="lazy" />}
+            <strong>{c.page.name}</strong>
+          </span>
+          <span class="ti-count">{c.count} {c.count === 1 ? 'vehicle' : 'vehicles'}</span>
+          {c.named.length > 0 && <span class="ti-models">{c.named.join(' · ')}</span>}
+        </span>
+      </a>
+    ))}
+  </section>
+
+  <nav class="wrap ti-more" aria-label="More in The Garage">
+    <a href={`${base}garage/${kind === 'class' ? 'manufacturers' : 'classes'}/`}>{kind === 'class' ? 'Browse by Manufacturer' : 'Browse by Class'} →</a>
+    <a href={`${base}garage/`}>All vehicles in The Garage →</a>
+  </nav>
+</Base>
+
+<style>
+  .ti-head { padding-top: 1.75rem; }
+  .ti-crumbs { display: flex; flex-wrap: wrap; gap: .45rem; margin-bottom: 1.25rem; color: var(--gh-muted); font-size: .78rem; }
+  .ti-crumbs a { color: var(--gh-muted); }
+  .ti-crumbs a:hover { color: var(--gh-text); }
+  .ti-title { font-size: clamp(1.9rem, 4vw, 2.6rem); margin: .4rem 0 .9rem; }
+  .ti-intro { max-width: 62ch; margin: 0; color: var(--gh-muted); font-size: 1rem; line-height: 1.6; }
+  .ti-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: var(--gh-gap-card); padding-top: 1.5rem; }
+  .ti-card { display: flex; flex-direction: column; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; color: var(--gh-text); text-decoration: none; transition: border-color .15s; }
+  .ti-card:hover { border-color: var(--gh-muted); }
+  .ti-photo { aspect-ratio: 16/9; background: rgba(160,160,198,.08); }
+  .ti-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ti-fallback { opacity: .4; filter: saturate(.7); }
+  .ti-body { display: flex; flex-direction: column; gap: .25rem; padding: .8rem .95rem 1rem; }
+  .ti-name { display: inline-flex; align-items: center; gap: .5rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: 1.15rem; }
+  .ti-logo { width: 22px; height: 22px; object-fit: contain; filter: brightness(0) invert(1); opacity: .85; }
+  .ti-count { color: var(--gh-yellow); font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+  .ti-models { color: var(--gh-muted); font-size: .78rem; line-height: 1.4; }
+  .ti-more { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; padding-block: 2.5rem var(--gh-gap-section); }
+  .ti-more a { color: var(--gh-yellow); font-weight: 700; font-size: .88rem; text-decoration: none; }
+</style>

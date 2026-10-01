@@ -5,12 +5,29 @@ interface Props {
 const { section = null } = Astro.props;
 const base = import.meta.env.BASE_URL;
 
+// Sub-pages show as a dropdown on hover/focus (desktop) and as an indented
+// list in the mobile panel (Fausto, 2026-10-01).
 const globalLinks = [
-  { key: 'garage', label: 'The Garage', href: `${base}garage/` },
+  { key: 'garage', label: 'The Garage', href: `${base}garage/`, children: [
+    { label: 'Vehicles', href: `${base}garage/` },
+    { label: 'Compare', href: `${base}garage/#compare` },
+    { label: 'Classes', href: `${base}garage/classes/` },
+    { label: 'Manufacturers', href: `${base}garage/manufacturers/` },
+  ] },
   // Direct to the track page: /time-attack/ is only a forwarding page (DEC-0047),
   // linking it would add a pointless extra page load on every click.
-  { key: 'time-attack', label: 'Time Attack', href: `${base}time-attack/gellhorn-international-raceway/` },
-  { key: 'hub', label: 'The Hub', href: `${base}hub/` },
+  { key: 'time-attack', label: 'Time Attack', href: `${base}time-attack/gellhorn-international-raceway/`, children: [
+    { label: 'Leaderboard', href: `${base}time-attack/gellhorn-international-raceway/` },
+    { label: 'How It Works', href: `${base}time-attack/how-it-works/` },
+    { label: 'Rules', href: `${base}time-attack/rules/` },
+    { label: 'Submit a Lap', href: `${base}time-attack/submit/` },
+  ] },
+  { key: 'hub', label: 'The Hub', href: `${base}hub/`, children: [
+    { label: 'Overview', href: `${base}hub/` },
+    { label: 'Events', href: `${base}hub/events/` },
+    { label: 'Crews', href: `${base}hub/crews/` },
+    { label: 'Tracks', href: `${base}hub/tracks/` },
+  ] },
 ];
 ---
 <header class="site-head" id="site-head">
@@ -20,7 +37,12 @@ const globalLinks = [
     </a>
     <nav class="global-nav" id="global-nav" aria-label="Global">
       {globalLinks.map((l) => (
-        <a href={l.href} class:list={['global-link', { 'is-active': section === l.key }]}>{l.label}</a>
+        <div class="nav-item">
+          <a href={l.href} class:list={['global-link', { 'is-active': section === l.key }]}>{l.label}</a>
+          <div class="nav-sub">
+            {l.children.map((c) => <a class="nav-sub-link" href={c.href}>{c.label}</a>)}
+          </div>
+        </div>
       ))}
     </nav>
     <div class="account-slot">
@@ -57,7 +79,10 @@ const globalLinks = [
          mobile with no replacement (Garage/Time Attack only reachable via
          in-page links). -->
     <button type="button" class="nav-toggle" id="nav-toggle" aria-controls="global-nav" aria-expanded="false" aria-label="Open menu">
-      <span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span><span class="nav-toggle-bar"></span>
+      <!-- SVG instead of three empty spans: iOS Safari collapsed the spans
+           to zero width, so the button looked blank (2026-10-01). -->
+      <svg class="nav-icon nav-icon-open" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      <svg class="nav-icon nav-icon-close" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
     </button>
   </div>
 </header>
@@ -74,6 +99,13 @@ const globalLinks = [
   .global-link { color: var(--gh-muted); text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-size: 1.05rem; font-weight: 900; letter-spacing: .01em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
   .global-link:hover { color: var(--gh-text); }
   .global-link.is-active { color: var(--gh-text); border-color: var(--gh-red); }
+  .nav-item { position: relative; display: flex; align-items: center; }
+  .nav-sub { position: absolute; top: 100%; left: -.85rem; z-index: 50; min-width: 11rem; padding: .4rem; display: flex; flex-direction: column; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); box-shadow: 0 10px 26px rgba(0,0,0,.4); opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .12s, transform .12s, visibility .12s; }
+  /* invisible bridge so the menu stays open while the pointer moves down */
+  .nav-sub::before { content: ''; position: absolute; left: 0; right: 0; top: -.9rem; height: .9rem; }
+  .nav-item:hover .nav-sub, .nav-item:focus-within .nav-sub { opacity: 1; visibility: visible; transform: none; }
+  .nav-sub-link { padding: .55rem .7rem; border-radius: var(--gh-radius); color: var(--gh-muted); font-size: .85rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
+  .nav-sub-link:hover, .nav-sub-link:focus-visible { color: var(--gh-text); background: var(--gh-surface-soft); }
   [hidden] { display: none !important; }
   .account-slot { position: relative; }
   .account-menu-trigger { display: flex; align-items: center; padding: 0; border: none; background: none; cursor: pointer; border-radius: 999px; }
@@ -97,19 +129,24 @@ const globalLinks = [
     .brand-beta { margin-left: .25rem; font-size: .52rem; padding: .1rem .3rem; }
     .global-nav { display: none; position: absolute; top: 100%; left: 0; right: 0; margin: 0; flex-direction: column; gap: 0; padding: .25rem clamp(1.25rem, 4vw, 2.5rem) .75rem; background: var(--gh-bg); border-bottom: 1px solid var(--gh-line); box-shadow: 0 12px 24px rgba(0,0,0,.35); }
     .site-head.nav-open .global-nav { display: flex; }
-    .global-link { padding-block: .85rem; border-bottom: 1px solid var(--gh-line); border-left: 2px solid transparent; padding-left: .75rem; }
-    .global-link:last-child { border-bottom-color: transparent; }
-    .global-link.is-active { border-bottom-color: var(--gh-line); border-left-color: var(--gh-red); }
+    .nav-item { display: block; border-bottom: 1px solid var(--gh-line); }
+    .nav-item:last-child { border-bottom: none; }
+    .global-link { display: block; padding-block: .85rem .35rem; border-bottom: none; border-left: 2px solid transparent; padding-left: .75rem; }
+    .global-link.is-active { border-left-color: var(--gh-red); }
+    /* mobile: sub-pages always listed, no hover */
+    .nav-sub { position: static; min-width: 0; padding: 0 0 .6rem 1.5rem; flex-direction: row; flex-wrap: wrap; gap: .1rem .3rem; background: none; border: none; box-shadow: none; opacity: 1; visibility: visible; transform: none; transition: none; }
+    .nav-sub::before { display: none; }
+    .nav-sub-link { padding: .4rem .5rem; font-size: .82rem; }
     /* Icon-only Discord button on phones -- the label ("Login with
        Discord") doesn't fit next to brand + menu button at 360px. */
     .discord-btn { padding: .55rem .65rem; }
     #discord-btn-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .nav-toggle { display: inline-flex; flex-direction: column; justify-content: center; gap: 4px; width: 2.4rem; height: 2.4rem; padding: 0 .6rem; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); cursor: pointer; }
+    .nav-toggle { display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; flex: none; width: 2.4rem; height: 2.4rem; padding: 0; -webkit-appearance: none; appearance: none; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); color: var(--gh-text); cursor: pointer; }
     .nav-toggle:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
-    .nav-toggle-bar { display: block; height: 2px; background: var(--gh-text); border-radius: 1px; transition: transform .15s, opacity .15s; }
-    .site-head.nav-open .nav-toggle-bar:nth-child(1) { transform: translateY(6px) rotate(45deg); }
-    .site-head.nav-open .nav-toggle-bar:nth-child(2) { opacity: 0; }
-    .site-head.nav-open .nav-toggle-bar:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+    .nav-icon { display: block; flex: none; }
+    .nav-icon-close { display: none; }
+    .site-head.nav-open .nav-icon-open { display: none; }
+    .site-head.nav-open .nav-icon-close { display: block; }
   }
 </style>
 

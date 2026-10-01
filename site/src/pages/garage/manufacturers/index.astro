@@ -1,0 +1,13 @@
+---
+import TaxonomyIndex from '../../../components/TaxonomyIndex.astro';
+import { manufacturerPages, vehiclesByMake } from '../../../data/garage-taxonomy';
+// Intro + description: Claude placeholders (draft-claude), Codex copy pending.
+---
+<TaxonomyIndex
+  kind="manufacturer"
+  pages={manufacturerPages.map((page) => ({ page, vehicles: vehiclesByMake(page.slug) }))}
+  title="GTA VI Car Manufacturers — All Brands"
+  heading="GTA VI Car Manufacturers"
+  description="Browse GTA 6 car manufacturers like Vapid, Declasse, Grotti, and Pegassi. See each brand's models and the real-world inspiration behind them."
+  intro="From Vapid to Pegassi, each GTA VI brand has its own real-world inspiration. Pick a manufacturer to see its cars in The Garage."
+/>

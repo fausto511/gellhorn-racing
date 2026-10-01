@@ -3,6 +3,7 @@
 // crawlable list of vehicles plus a short intro. Intro copy: see the
 // copyStatus per page in data/garage-taxonomy.ts.
 import Base from '../layouts/Base.astro';
+import VehicleTile from './VehicleTile.astro';
 import { compareGarageOrder, type VehicleOption } from '../data/vehicles';
 import { classPages, manufacturerPages, type TaxonomyPage } from '../data/garage-taxonomy';
 
@@ -23,16 +24,37 @@ const metaDescription = kind === 'class'
   ? `Browse GTA 6 ${page.name} vehicles in The Garage. Compare models, key vehicle characteristics, real-life inspirations, release details, and available performance data.`
   : `Explore ${page.name} vehicles in GTA 6. See the real-world inspiration behind each model and compare key characteristics and available performance data.`;
 const siblings = kind === 'class' ? classPages : manufacturerPages;
+// Structured data: the page is a collection of vehicle pages (SEO, 2026-10-01).
+const pageUrl = new URL(`${base}${path}`, Astro.site).href;
+const jsonLd = [{
+  '@context': 'https://schema.org',
+  '@type': 'CollectionPage',
+  name: heading,
+  url: pageUrl,
+  description: metaDescription,
+  about: { '@type': 'VideoGame', name: 'Grand Theft Auto VI', alternateName: ['GTA VI', 'GTA 6'] },
+  mainEntity: {
+    '@type': 'ItemList',
+    numberOfItems: list.length,
+    itemListElement: list.map((v, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: `${v.make} ${v.model}`,
+      url: new URL(`${base}garage/vehicles/${v.id}/`, Astro.site).href,
+    })),
+  },
+}];
 ---
 <Base
   title={metaTitle}
   description={metaDescription}
   section="garage"
-  breadcrumbs={[{ name: 'The Garage', path: 'garage/' }, { name: page.name, path }]}
+  jsonLd={jsonLd}
+  breadcrumbs={[{ name: 'The Garage', path: 'garage/' }, { name: kind === 'class' ? 'Classes' : 'Manufacturers', path: `garage/${kind === 'class' ? 'classes' : 'manufacturers'}/` }, { name: page.name, path }]}
 >
   <section class="wrap tax-head">
     <nav class="tax-crumbs" aria-label="Breadcrumb">
-      <a href={`${base}garage/`}>The Garage</a><span aria-hidden="true">/</span><span>{kind === 'class' ? 'Class' : 'Manufacturer'}: {page.name}</span>
+      <a href={`${base}garage/`}>The Garage</a><span aria-hidden="true">/</span><a href={`${base}garage/${kind === 'class' ? 'classes' : 'manufacturers'}/`}>{kind === 'class' ? 'Classes' : 'Manufacturers'}</a><span aria-hidden="true">/</span><span>{page.name}</span>
     </nav>
     <p class="eyebrow">{kind === 'class' ? 'GTA VI Vehicle Class' : 'GTA VI Manufacturer'}</p>
     <h1 class="display tax-title">{heading}</h1>
@@ -43,25 +65,13 @@ const siblings = kind === 'class' ? classPages : manufacturerPages;
   </section>
 
   <section class="wrap tax-grid" aria-label={`${page.name} vehicles`}>
-    {list.map((v) => (
-      <a class="tax-card" href={`${base}garage/vehicles/${v.id}/`}>
-        <span class="tax-photo">
-          {v.photo
-            ? <img src={`${base}images/vehicles/${v.id}-640.webp`} alt={`${v.make} ${v.model} in GTA VI`} width="640" height="360" loading="lazy" />
-            : <img class="tax-fallback" src={`${base}images/garage/garage-hero-placeholder-640.webp`} alt="" width="640" height="360" loading="lazy" />}
-        </span>
-        <span class="tax-body">
-          <span class="tax-make">{v.make}</span>
-          <strong class="tax-model">{v.model}</strong>
-          <span class="tax-meta">{v.classes.join(' / ')} · {v.seats} seats · {v.drive === 'n/a' ? 'Drive TBA' : v.drive}{!v.releaseId && ' · Not officially revealed'}</span>
-        </span>
-      </a>
-    ))}
+    {list.map((v) => <VehicleTile vehicle={v} />)}
   </section>
 
   <nav class="wrap tax-more" aria-label={kind === 'class' ? 'Other classes' : 'Other manufacturers'}>
     <h2 class="tax-more-title">{kind === 'class' ? 'Other classes' : 'Other manufacturers'}</h2>
     <ul>{siblings.filter((s) => s.slug !== page.slug).map((s) => <li><a href={`${base}garage/${kind === 'class' ? 'classes' : 'manufacturers'}/${s.slug}/`}>{s.name}</a></li>)}</ul>
+    <a class="tax-all" href={`${base}garage/${kind === 'class' ? 'classes' : 'manufacturers'}/`}>{kind === 'class' ? 'All classes' : 'All manufacturers'} →</a>
     <a class="tax-all" href={`${base}garage/`}>All vehicles in The Garage →</a>
   </nav>
 </Base>
@@ -75,20 +85,16 @@ const siblings = kind === 'class' ? classPages : manufacturerPages;
   .tax-intro { max-width: 62ch; color: var(--gh-muted); font-size: 1rem; line-height: 1.6; }
   .tax-intro p { margin: 0 0 .8rem; }
   .tax-count { font-size: .82rem; }
-  .tax-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: var(--gh-gap-card); padding-top: 1.25rem; }
-  .tax-card { display: flex; flex-direction: column; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius-lg); overflow: hidden; color: var(--gh-text); text-decoration: none; transition: border-color .15s; }
-  .tax-card:hover { border-color: var(--gh-muted); }
-  .tax-photo { aspect-ratio: 16/9; background: rgba(160,160,198,.08); }
-  .tax-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .tax-fallback { opacity: .4; filter: saturate(.7); }
-  .tax-body { display: flex; flex-direction: column; gap: .15rem; padding: .75rem .9rem .9rem; }
-  .tax-make { color: var(--gh-muted); font-size: .68rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-  .tax-model { font-size: 1rem; }
-  .tax-meta { color: var(--gh-muted); font-size: .74rem; }
+  .tax-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr)); gap: var(--gh-gap-card); padding-top: 1.25rem; }
   .tax-more { padding-block: 2.5rem var(--gh-gap-section); }
   .tax-more-title { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: .95rem; margin: 0 0 .8rem; }
   .tax-more ul { list-style: none; margin: 0 0 1.1rem; padding: 0; display: flex; flex-wrap: wrap; gap: .45rem; }
   .tax-more li a { display: inline-block; padding: .4rem .75rem; border: 1px solid var(--gh-line); border-radius: 999px; color: var(--gh-muted); font-size: .78rem; font-weight: 700; text-decoration: none; }
   .tax-more li a:hover { color: var(--gh-text); border-color: var(--gh-muted); }
-  .tax-all { color: var(--gh-yellow); font-weight: 700; font-size: .88rem; text-decoration: none; }
+  .tax-all { display: inline-block; margin-right: 1.25rem; color: var(--gh-yellow); font-weight: 700; font-size: .88rem; text-decoration: none; }
 </style>
+
+<script>
+  import { initVehicleTiles } from '../scripts/vehicle-tiles';
+  initVehicleTiles(document);
+</script>
