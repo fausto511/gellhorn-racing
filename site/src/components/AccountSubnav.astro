@@ -33,7 +33,7 @@ const links = [
 </style>
 
 <script>
-  // Badge on the Crew tab: open join requests for crews I lead.
+  // Badge on the Crew tab: open join requests for crews I lead + invites for me.
   import { backendConfigured, getSupabase } from '../scripts/supabase-client';
   async function badge() {
     if (!backendConfigured) return;
@@ -46,8 +46,13 @@ const links = [
     if (!me) return;
     const roles = await sb.from('hub_roles').select('crew_id').eq('driver_id', me).eq('role', 'crew_leader');
     const ids = (roles.data ?? []).map((r: any) => r.crew_id).filter(Boolean);
-    if (!ids.length) return;
-    const { count } = await sb.from('crew_membership_overview').select('membership_id', { count: 'exact', head: true }).eq('status', 'pending').in('crew_id', ids);
+    // + crew invites waiting for me (RS-0063)
+    const inv = await sb.from('crew_memberships').select('membership_id', { count: 'exact', head: true }).eq('driver_id', me).eq('status', 'invited');
+    let count = inv.count ?? 0;
+    if (ids.length) {
+      const req = await sb.from('crew_membership_overview').select('membership_id', { count: 'exact', head: true }).eq('status', 'pending').in('crew_id', ids);
+      count += req.count ?? 0;
+    }
     const el = document.querySelector<HTMLElement>('[data-acc-tab="crew"] .acc-tab-count');
     if (el && count) { el.textContent = String(count); el.hidden = false; }
   }

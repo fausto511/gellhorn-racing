@@ -64,6 +64,9 @@ const base = import.meta.env.BASE_URL;
   :global(.mem-head p) { margin: 0; color: var(--gh-muted); font-size: .88rem; max-width: 52ch; }
   :global(.mem-head strong) { color: var(--gh-text); }
   :global(.mem-current + .mem-current) { margin-top: 1.2rem; }
+  :global(.mem-invites) { display: flex; flex-direction: column; gap: .7rem; margin-bottom: 1.2rem; }
+  :global(.mem-invite-card) { border-color: var(--gh-yellow); }
+  :global(.mem-invite-actions) { display: flex; gap: .5rem; }
   :global(.mem-pending) { display: flex; flex-direction: column; gap: .7rem; margin-top: 1.2rem; }
 </style>
 
@@ -92,7 +95,8 @@ const base = import.meta.env.BASE_URL;
 
   async function load() {
     const sb = getSupabase();
-    let res: any = await sb.from('crew_membership_overview').select('membership_id, crew_id, status, crew_name, tag, color, is_primary, requested_at').eq('driver_id', me!).order('requested_at');
+    let res: any = await sb.from('crew_membership_overview').select('membership_id, crew_id, status, crew_name, tag, color, is_primary, requested_at, invited_by_name').eq('driver_id', me!).order('requested_at');
+    if (res.error) res = await sb.from('crew_membership_overview').select('membership_id, crew_id, status, crew_name, tag, color, is_primary, requested_at').eq('driver_id', me!).order('requested_at');
     if (res.error) res = await sb.from('crew_membership_overview').select('membership_id, crew_id, status, crew_name, tag, color, requested_at').eq('driver_id', me!).order('requested_at');
     mine = res.data ?? [];
     const activeIds = mine.filter((m) => m.status === 'active').map((m) => m.crew_id);
@@ -107,24 +111,36 @@ const base = import.meta.env.BASE_URL;
   function render(note = '', isError = false) {
     const active = mine.filter((m) => m.status === 'active').sort((a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)));
     const pending = mine.filter((m) => m.status === 'pending');
+    const invites = mine.filter((m) => m.status === 'invited');
+    const used = active.length + pending.length; // invites don't count until accepted (DEC-0094)
+    const invHtml = invites.length ? `<div class="mem-invites">${invites.map((m) => `<div class="panel mem-empty-card mem-invite-card"><p>${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong> invited you to join their crew${m.invited_by_name ? ` (invite from ${esc(m.invited_by_name)})` : ''}.</p><span class="mem-invite-actions"><button type="button" class="btn btn-primary" data-accept="${esc(m.crew_id)}"${used >= LIMIT ? ` disabled title="You are already in ${LIMIT} crews (open requests included)"` : ''}>Accept</button><button type="button" class="btn btn-outline" data-decline="${esc(m.crew_id)}">Decline</button></span></div>`).join('')}</div>` : '';
     const msg = note ? `<p class="mem-msg${isError ? ' is-error' : ''}">${esc(note)}</p>` : '';
-    const find = mine.length < LIMIT ? `<a class="btn btn-primary" href="${base}hub/crews/">Find a crew</a>` : '';
-    if (!mine.length) {
-      memEl.innerHTML = `<div class="panel mem-empty-card"><p><strong>You're not in a crew yet.</strong> Find crews that race the way you do and ask to join — up to ${LIMIT}. The crew leader approves.</p>${find}</div>${msg}`;
+    const find = used < LIMIT ? `<a class="btn btn-primary" href="${base}hub/crews/">Find a crew</a>` : '';
+    if (!active.length && !pending.length) {
+      memEl.innerHTML = `${invHtml}<div class="panel mem-empty-card"><p><strong>You're not in a crew yet.</strong> Find crews that race the way you do and request an invite — up to ${LIMIT}. The crew leader approves.</p>${find}</div>${msg}`;
       return;
     }
-    const head = `<div class="mem-head"><p>You're in <strong>${active.length}</strong> crew${active.length === 1 ? '' : 's'}${pending.length ? ` and have <strong>${pending.length}</strong> open request${pending.length === 1 ? '' : 's'}` : ''} (${mine.length}/${LIMIT}). Your <strong>Active Crew</strong> is the tag shown next to your name, e.g. on the leaderboard.</p>${find}</div>`;
+    const head = `<div class="mem-head"><p>You're in <strong>${active.length}</strong> crew${active.length === 1 ? '' : 's'}${pending.length ? ` and have <strong>${pending.length}</strong> open request${pending.length === 1 ? '' : 's'}` : ''} (${used}/${LIMIT}). Your <strong>Active Crew</strong> is the tag shown next to your name, e.g. on the leaderboard.</p>${find}</div>`;
     const cards = active.map((m) => {
       const c = crewData.get(m.crew_id);
       const leads = leaderIds.includes(m.crew_id);
       return `<div class="mem-current"><div class="crew-grid">${c ? crewCardHtml(c) : ''}</div><div class="mem-side"><p>${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong>${m.is_primary ? ' <span class="crew-pill">Active Crew</span>' : ''}${leads ? '<br>You lead this crew — manage it below.' : ''}</p>${m.is_primary || active.length < 2 ? '' : `<button type="button" class="btn btn-outline" data-primary="${esc(m.crew_id)}">Set as Active Crew</button>`}<button type="button" class="btn btn-outline" data-leave="${esc(m.membership_id)}" data-kind="leave">Leave crew</button></div></div>`;
     }).join('');
     const reqs = pending.length ? `<div class="mem-pending">${pending.map((m) => `<div class="panel mem-empty-card"><p>Your request to join ${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong> is waiting for the crew leader.</p><button type="button" class="btn btn-outline" data-leave="${esc(m.membership_id)}" data-kind="withdraw">Withdraw request</button></div>`).join('')}</div>` : '';
-    memEl.innerHTML = head + msg + cards + reqs;
+    memEl.innerHTML = invHtml + head + msg + cards + reqs;
   }
 
   memEl.addEventListener('click', async (e) => {
     const t = e.target as HTMLElement;
+    const acc = t.closest<HTMLButtonElement>('[data-accept]');
+    const dec = t.closest<HTMLButtonElement>('[data-decline]');
+    if (acc || dec) {
+      (acc ?? dec)!.disabled = true;
+      const { error } = await getSupabase().rpc(acc ? 'accept_crew_invite' : 'decline_crew_invite', { p_crew: (acc ?? dec)!.dataset[acc ? 'accept' : 'decline'] });
+      await load();
+      render(error ? (/crew_limit/.test(error.message) ? `You are already in ${LIMIT} crews (open requests included).` : 'That did not work. Please try again.') : acc ? 'Welcome to the crew!' : 'Invite declined.', Boolean(error));
+      return;
+    }
     const p = t.closest<HTMLButtonElement>('[data-primary]');
     if (p) {
       p.disabled = true;

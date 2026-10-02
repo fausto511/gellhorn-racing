@@ -9,7 +9,7 @@ import { crewTagHtml, esc, type HubCrew } from '../data/hub';
 import { backendConfigured, getSupabase } from './supabase-client';
 
 export const CREW_LIMIT = 5;
-type Mine = { membership_id: string; crew_id: string; status: 'pending' | 'active'; is_primary?: boolean };
+type Mine = { membership_id: string; crew_id: string; status: 'invited' | 'pending' | 'active'; is_primary?: boolean };
 const SAMPLE_KEY = 'lr-sample-crew-requests';
 
 function readSample(): string[] { try { return JSON.parse(localStorage.getItem(SAMPLE_KEY) || '[]'); } catch { return []; } }
@@ -27,13 +27,16 @@ export function createCrewMembership(root: HTMLElement, meEl: HTMLElement | null
   const crewById = (id: string) => crews.find((c) => (live ? c.crew_id : c.slug) === id);
 
   function render(message = '', isError = false) {
-    const full = mine.length >= CREW_LIMIT;
+    // Invites don't count towards the limit until accepted (DEC-0094)
+    const used = mine.filter((x) => x.status !== 'invited').length;
+    const full = used >= CREW_LIMIT;
     root.querySelectorAll<HTMLElement>('.crew-card[data-crew-id]').forEach((card) => {
       const slot = card.querySelector<HTMLElement>('.crew-join-slot');
       if (!slot) return;
       const id = card.dataset.crewId!;
       const m = mine.find((x) => x.crew_id === id);
-      if (m?.status === 'active') slot.innerHTML = `<span class="crew-pill">${m.is_primary ? 'Active Crew' : 'Your crew'}</span>`;
+      if (m?.status === 'invited') slot.innerHTML = `<span class="crew-pill">Invited</span><a class="crew-link" href="${base}account/crew/">Accept in My Account</a>`;
+      else if (m?.status === 'active') slot.innerHTML = `<span class="crew-pill">${m.is_primary ? 'Active Crew' : 'Your crew'}</span>`;
       else if (m) slot.innerHTML = `<span class="crew-pill is-pending">Request sent</span><button type="button" class="crew-link crew-withdraw" data-withdraw="${esc(id)}">Withdraw</button>`;
       else if (full) slot.innerHTML = `<span class="crew-pill is-pending" title="You can be in up to ${CREW_LIMIT} crews, open requests included">${CREW_LIMIT} crews max</span>`;
       else slot.innerHTML = `<button type="button" class="crew-link crew-join-btn" data-join="${esc(id)}">Request Invite</button>`;
@@ -41,10 +44,11 @@ export function createCrewMembership(root: HTMLElement, meEl: HTMLElement | null
     if (!meEl) return;
     const active = mine.filter((m) => m.status === 'active');
     const pending = mine.filter((m) => m.status === 'pending');
+    const invited = mine.filter((m) => m.status === 'invited');
     const tags = active.map((m) => { const c = crewById(m.crew_id); return c ? crewTagHtml(c.tag, c.color, 'sm') : ''; }).join(' ');
     const parts: string[] = [];
     if (mine.length) {
-      parts.push(`<span class="crew-me-text">${active.length ? `Your crews: ${tags}` : ''}${active.length && pending.length ? ' · ' : ''}${pending.length ? `${pending.length} open request${pending.length === 1 ? '' : 's'}` : ''} <span class="crew-me-count">(${mine.length}/${CREW_LIMIT})</span></span>`);
+      parts.push(`<span class="crew-me-text">${active.length ? `Your crews: ${tags}` : ''}${active.length && pending.length ? ' · ' : ''}${pending.length ? `${pending.length} open request${pending.length === 1 ? '' : 's'}` : ''}${invited.length ? `${active.length || pending.length ? ' · ' : ''}${invited.length} invite${invited.length === 1 ? '' : 's'} waiting` : ''} <span class="crew-me-count">(${used}/${CREW_LIMIT})</span></span>`);
       parts.push(live ? `<a class="crew-link" href="${base}account/crew/">Manage in My Account</a>` : '<span class="crew-me-msg">Sample crews — requests are a demo, stored in this browser.</span>');
     }
     if (message) parts.push(`<span class="crew-me-msg${isError ? ' is-error' : ''}">${esc(message)}</span>`);

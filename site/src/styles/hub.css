@@ -208,3 +208,7 @@ a.ev-dc:hover { color: #aab2ff; text-decoration: underline; text-underline-offse
 /* buttons inside crew cards use the link size (2026-10-02) */
 .crew-join-btn { font-size: .75rem; font-weight: 700; white-space: nowrap; }
 .crew-link { white-space: nowrap; }
+
+/* Crew invites (RS-0063) */
+.mem-invite { margin: .6rem 0 1rem; }
+.mem-invite-search { max-width: 22rem; margin: .2rem 0 .5rem; }

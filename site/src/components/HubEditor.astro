@@ -102,6 +102,13 @@ const base = import.meta.env.BASE_URL;
           <div id="members-panel" class="members-panel" hidden>
             <div class="form-head"><h2>Members</h2><span class="members-sub" id="members-sub"></span></div>
             <div id="members-pending"></div>
+            <!-- Invite drivers (RS-0063, DEC-0094). COPY: Claude placeholders. -->
+            <div class="mem-invite">
+              <p class="mem-group-title">Invite a driver</p>
+              <label class="ui-search mem-invite-search"><input type="search" id="invite-q" placeholder="Driver name (min. 3 letters)" aria-label="Search drivers to invite" autocomplete="off" /></label>
+              <div id="invite-results"></div>
+              <div id="members-invited"></div>
+            </div>
             <div id="members-active"></div>
             <p class="form-msg" id="members-msg" aria-live="polite"></p>
           </div>
@@ -493,7 +500,9 @@ const base = import.meta.env.BASE_URL;
 
   // ------------------------------------------------------------ members
   async function loadMembers() {
-    const { data } = await getSupabase().from('crew_membership_overview').select('membership_id, crew_id, driver_id, display_name, status, requested_at, decided_at').order('requested_at');
+    let res: any = await getSupabase().from('crew_membership_overview').select('membership_id, crew_id, driver_id, display_name, status, requested_at, decided_at, invited_by_name').order('requested_at');
+    if (res.error) res = await getSupabase().from('crew_membership_overview').select('membership_id, crew_id, driver_id, display_name, status, requested_at, decided_at').order('requested_at');
+    const data = res.data;
     // Own membership in a crew I don't manage is not relevant here.
     members = ((data ?? []) as any[]).filter((m) => isMod || leaderCrewIds.has(m.crew_id));
     const total = visibleCrews().reduce((n, c) => n + pendingFor(c.crew_id), 0);
@@ -506,7 +515,11 @@ const base = import.meta.env.BASE_URL;
     const mine = members.filter((m) => m.crew_id === selectedId);
     const pending = mine.filter((m) => m.status === 'pending');
     const active = mine.filter((m) => m.status === 'active');
+    const invited = mine.filter((m) => m.status === 'invited');
     const d = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' }) : '');
+    $('members-invited').innerHTML = invited.length
+      ? `<p class="mem-group-title">Open invites (${invited.length}/20)</p>` + invited.map((m) => `<div class="mem-row is-pending"><span class="mem-name">${esc(m.display_name)}</span><span class="mem-date">invited ${esc(d(m.requested_at))}${m.invited_by_name ? ` by ${esc(m.invited_by_name)}` : ''}</span><span class="mem-actions"><button type="button" class="btn btn-outline-red btn-sm" data-drop="${esc(m.membership_id)}" data-label="Withdraw">Withdraw</button></span></div>`).join('')
+      : '';
     $('members-sub').textContent = `${active.length} member${active.length === 1 ? '' : 's'} on this site`;
     $('members-pending').innerHTML = `<p class="mem-group-title">Join requests</p>` + (pending.length
       ? pending.map((m) => `<div class="mem-row is-pending"><span class="mem-name">${esc(m.display_name)}</span><span class="mem-date">asked ${esc(d(m.requested_at))}</span><span class="mem-actions"><button type="button" class="btn btn-primary btn-sm" data-approve="${esc(m.membership_id)}">Approve</button><button type="button" class="btn btn-outline-red btn-sm" data-drop="${esc(m.membership_id)}" data-label="Decline">Decline</button></span></div>`).join('')
@@ -541,8 +554,36 @@ const base = import.meta.env.BASE_URL;
       drop.disabled = true;
       const { error } = await sb.from('crew_memberships').delete().eq('membership_id', drop.dataset.drop!);
       await loadMembers(); renderList();
-      renderMembers(error ? `That did not work: ${error.message}` : drop.dataset.label === 'Decline' ? 'Request declined.' : 'Member removed.', Boolean(error));
+      renderMembers(error ? `That did not work: ${error.message}` : drop.dataset.label === 'Decline' ? 'Request declined.' : drop.dataset.label === 'Withdraw' ? 'Invite withdrawn.' : 'Member removed.', Boolean(error));
+      return;
     }
+    const inv = t.closest<HTMLButtonElement>('[data-invite]');
+    if (inv && selectedId) {
+      inv.disabled = true;
+      const { error } = await sb.from('crew_memberships').insert({ crew_id: selectedId, driver_id: inv.dataset.invite!, status: 'invited', invited_by: ownDriverId });
+      ($('invite-q') as HTMLInputElement).value = '';
+      $('invite-results').innerHTML = '';
+      await loadMembers();
+      const why = error ? (/invite_limit/.test(error.message) ? 'Your crew already has 20 open invites.' : /invite_declined/.test(error.message) ? 'This driver declined an invite from your crew in the last 30 days.' : /duplicate|unique/i.test(error.message) ? 'This driver is already a member, invited or has asked to join.' : `Could not invite: ${error.message}`) : `Invite sent to ${inv.dataset.name}. They accept it in My Account.`;
+      renderMembers(why, Boolean(error));
+    }
+  });
+
+  // Driver search for invites (leader/moderator only, enforced by the RPC)
+  let inviteTimer: number | undefined;
+  $('invite-q').addEventListener('input', () => {
+    clearTimeout(inviteTimer);
+    const q = ($('invite-q') as HTMLInputElement).value.trim();
+    const out = $('invite-results');
+    if (q.length < 3 || !selectedId) { out.innerHTML = ''; return; }
+    inviteTimer = window.setTimeout(async () => {
+      const { data, error } = await getSupabase().rpc('search_drivers_for_invite', { p_crew: selectedId, p_query: q });
+      if (error) { out.innerHTML = `<p class="mem-empty">Search is not available right now.</p>`; return; }
+      const rows = (data ?? []) as { driver_id: string; display_name: string }[];
+      out.innerHTML = rows.length
+        ? rows.map((r) => `<div class="mem-row"><span class="mem-name">${esc(r.display_name)}</span><span class="mem-actions"><button type="button" class="btn btn-primary btn-sm" data-invite="${esc(r.driver_id)}" data-name="${esc(r.display_name)}">Invite to Crew</button></span></div>`).join('')
+        : '<p class="mem-empty">No driver found who isn\u2019t already in your crew or invited.</p>';
+    }, 300);
   });
 
   // ------------------------------------------------------------ crew form
