@@ -1,0 +1,102 @@
+---
+// Consent for anonymous visitor statistics (Cloudflare Web Analytics, no
+// cookies). Fausto, 2026-10-02: full-width bar at the bottom, the page frame
+// shrinks by its height instead of being covered; muted lilac tone from the
+// palette; clear switches. The beacon loads ONLY after "Allow".
+// Choice is stored in localStorage (technically necessary, Section 25(2) TDDDG).
+// Footer link "Privacy settings" reopens the bar.
+// COPY STATUS: Claude placeholder, to be reviewed by Codex.
+const base = import.meta.env.BASE_URL;
+---
+<div class="consent-bar" id="consent-bar" role="region" aria-label="Visitor statistics" hidden>
+  <div class="wrap consent-inner">
+    <p class="consent-text">
+      <strong>Help us grow Leonida Racing.</strong>
+      Allow anonymous visitor statistics with Cloudflare Web Analytics — no cookies, no tracking across sites.{' '}
+      <a href={`${base}privacy/#analytics`}>Privacy Policy</a>
+    </p>
+    <div class="consent-actions">
+      <button type="button" class="consent-btn consent-no" data-consent="denied">No thanks</button>
+      <button type="button" class="consent-btn consent-yes" data-consent="granted">Allow</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const KEY = 'lr-analytics-consent';
+  const TOKEN = '4d1bcf5ef7214ae8a1b3330c5387809c';
+  const bar = document.getElementById('consent-bar') as HTMLElement;
+
+  const read = (): string | null => { try { return localStorage.getItem(KEY); } catch { return null; } };
+  const write = (v: string | null) => { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch { /* storage blocked */ } };
+
+  let loaded = false;
+  function loadBeacon() {
+    if (loaded) return;
+    loaded = true;
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.src = 'https://static.cloudflareinsights.com/beacon.min.js';
+    s.setAttribute('data-cf-beacon', JSON.stringify({ token: TOKEN }));
+    document.body.appendChild(s);
+  }
+
+  // Page frame shrinks by the bar's height (body padding), nothing is covered.
+  function syncSpace() {
+    document.documentElement.style.setProperty('--consent-h', bar.hidden ? '0px' : `${bar.offsetHeight}px`);
+  }
+  function show() {
+    bar.hidden = false;
+    requestAnimationFrame(() => { bar.classList.add('is-in'); syncSpace(); });
+  }
+  function hide() {
+    bar.classList.remove('is-in');
+    bar.hidden = true;
+    syncSpace();
+  }
+
+  const choice = read();
+  if (choice === 'granted') loadBeacon();
+  else if (choice !== 'denied') show();
+
+  bar.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-consent]');
+    if (!b) return;
+    const v = b.dataset.consent!;
+    write(v);
+    hide();
+    if (v === 'granted') loadBeacon();
+  });
+  window.addEventListener('resize', () => { if (!bar.hidden) syncSpace(); });
+  // "Privacy settings" in the footer: ask again. A beacon that already ran
+  // stops counting with the next page load after "No thanks".
+  document.addEventListener('click', (e) => {
+    if ((e.target as HTMLElement).closest('[data-consent-open]')) { e.preventDefault(); write(null); show(); }
+  });
+</script>
+
+<style>
+  .consent-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: color-mix(in srgb, var(--gh-muted) 22%, var(--gh-bg)); border-top: 1px solid color-mix(in srgb, var(--gh-muted) 45%, transparent); box-shadow: 0 -10px 30px rgba(0,0,0,.35); transform: translateY(100%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  .consent-bar[hidden] { display: none; }
+  .consent-bar.is-in { transform: none; }
+  .consent-inner { display: flex; align-items: center; gap: 1rem 1.5rem; padding-block: .75rem; }
+  .consent-text { flex: 1; margin: 0; color: var(--gh-text); font-size: .84rem; line-height: 1.45; }
+  .consent-text strong { margin-right: .25rem; }
+  .consent-text a { color: var(--gh-text); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  .consent-actions { display: flex; gap: .6rem; flex: none; }
+  .consent-btn { min-width: 7.5rem; padding: .65rem 1.2rem; border-radius: var(--gh-radius); font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .85rem; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; transition: transform .12s, filter .12s, background .12s; }
+  .consent-btn:hover { transform: translateY(-1px); }
+  .consent-btn:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
+  .consent-no { background: transparent; color: var(--gh-text); border: 2px solid color-mix(in srgb, var(--gh-text) 70%, transparent); }
+  .consent-no:hover { background: rgba(252,250,247,.08); }
+  .consent-yes { background: var(--gh-red); color: #fff; border: 2px solid var(--gh-red); animation: consent-nudge 2.4s ease-in-out .8s 2; }
+  .consent-yes:hover { filter: brightness(1.08); }
+  @keyframes consent-nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(237,37,61,0); } 50% { box-shadow: 0 0 0 .4rem rgba(237,37,61,.25); } }
+  @media (prefers-reduced-motion: reduce) { .consent-bar { transition: none; } .consent-yes { animation: none; } }
+  @media (max-width: 640px) {
+    .consent-inner { flex-direction: column; align-items: stretch; gap: .65rem; }
+    .consent-text { font-size: .8rem; }
+    .consent-actions .consent-btn { flex: 1; min-width: 0; }
+  }
+  :global(body) { padding-bottom: var(--consent-h, 0px); }
+</style>
