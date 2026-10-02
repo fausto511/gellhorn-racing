@@ -78,6 +78,8 @@ if (breadcrumbs.length) {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content={ogImageUrl} />
     <meta name="twitter:image:alt" content={ogImageAlt} />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
     <link rel="alternate" type="text/plain" title={`${SITE_NAME} — ${SITE_TAGLINE} (for AI assistants)`} href={`${base}llms.txt`} />
     {allJsonLd.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(allJsonLd.length === 1 ? allJsonLd[0] : allJsonLd)} />}
     <!-- Favicon: LR mark (Visual/Logos/leonida-racing-favicon.png) on the dark brand square, 2026-10-02 -->
