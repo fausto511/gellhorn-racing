@@ -113,11 +113,11 @@ const base = import.meta.env.BASE_URL;
       memEl.innerHTML = `<div class="panel mem-empty-card"><p><strong>You're not in a crew yet.</strong> Find crews that race the way you do and ask to join — up to ${LIMIT}. The crew leader approves.</p>${find}</div>${msg}`;
       return;
     }
-    const head = `<div class="mem-head"><p>You're in <strong>${active.length}</strong> crew${active.length === 1 ? '' : 's'}${pending.length ? ` and have <strong>${pending.length}</strong> open request${pending.length === 1 ? '' : 's'}` : ''} (${mine.length}/${LIMIT}). Your <strong>main crew</strong> is the tag shown next to your name, e.g. on the leaderboard.</p>${find}</div>`;
+    const head = `<div class="mem-head"><p>You're in <strong>${active.length}</strong> crew${active.length === 1 ? '' : 's'}${pending.length ? ` and have <strong>${pending.length}</strong> open request${pending.length === 1 ? '' : 's'}` : ''} (${mine.length}/${LIMIT}). Your <strong>Active Crew</strong> is the tag shown next to your name, e.g. on the leaderboard.</p>${find}</div>`;
     const cards = active.map((m) => {
       const c = crewData.get(m.crew_id);
       const leads = leaderIds.includes(m.crew_id);
-      return `<div class="mem-current"><div class="crew-grid">${c ? crewCardHtml(c) : ''}</div><div class="mem-side"><p>${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong>${m.is_primary ? ' <span class="crew-pill">Main crew</span>' : ''}${leads ? '<br>You lead this crew — manage it below.' : ''}</p>${m.is_primary || active.length < 2 ? '' : `<button type="button" class="btn btn-outline" data-primary="${esc(m.crew_id)}">Make main crew</button>`}<button type="button" class="btn btn-outline" data-leave="${esc(m.membership_id)}" data-kind="leave">Leave crew</button></div></div>`;
+      return `<div class="mem-current"><div class="crew-grid">${c ? crewCardHtml(c) : ''}</div><div class="mem-side"><p>${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong>${m.is_primary ? ' <span class="crew-pill">Active Crew</span>' : ''}${leads ? '<br>You lead this crew — manage it below.' : ''}</p>${m.is_primary || active.length < 2 ? '' : `<button type="button" class="btn btn-outline" data-primary="${esc(m.crew_id)}">Set as Active Crew</button>`}<button type="button" class="btn btn-outline" data-leave="${esc(m.membership_id)}" data-kind="leave">Leave crew</button></div></div>`;
     }).join('');
     const reqs = pending.length ? `<div class="mem-pending">${pending.map((m) => `<div class="panel mem-empty-card"><p>Your request to join ${crewTagHtml(m.tag, m.color, 'sm')} <strong>${esc(m.crew_name)}</strong> is waiting for the crew leader.</p><button type="button" class="btn btn-outline" data-leave="${esc(m.membership_id)}" data-kind="withdraw">Withdraw request</button></div>`).join('')}</div>` : '';
     memEl.innerHTML = head + msg + cards + reqs;
@@ -130,7 +130,7 @@ const base = import.meta.env.BASE_URL;
       p.disabled = true;
       const { error } = await getSupabase().rpc('set_primary_crew', { p_crew: p.dataset.primary });
       await load();
-      render(error ? 'Could not change your main crew. Please try again.' : 'Main crew updated.', Boolean(error));
+      render(error ? 'Could not change your Active Crew. Please try again.' : 'Active Crew updated.', Boolean(error));
       return;
     }
     const b = t.closest<HTMLButtonElement>('[data-leave]');

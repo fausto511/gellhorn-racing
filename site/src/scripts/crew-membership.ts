@@ -3,7 +3,8 @@
 // one active crew is the primary crew (DEC-0093). All rules are enforced by
 // the DB (RLS + triggers on crew_memberships); this is only the UI.
 // Sample crews (no live data yet): demo requests stored in this browser.
-// COPY STATUS: Claude placeholders, Codex review pending.
+// COPY STATUS: Claude placeholders, Codex review pending. "Request Invite" and
+// "Active Crew" follow the Rockstar Social Club wording (Fausto, 2026-10-02).
 import { crewTagHtml, esc, type HubCrew } from '../data/hub';
 import { backendConfigured, getSupabase } from './supabase-client';
 
@@ -32,10 +33,10 @@ export function createCrewMembership(root: HTMLElement, meEl: HTMLElement | null
       if (!slot) return;
       const id = card.dataset.crewId!;
       const m = mine.find((x) => x.crew_id === id);
-      if (m?.status === 'active') slot.innerHTML = `<span class="crew-pill">${m.is_primary ? 'Your main crew' : 'Your crew'}</span>`;
+      if (m?.status === 'active') slot.innerHTML = `<span class="crew-pill">${m.is_primary ? 'Active Crew' : 'Your crew'}</span>`;
       else if (m) slot.innerHTML = `<span class="crew-pill is-pending">Request sent</span><button type="button" class="crew-link crew-withdraw" data-withdraw="${esc(id)}">Withdraw</button>`;
       else if (full) slot.innerHTML = `<span class="crew-pill is-pending" title="You can be in up to ${CREW_LIMIT} crews, open requests included">${CREW_LIMIT} crews max</span>`;
-      else slot.innerHTML = `<button type="button" class="crew-link crew-join-btn" data-join="${esc(id)}">Request to join</button>`;
+      else slot.innerHTML = `<button type="button" class="crew-link crew-join-btn" data-join="${esc(id)}">Request Invite</button>`;
     });
     if (!meEl) return;
     const active = mine.filter((m) => m.status === 'active');
