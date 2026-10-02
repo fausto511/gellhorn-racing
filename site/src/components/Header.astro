@@ -1,6 +1,6 @@
 ---
 interface Props {
-  section?: 'time-attack' | 'garage' | 'hub' | 'account' | 'moderator' | null;
+  section?: 'time-attack' | 'garage' | 'hub' | 'guide' | 'account' | 'moderator' | null;
 }
 const { section = null } = Astro.props;
 const base = import.meta.env.BASE_URL;
@@ -27,6 +27,13 @@ const globalLinks = [
     { label: 'Events', href: `${base}hub/events/` },
     { label: 'Crews', href: `${base}hub/crews/` },
     { label: 'Tracks', href: `${base}hub/tracks/` },
+  ] },
+  // The Guide (2026-10-03): one page, sub-items jump to its sections.
+  { key: 'guide', label: 'The Guide', href: `${base}guide/`, children: [
+    { label: 'Vehicles', href: `${base}guide/#vehicles` },
+    { label: 'Customization', href: `${base}guide/#customization` },
+    { label: 'Racing', href: `${base}guide/#racing` },
+    { label: 'FAQ', href: `${base}guide/#faq` },
   ] },
 ];
 ---

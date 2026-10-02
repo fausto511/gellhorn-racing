@@ -1,0 +1,145 @@
+---
+// The Guide (/guide/): one sourced overview page. No /guide/... sub-pages
+// until they have enough own sourced content (Codex handoff 2026-10-02).
+// Copy and corrections: see data/guide.ts.
+import Base from '../../layouts/Base.astro';
+import { vehicleOptions } from '../../data/vehicles';
+import { SITE_NAME } from '../../data/site';
+import { GUIDE_PUBLISHED, GUIDE_UPDATED, guideCoverage, guideFaq, guideMethodology, guideSections } from '../../data/guide';
+
+const base = import.meta.env.BASE_URL;
+const title = 'The Guide — GTA VI Cars, Tuning & Racing';
+const description = 'Explore sourced information on GTA 6 cars, driving physics, car theft, customization, mod shops, garages, racing, car meets, and Gellhorn.';
+const updatedLabel = new Date(`${GUIDE_UPDATED}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+const vehicleCount = vehicleOptions.length; // same count The Garage shows
+const anchors = [
+  ['vehicles', 'Vehicles'], ['driving', 'Driving'], ['ownership', 'Ownership'], ['customization', 'Customization'],
+  ['racing', 'Racing'], ['car-culture', 'Car Culture'], ['faq', 'FAQ'], ['sources', 'Sources'],
+];
+const pageUrl = new URL(`${base}guide/`, Astro.site).href;
+const org = { '@type': 'Organization', name: SITE_NAME, url: new URL(base, Astro.site).href };
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: title,
+    description,
+    url: pageUrl,
+    mainEntityOfPage: pageUrl,
+    datePublished: GUIDE_PUBLISHED,
+    dateModified: GUIDE_UPDATED,
+    author: org,
+    publisher: org,
+    image: new URL(`${base}images/og/og-home.jpg`, Astro.site).href,
+    about: { '@type': 'VideoGame', name: 'Grand Theft Auto VI', alternateName: ['GTA VI', 'GTA 6'] },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: guideFaq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  },
+];
+---
+<Base title={title} description={description} section="guide" jsonLd={jsonLd} breadcrumbs={[{ name: 'The Guide', path: 'guide/' }]}>
+  <section class="wrap gd-hero">
+    <p class="eyebrow">GTA VI Vehicle Knowledge</p>
+    <h1 class="display gd-title">The Guide</h1>
+    <p class="gd-lede">The sourced guide to GTA VI cars, driving, customization, garages, racing, and car culture. See what Rockstar has confirmed, what official footage shows, and which details are still open.</p>
+
+    <div class="gd-stats">
+      <a class="panel gd-stat" href={`${base}garage/`}><strong>{vehicleCount}</strong><span>Vehicles in The Garage</span></a>
+      <div class="panel gd-stat"><strong>3</strong><span>Racing Formats Shown</span></div>
+      <div class="panel gd-stat"><strong>2</strong><span>Named Mod Shops</span></div>
+      <div class="panel gd-stat"><strong class="gd-stat-date"><time datetime={GUIDE_UPDATED}>{updatedLabel}</time></strong><span>Updated</span></div>
+    </div>
+    <p class="gd-note">This page follows official Rockstar material and on-record developer interviews. Visible details are described as shown, without turning them into features Rockstar has not announced.</p>
+
+    <nav class="gd-jump" aria-label="On this page">
+      {anchors.map(([id, label]) => <a href={`#${id}`}>{label}</a>)}
+    </nav>
+  </section>
+
+  <div class="wrap gd-body">
+    {guideSections.map((s) => (
+      <section class="gd-sec" id={s.id} aria-labelledby={`${s.id}-h`}>
+        <h2 class="gd-h2" id={`${s.id}-h`}>{s.title}</h2>
+        {s.status && <p class="gd-status"><span class="gd-status-k">Status:</span> {s.status}</p>}
+        {s.paragraphs.map((p) => <p class="gd-p" set:html={p} />)}
+        {s.cta && <a class="btn btn-outline gd-cta" href={`${base}${s.cta.href}`}>{s.cta.label} →</a>}
+        <div class="gd-sources">
+          <p class="gd-sources-h">{s.sourcesHeading ?? 'Sources for this section'}</p>
+          <ul>
+            {s.sources.map((src) => (
+              <li><a href={src.url} target="_blank" rel="noopener">{src.label}</a>{src.note ? `: ${src.note}` : ''}</li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <section class="gd-sec" id="coverage" aria-labelledby="coverage-h">
+      <h2 class="gd-h2" id="coverage-h">How Leonida Racing Covers GTA VI Cars and Racing</h2>
+      {guideCoverage.map((c) => <p class="gd-p"><strong>{c.name}</strong> {c.text}</p>)}
+      <div class="gd-ctas">
+        <a class="btn btn-outline" href={`${base}garage/`}>Explore The Garage</a>
+        <a class="btn btn-outline" href={`${base}time-attack/gellhorn-international-raceway/`}>Visit Time Attack</a>
+        <a class="btn btn-outline" href={`${base}hub/`}>Open The Hub</a>
+      </div>
+    </section>
+
+    <section class="gd-sec" id="faq" aria-labelledby="faq-h">
+      <h2 class="gd-h2" id="faq-h">Frequently Asked Questions</h2>
+      {guideFaq.map((f) => (
+        <div class="gd-faq">
+          <h3 class="gd-h3">{f.q}</h3>
+          <p class="gd-p">{f.a}</p>
+        </div>
+      ))}
+    </section>
+
+    <section class="gd-sec" id="sources" aria-labelledby="sources-h">
+      <h2 class="gd-h2" id="sources-h">Methodology and Source Note</h2>
+      {guideMethodology.map((p) => <p class="gd-p" set:html={p} />)}
+      <p class="gd-updated">Last updated: <time datetime={GUIDE_UPDATED}>{updatedLabel}</time></p>
+      <p class="gd-indep">Leonida Racing is an independent community project and is not affiliated with Rockstar Games or Take-Two Interactive.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .gd-hero { padding-top: 2rem; }
+  .gd-title { margin: .4rem 0 .9rem; font-size: clamp(2.6rem, 7vw, 4.5rem); }
+  .gd-lede { max-width: 64ch; margin: 0; color: var(--gh-muted); font-size: 1.05rem; line-height: 1.6; }
+  .gd-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-top: 1.75rem; }
+  .gd-stat { display: flex; flex-direction: column; gap: .3rem; padding: 1rem 1.1rem; color: var(--gh-text); text-decoration: none; }
+  a.gd-stat:hover { border-color: var(--gh-muted); }
+  .gd-stat strong { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 2rem; line-height: 1; color: var(--gh-yellow); }
+  .gd-stat strong.gd-stat-date { font-size: 1.15rem; line-height: 1.75rem; }
+  .gd-stat span { color: var(--gh-muted); font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+  .gd-note { max-width: 70ch; margin: .9rem 0 0; color: var(--gh-muted); font-size: .85rem; line-height: 1.55; }
+  .gd-jump { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px solid var(--gh-line); }
+  .gd-jump a { padding: .38rem .8rem; border: 1px solid var(--gh-line); border-radius: 999px; color: var(--gh-text); font-size: .8rem; font-weight: 700; text-decoration: none; }
+  .gd-jump a:hover { border-color: var(--gh-red); }
+  .gd-body > .gd-sec { max-width: 780px; }
+  .gd-sec { padding-top: 2.5rem; scroll-margin-top: 5rem; }
+  .gd-h2 { margin: 0 0 .6rem; font-family: var(--gh-font-display); font-style: italic; font-weight: 900; text-transform: uppercase; font-size: clamp(1.35rem, 3vw, 1.75rem); line-height: 1.1; }
+  .gd-h3 { margin: 1.25rem 0 .35rem; font-size: 1.02rem; font-weight: 800; }
+  .gd-status { display: inline-block; margin: 0 0 .9rem; padding: .25rem .65rem; border: 1px solid var(--gh-yellow); border-radius: var(--gh-radius); color: var(--gh-yellow); font-size: .74rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .gd-status-k { color: var(--gh-muted); }
+  .gd-p { margin: 0 0 .9rem; line-height: 1.7; font-size: 1rem; }
+  .gd-p :global(strong) { color: var(--gh-text); }
+  .gd-cta { margin: .2rem 0 .4rem; padding: .6rem 1.1rem; font-size: .85rem; }
+  .gd-ctas { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .4rem; }
+  .gd-ctas .btn { padding: .6rem 1.1rem; font-size: .85rem; }
+  .gd-sources { margin-top: 1rem; padding: .85rem 1rem; border-left: 2px solid var(--gh-line); background: color-mix(in srgb, var(--gh-surface) 55%, transparent); border-radius: 0 var(--gh-radius) var(--gh-radius) 0; }
+  .gd-sources-h { margin: 0 0 .4rem; color: var(--gh-muted); font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+  .gd-sources ul { margin: 0; padding-left: 1.1rem; color: var(--gh-muted); font-size: .82rem; line-height: 1.55; }
+  .gd-sources li + li { margin-top: .3rem; }
+  .gd-sources a { color: var(--gh-text); text-underline-offset: 2px; }
+  .gd-faq + .gd-faq { border-top: 1px solid var(--gh-line); }
+  .gd-updated { margin: 1.25rem 0 .3rem; font-weight: 700; }
+  .gd-indep { margin: 0; color: var(--gh-muted); font-size: .85rem; }
+  @media (max-width: 760px) {
+    .gd-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

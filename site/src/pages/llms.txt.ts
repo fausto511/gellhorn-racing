@@ -31,6 +31,10 @@ Status: GTA VI is scheduled for release on November 19, 2026. Leonida Racing is 
 - [Crews](${u('hub/crews/')}): racing crews and car meet communities
 - [Tracks](${u('hub/tracks/')}): planned directory for GTA VI community race jobs, with creator submissions, moderation, and filters once compatible creation tools are available
 
+## The Guide
+
+- [The Guide](${u('guide/')}): sourced overview of GTA VI cars, driving physics, car theft, customization and mod shops, garages, racing, and car culture, with confirmed facts kept separate from open questions
+
 ## About
 
 - [About](${u('about/')}): what the site is and what it isn't
