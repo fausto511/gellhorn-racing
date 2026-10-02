@@ -17,7 +17,7 @@ export interface GuideSection {
   id: string;
   title: string;
   status?: string;
-  paragraphs: string[]; // trusted HTML (only <strong>)
+  paragraphs: string[]; // trusted HTML (<strong>, internal <a href="{base}…">)
   cta?: { label: string; href: string };
   sourcesHeading?: string;
   sources: GuideSource[];
@@ -40,7 +40,7 @@ export const guideSections: GuideSection[] = [
     paragraphs: [
       `GTA VI brings back familiar in-game manufacturers and models while adding vehicles created specifically for Leonida. Rockstar has named only part of the full lineup, so The Garage also documents vehicles identified in official trailers and screenshots. Each entry separates an official name from a visual identification.`,
       `The known lineup reaches beyond cars. Official material includes motorcycles, boats, a kayak, personal watercraft, helicopters, planes, and specialist vehicles alongside sedans, muscle cars, supercars, SUVs, off-road builds, and classics. A vehicle appearing in footage confirms that it exists in the world; it does not always prove that the player can own or drive it.`,
-      `Open The Garage for individual models, GTA classes, manufacturers, first appearances, release information, and real-life inspirations. Prices and tested performance data will be added when they can be verified in the released game.`,
+      `Open The Garage for individual models, <a href="{base}garage/classes/">GTA classes</a>, <a href="{base}garage/manufacturers/">manufacturers</a>, first appearances, release information, and real-life inspirations. Prices and tested performance data will be added when they can be verified in the released game.`,
     ],
     cta: { label: 'Explore The Garage', href: 'garage/' },
     sources: [
@@ -81,7 +81,7 @@ export const guideSections: GuideSection[] = [
     status: 'Confirmed & Reported',
     paragraphs: [
       `GTA VI has personal vehicles and garages, but Rockstar has not published the complete ownership system. The registration mechanic described in the developer demonstration provides a way to turn at least some stolen cars into personal vehicles. How many vehicles each character can own, how garage capacity works, and whether vehicles can be moved freely between properties remain open questions.`,
-      `Rockstar has named Jason’s Safehouse Vehicles as Ultimate Edition content and shown the Dinka Enduro motorcycle, Crest Kayak, and Ganado Retro Build under that label. The Ultimate Edition also includes the ’67 Vapid Dominator Buggy with a garage, while the Vintage Vice City Pack includes the ’55 Vapid Stanier Sedan with a garage.`,
+      `Rockstar has named Jason’s Safehouse Vehicles as Ultimate Edition content and shown the Dinka Enduro motorcycle, Crest Kayak, and Ganado Retro Build under that label. The Ultimate Edition also includes the <a href="{base}garage/vehicles/vapid-dominator-67-buggy/">’67 Vapid Dominator Buggy</a> with a garage, while the Vintage Vice City Pack includes the <a href="{base}garage/vehicles/vapid-stanier-55/">’55 Vapid Stanier Sedan</a> with a garage.`,
       `The accompanying Rockstar press material identifies those locations as Paradise Garage in Watson Bay and Shore Court Garage near Ocean Beach. They are personal garages, not confirmed tuning shops.`,
     ],
     sources: [
@@ -209,18 +209,18 @@ export const guideCoverage: { name: string; text: string }[] = [
 ];
 
 /** FAQ: the same text is used for the visible answers and FAQPage JSON-LD. */
-export const guideFaq: { q: string; a: string }[] = [
+export const guideFaq: { q: string; a: string; aHtml?: string }[] = [
   { q: 'What vehicles are confirmed for GTA VI?', a: 'Rockstar has named selected cars, motorcycles, boats, and other vehicles through its editions pages and official screenshots. Many more vehicles are visible in trailers without being named by Rockstar. The Garage separates officially named models from visual identifications.' },
   { q: 'How does stealing cars work in GTA VI?', a: 'Rockstar North’s Rob Nelson described a tiered system. Some parked vehicles require tools such as a Slim Jim or key cloner, while occupied vehicles can still be carjacked. A phone scanner can provide information about a vehicle’s security, tracker, value, and registration cost.' },
   { q: 'Can stolen cars become personal vehicles?', a: 'The Rockstar-led demonstration included a cost to register a vehicle as your own. The complete conditions, storage requirements, and eligible vehicle list have not been published.' },
   { q: 'Does GTA VI have car customization?', a: 'Yes. Rockstar has confirmed specialist mod shops and described cosmetic and performance-oriented modifications. The complete parts catalog and standard-edition workshop options remain unknown.' },
   { q: 'What mod shops are confirmed for GTA VI?', a: 'Rideout Customs Mod Shop and One-Eyed Willie’s Mod Shop are confirmed as Ultimate Edition content. Rideout Customs focuses on interiors, wheels, and donk builds; One-Eyed Willie’s specializes in off-road modifications and hand-painted designs.' },
-  { q: 'Does GTA VI have garages?', a: 'Yes. Rockstar has named garage content connected to the ’67 Vapid Dominator Buggy and ’55 Vapid Stanier, and it has shown Jason’s Safehouse Vehicles. The wider garage and capacity system has not been fully explained.' },
+  { q: 'Does GTA VI have garages?', a: 'Yes. Rockstar has named garage content connected to the ’67 Vapid Dominator Buggy and ’55 Vapid Stanier, and it has shown Jason’s Safehouse Vehicles. The wider garage and capacity system has not been fully explained.', aHtml: 'Yes. Rockstar has named garage content connected to the <a href="{base}garage/vehicles/vapid-dominator-67-buggy/">’67 Vapid Dominator Buggy</a> and <a href="{base}garage/vehicles/vapid-stanier-55/">’55 Vapid Stanier</a>, and it has shown Jason’s Safehouse Vehicles. The wider garage and capacity system has not been fully explained.' },
   { q: 'What kinds of racing are shown in GTA VI?', a: 'Official in-game footage shows circuit, off-road, and street racing with position and timing information on screen. Event access, rewards, classes, championships, and online support remain open.' },
-  { q: 'Is Gellhorn International Raceway confirmed?', a: 'Rockstar has shown a dedicated paved circuit and separate Gellhorn International racing branding. Leonida Racing uses the established name Gellhorn International Raceway, while noting that Rockstar’s public footage has not yet displayed the complete venue name beside the circuit.' },
+  { q: 'Is Gellhorn International Raceway confirmed?', aHtml: 'Rockstar has shown a dedicated paved circuit and separate Gellhorn International racing branding. Leonida Racing uses the established name <a href="{base}time-attack/gellhorn-international-raceway/">Gellhorn International Raceway</a>, while noting that Rockstar’s public footage has not yet displayed the complete venue name beside the circuit.', a: 'Rockstar has shown a dedicated paved circuit and separate Gellhorn International racing branding. Leonida Racing uses the established name Gellhorn International Raceway, while noting that Rockstar’s public footage has not yet displayed the complete venue name beside the circuit.' },
   { q: 'Are car meets confirmed in GTA VI?', a: 'Rockstar has shown car-meet and street-takeover scenes. Those scenes confirm the culture and setting, but Rockstar has not yet announced a player-hosted car-meet system.' },
-  { q: 'Will GTA VI have a Race Creator?', a: 'Rockstar has not confirmed a Race Creator or player-built race jobs for GTA VI. The Hub will add community-created tracks when compatible creation tools become available.' },
-  { q: 'Where can I compare GTA VI cars?', a: 'The Garage lets you browse GTA VI vehicles by class and manufacturer and compare the details currently available. Verified prices, tested top speeds, and performance data will follow when the released game makes reliable testing possible.' },
+  { q: 'Will GTA VI have a Race Creator?', a: 'Rockstar has not confirmed a Race Creator or player-built race jobs for GTA VI. The Hub will add community-created tracks when compatible creation tools become available.', aHtml: 'Rockstar has not confirmed a Race Creator or player-built race jobs for GTA VI. <a href="{base}hub/tracks/">The Hub will add community-created tracks</a> when compatible creation tools become available.' },
+  { q: 'Where can I compare GTA VI cars?', a: 'The Garage lets you browse GTA VI vehicles by class and manufacturer and compare the details currently available. Verified prices, tested top speeds, and performance data will follow when the released game makes reliable testing possible.', aHtml: '<a href="{base}garage/">The Garage</a> lets you browse GTA VI vehicles by <a href="{base}garage/classes/">class</a> and <a href="{base}garage/manufacturers/">manufacturer</a> and <a href="{base}garage/#compare">compare</a> the details currently available. Verified prices, tested top speeds, and performance data will follow when the released game makes reliable testing possible.' },
 ];
 
 export const guideMethodology: string[] = [

@@ -17,6 +17,8 @@ const anchors = [
   ['racing', 'Racing'], ['car-culture', 'Car Culture'], ['faq', 'FAQ'], ['sources', 'Sources'],
 ];
 const pageUrl = new URL(`${base}guide/`, Astro.site).href;
+// Internal links in the copy use {base}; JSON-LD uses the plain FAQ text.
+const withBase = (html: string) => html.replaceAll('{base}', base);
 const org = { '@type': 'Organization', name: SITE_NAME, url: new URL(base, Astro.site).href };
 const jsonLd = [
   {
@@ -64,7 +66,7 @@ const jsonLd = [
       <section class="gd-sec" id={s.id} aria-labelledby={`${s.id}-h`}>
         <h2 class="gd-h2" id={`${s.id}-h`}>{s.title}</h2>
         {s.status && <p class="gd-status"><span class="gd-status-k">Status:</span> {s.status}</p>}
-        {s.paragraphs.map((p) => <p class="gd-p" set:html={p} />)}
+        {s.paragraphs.map((p) => <p class="gd-p" set:html={withBase(p)} />)}
         {s.cta && <a class="btn btn-outline gd-cta" href={`${base}${s.cta.href}`}>{s.cta.label} →</a>}
         <div class="gd-sources">
           <p class="gd-sources-h">{s.sourcesHeading ?? 'Sources for this section'}</p>
@@ -92,7 +94,7 @@ const jsonLd = [
       {guideFaq.map((f) => (
         <div class="gd-faq">
           <h3 class="gd-h3">{f.q}</h3>
-          <p class="gd-p">{f.a}</p>
+          <p class="gd-p" set:html={withBase(f.aHtml ?? f.a)} />
         </div>
       ))}
     </section>
@@ -128,6 +130,8 @@ const jsonLd = [
   .gd-status-k { color: var(--gh-muted); }
   .gd-p { margin: 0 0 .9rem; line-height: 1.7; font-size: 1rem; }
   .gd-p :global(strong) { color: var(--gh-text); }
+  .gd-p :global(a) { color: var(--gh-text); text-decoration: underline; text-decoration-color: var(--gh-red); text-underline-offset: 3px; }
+  .gd-p :global(a:hover) { color: var(--gh-yellow); }
   .gd-cta { margin: .2rem 0 .4rem; padding: .6rem 1.1rem; font-size: .85rem; }
   .gd-ctas { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: .4rem; }
   .gd-ctas .btn { padding: .6rem 1.1rem; font-size: .85rem; }
