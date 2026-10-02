@@ -100,12 +100,17 @@ const globalLinks = [
   .global-link:hover { color: var(--gh-text); }
   .global-link.is-active { color: var(--gh-text); border-color: var(--gh-red); }
   .nav-item { position: relative; display: flex; align-items: center; }
-  .nav-sub { position: absolute; top: 100%; left: -.85rem; z-index: 50; min-width: 11rem; padding: .4rem; display: flex; flex-direction: column; background: var(--gh-surface); border: 1px solid var(--gh-line); border-radius: var(--gh-radius); box-shadow: 0 10px 26px rgba(0,0,0,.4); opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .12s, transform .12s, visibility .12s; }
+  /* Dropdown looks like the header itself (Fausto, 2026-10-02): header
+     background, menu font, red underline follows the hovered entry. */
+  .nav-sub { position: absolute; top: calc(100% + .55rem); left: -1rem; z-index: 50; min-width: 12rem; padding: .5rem 1rem .7rem; display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; background: rgba(20,20,26,.98); backdrop-filter: blur(10px); border: 1px solid var(--gh-line); border-top: none; border-radius: 0 0 var(--gh-radius) var(--gh-radius); box-shadow: 0 14px 28px rgba(0,0,0,.45); opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .12s, transform .12s, visibility .12s; }
   /* invisible bridge so the menu stays open while the pointer moves down */
-  .nav-sub::before { content: ''; position: absolute; left: 0; right: 0; top: -.9rem; height: .9rem; }
+  .nav-sub::before { content: ''; position: absolute; left: 0; right: 0; top: -1.2rem; height: 1.2rem; }
   .nav-item:hover .nav-sub, .nav-item:focus-within .nav-sub { opacity: 1; visibility: visible; transform: none; }
-  .nav-sub-link { padding: .55rem .7rem; border-radius: var(--gh-radius); color: var(--gh-muted); font-size: .85rem; font-weight: 600; text-decoration: none; white-space: nowrap; }
-  .nav-sub-link:hover, .nav-sub-link:focus-visible { color: var(--gh-text); background: var(--gh-surface-soft); }
+  .nav-sub-link { position: relative; padding: .45rem 0 .35rem; color: var(--gh-muted); font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .95rem; letter-spacing: .01em; text-transform: uppercase; text-decoration: none; white-space: nowrap; }
+  .nav-sub-link::after { content: ''; position: absolute; left: 0; right: 0; bottom: .1rem; height: 2px; background: var(--gh-red); transform: scaleX(0); transform-origin: left; transition: transform .15s ease-out; }
+  .nav-sub-link:hover, .nav-sub-link:focus-visible { color: var(--gh-text); outline: none; }
+  .nav-sub-link:hover::after, .nav-sub-link:focus-visible::after { transform: scaleX(1); }
+  @media (prefers-reduced-motion: reduce) { .nav-sub-link::after { transition: none; } }
   [hidden] { display: none !important; }
   .account-slot { position: relative; }
   .account-menu-trigger { display: flex; align-items: center; padding: 0; border: none; background: none; cursor: pointer; border-radius: 999px; }
@@ -137,6 +142,7 @@ const globalLinks = [
     .nav-sub { position: static; min-width: 0; padding: 0 0 .6rem 1.5rem; flex-direction: row; flex-wrap: wrap; gap: .1rem .3rem; background: none; border: none; box-shadow: none; opacity: 1; visibility: visible; transform: none; transition: none; }
     .nav-sub::before { display: none; }
     .nav-sub-link { padding: .4rem .5rem; font-size: .82rem; }
+    .nav-sub-link::after { left: .5rem; right: .5rem; }
     /* Icon-only Discord button on phones -- the label ("Login with
        Discord") doesn't fit next to brand + menu button at 360px. */
     .discord-btn { padding: .55rem .65rem; }

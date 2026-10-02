@@ -80,7 +80,11 @@ if (breadcrumbs.length) {
     <meta name="twitter:image:alt" content={ogImageAlt} />
     <link rel="alternate" type="text/plain" title={`${SITE_NAME} — ${SITE_TAGLINE} (for AI assistants)`} href={`${base}llms.txt`} />
     {allJsonLd.length > 0 && <script type="application/ld+json" set:html={JSON.stringify(allJsonLd.length === 1 ? allJsonLd[0] : allJsonLd)} />}
-    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <!-- Favicon: LR mark (Visual/Logos/leonida-racing-favicon.png) on the dark brand square, 2026-10-02 -->
+    <link rel="icon" href={`${base}favicon.ico`} sizes="48x48" />
+    <link rel="icon" href={`${base}favicon-32.png`} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={`${base}apple-touch-icon.png`} />
+    <link rel="manifest" href={`${base}manifest.webmanifest`} />
   </head>
   <body>
     <Header section={section} />

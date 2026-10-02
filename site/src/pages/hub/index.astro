@@ -3,10 +3,10 @@ import Base from '../../layouts/Base.astro';
 import PageHero from '../../components/PageHero.astro';
 import HubSubnav from '../../components/HubSubnav.astro';
 import '../../styles/hub.css';
-import { sampleEvents, sampleCrews, eventRowHtml, crewCardHtml } from '../../data/hub';
+import { sampleEventsUpcoming, sampleCrews, eventRowHtml, crewCardHtml } from '../../data/hub';
 
 const base = import.meta.env.BASE_URL;
-const nextEventsHtml = sampleEvents.filter((e) => e.status !== 'cancelled').slice(0, 3).map(eventRowHtml).join('');
+const nextEventsHtml = sampleEventsUpcoming().filter((e) => e.status !== 'cancelled').slice(0, 3).map((e) => eventRowHtml(e, { rsvp: true, sample: true })).join('');
 const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
 ---
 <Base
@@ -83,16 +83,25 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
 </style>
 
 <script>
-  import { eventRowHtml, crewCardHtml, localizeTimes } from '../../data/hub';
+  import { eventRowHtml, crewCardHtml, localizeTimes, sampleEventsUpcoming } from '../../data/hub';
   import { fetchLiveEvents, fetchLiveCrews } from '../../scripts/hub-live';
+  import { createEventRsvp } from '../../scripts/event-rsvp';
 
+  // "Next Up" with the same sign-up functions as the Event Calendar (2026-10-02)
   const evRoot = document.getElementById('hub-ev-root')!;
+  const rsvp = createEventRsvp(evRoot);
   localizeTimes(evRoot);
-  fetchLiveEvents().then((live) => {
+  rsvp.setEvents(sampleEventsUpcoming().filter((e) => e.status !== 'cancelled').slice(0, 3), false);
+  rsvp.renderRsvps();
+  fetchLiveEvents().then(async (live) => {
     if (!live) return;
-    evRoot.innerHTML = live.filter((e) => e.status !== 'cancelled').slice(0, 3).map(eventRowHtml).join('');
+    const next = live.filter((e) => e.status !== 'cancelled').slice(0, 3);
+    evRoot.innerHTML = next.map((e) => eventRowHtml(e, { rsvp: true })).join('');
     localizeTimes(evRoot);
     document.getElementById('hub-ev-flag')!.hidden = true;
+    rsvp.setEvents(next, true);
+    rsvp.renderRsvps();
+    await rsvp.connect();
   });
   fetchLiveCrews().then((live) => {
     if (!live) return;

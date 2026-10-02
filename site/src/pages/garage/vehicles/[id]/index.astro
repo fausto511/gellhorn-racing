@@ -73,7 +73,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
       <label class="ui-search v-search-field"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg><input type="search" id="v-search" placeholder="Search Vehicle" aria-label="Search vehicles" autocomplete="off" /></label>
       <ul id="v-search-results" class="v-search-results" hidden></ul>
     </div>
-    <button type="button" id="v-own" class="v-own-btn" aria-pressed="false" hidden>
+    <button type="button" id="v-own" class="v-own-btn" role="switch" aria-pressed="false" aria-checked="false" hidden>
       <span class="v-own-box" aria-hidden="true"></span>
       <span class="v-own-label">I own this vehicle</span>
     </button>
@@ -173,10 +173,13 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
   .v-own-btn[hidden], .v-own-msg[hidden] { display: none; }
   .v-own-btn { justify-self: end; display: inline-flex; align-items: center; gap: .5rem; padding: .55rem 1rem; border-radius: var(--gh-radius); border: 1px solid var(--gh-line); background: var(--gh-surface); color: var(--gh-text); font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .v-own-btn:hover { border-color: var(--gh-muted); }
-  .v-own-box { flex: none; width: 1rem; height: 1rem; border-radius: 4px; border: 2px solid var(--gh-muted); display: inline-flex; align-items: center; justify-content: center; }
+  /* Toggle switch instead of a checkbox (Fausto, 2026-10-02) */
+  .v-own-box { position: relative; flex: none; box-sizing: border-box; width: 2.1rem; height: 1.2rem; border-radius: 999px; background: rgba(160,160,198,.25); border: 1px solid var(--gh-line); transition: background .15s, border-color .15s; }
+  .v-own-box::after { content: ''; position: absolute; top: 50%; left: .15rem; width: .82rem; height: .82rem; border-radius: 50%; background: var(--gh-text); transform: translateY(-50%); transition: transform .15s; }
   .v-own-btn[aria-pressed="true"] { border-color: var(--gh-yellow); background: rgba(255,215,76,.08); }
   .v-own-btn[aria-pressed="true"] .v-own-box { background: var(--gh-yellow); border-color: var(--gh-yellow); }
-  .v-own-btn[aria-pressed="true"] .v-own-box::after { content: ''; width: .32rem; height: .6rem; border: solid #1a1206; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+  .v-own-btn[aria-pressed="true"] .v-own-box::after { background: #1a1206; transform: translate(.88rem, -50%); }
+  @media (prefers-reduced-motion: reduce) { .v-own-box, .v-own-box::after { transition: none; } }
   .v-own-btn:disabled { opacity: .6; cursor: progress; }
   .v-own-msg { grid-column: 1 / -1; justify-self: end; margin: -.4rem 0 0; font-size: .8rem; color: var(--gh-muted); }
   .v-own-msg a { color: var(--gh-text); }
@@ -314,6 +317,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
 
   function render(owned: boolean) {
     btn.setAttribute('aria-pressed', String(owned));
+    btn.setAttribute('aria-checked', String(owned));
     label.textContent = owned ? 'In my garage' : 'I own this vehicle';
   }
   let noteTimer: number | undefined;
