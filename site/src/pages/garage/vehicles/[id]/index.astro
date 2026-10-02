@@ -4,6 +4,7 @@ import { vehicleOptions, vehicleValues, formatVehicleValue, valueSourceLabels, t
 import { vehicleCopy } from '../../../../data/vehicle-copy';
 import { releaseById, formatReleaseDate } from '../../../../data/releases';
 import { classHref, makeHref } from '../../../../data/garage-taxonomy';
+import { vehiclePhotoAlt } from '../../../../data/vehicle-photo-alt';
 
 export function getStaticPaths() {
   return vehicleOptions.map((v) => ({ params: { id: v.id }, props: { vehicle: v } }));
@@ -36,6 +37,7 @@ const addedWithNote = release && vehicle.acquisition ? acquisitionNotes[vehicle.
 // vehicles, so unknown values never show up as "TBA" in search results.
 // Vehicles without an official release (leak-only) stay out of the index.
 const fullName = `${vehicle.make} ${vehicle.model}`;
+const photoAlt = vehiclePhotoAlt[vehicle.id] ?? `${fullName} in GTA VI`;
 const metaTitle = `${fullName} — GTA VI Car Specs & Performance`;
 const metaDescription = `Explore the ${fullName} in GTA 6, including key vehicle details, release information, real-life inspiration, and available performance data.`;
 const makeLink = makeHref(vehicle);
@@ -63,7 +65,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
   section="garage"
   noindex={!vehicle.releaseId}
   ogImage={vehicle.photo ? `images/vehicles/${vehicle.id}-1280.webp` : undefined}
-  ogImageAlt={vehicle.photo ? `${fullName} in GTA VI` : undefined}
+  ogImageAlt={vehicle.photo ? photoAlt : undefined}
   ogImageWidth={vehicle.photo ? 1280 : undefined}
   ogImageHeight={vehicle.photo ? 720 : undefined}
   breadcrumbs={[{ name: 'The Garage', path: 'garage/' }, { name: fullName, path: `garage/vehicles/${vehicle.id}/` }]}
@@ -92,7 +94,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
           src={`${photo}-1280.webp`}
           srcset={`${photo}-640.webp 640w, ${photo}-1280.webp 1280w, ${photo}-1920.webp 1920w`}
           sizes="(max-width: 900px) 100vw, 60vw"
-          alt={`${vehicle.make} ${vehicle.model} in GTA 6`} width="1920" height="1080" fetchpriority="high" />
+          alt={photoAlt} width="1920" height="1080" fetchpriority="high" />
       ) : (
         <>
           <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="1672" height="941" />

@@ -146,7 +146,7 @@ const garageUrl = (id: string) => `${base}garage/vehicles/${encodeURIComponent(i
 function logoChip(e: { make: string; logo: string | null }, lg = false) {
   const u = logoUrl(e.logo);
   const px = lg ? 30 : 20;
-  return u ? `<span class="logo-chip${lg ? ' logo-chip-lg' : ''}"><img src="${u}" alt="${esc(e.make)} logo" width="${px}" height="${px}" loading="lazy" /></span>` : '';
+  return u ? `<span class="logo-chip${lg ? ' logo-chip-lg' : ''}"><img src="${u}" alt="" width="${px}" height="${px}" loading="lazy" /></span>` : '';
 }
 function vehicleCell(e: LbEntry) {
   const inner = `${logoChip(e)}<span class="lb-vehicle-name"><span class="lb-make">${esc(e.make)}</span> ${esc(e.model)}</span>`;

@@ -2,11 +2,9 @@
 // supersedes DEC-0059). Pages: /garage/classes/<slug>/ and
 // /garage/manufacturers/<slug>/.
 //
-// COPY STATUS per page: 'approved' = Codex copy approved by Fausto
-// (Freigegebene Website-Texte, 2026-10-01). 'draft-claude' = Claude
-// placeholder still live because the approved Codex version names vehicles
-// that are not officially revealed (Fausto, 2026-10-01; see
-// Claude outputs/CODEX-KORREKTUR-Taxonomie-Texte-2026-10-01.md).
+// COPY STATUS: all intros are Codex copy approved by Fausto (2026-10-01;
+// Sports Classics, Declasse, Dundreary, Imponte corrected 2026-10-02 so only
+// officially revealed vehicles are named).
 import { vehicleOptions, type VehicleOption } from './vehicles';
 
 export interface TaxonomyPage { slug: string; name: string; intro: string[]; copyStatus: 'draft-claude' | 'approved' }
@@ -21,8 +19,8 @@ export const classPages: TaxonomyPage[] = [
   { slug: 'muscle', name: 'Muscle', copyStatus: 'approved', intro: [
     'GTA VI Muscle cars bring big American engines and bold shapes to The Garage, from classic pony cars and lowriders to modern Mustang-, Challenger-, and Camaro-inspired builds. The lineup runs from the Buccaneer and Sabre Turbo to the Gauntlet Hellfire and the many faces of the Dominator. Some are clean, some are loud, and subtlety is rarely the point.',
   ] },
-  { slug: 'sports-classics', name: 'Sports Classics', copyStatus: 'draft-claude', intro: [
-    'Sports Classics collects the icons of past decades: Testarossa-style wedges, 1960s racing coupes and 1980s German sports sedans. These are the cars you bring to a meet as much as to a race.',
+  { slug: 'sports-classics', name: 'Sports Classics', copyStatus: 'approved', intro: [
+    'GTA VI Sports Classics bring together the cars that made their era matter: Italian wedges, 1960s racers, German icons, and American cruisers. The class runs from the Cheetah \'95 and Infernus Classic to the Sentinel Classic, Mamba GT, and Manana. Take one racing or park it at the meet—the shape already has a story.',
   ] },
   { slug: 'coupes', name: 'Coupes', copyStatus: 'approved', intro: [
     'GTA VI Coupes sit between sports cars and grand tourers, with two-door designs inspired by the BMW M3 and M6, Infiniti G35, and Rolls-Royce Wraith. That means everything from the Sentinel XS and FR36 to the Zion Cabrio and Windsor. The right pick depends on whether you want a back road, a boulevard, or both.',
@@ -40,7 +38,7 @@ export const classPages: TaxonomyPage[] = [
 
 export const manufacturerPages: TaxonomyPage[] = [
   { slug: 'vapid', name: 'Vapid', copyStatus: 'approved', intro: ['Vapid brings Ford-inspired car culture into GTA VI, led by generations of Dominators alongside pickups, SUVs, and the Stanier sedans. That puts the Dominator, Stanier, Caracara, Aleutian, and Riata families under one badge. From old-school muscle to lifted builds, the Ford influence is hard to miss.'] },
-  { slug: 'declasse', name: 'Declasse', copyStatus: 'draft-claude', intro: ['Declasse mirrors Chevrolet: Impala- and Chevelle-inspired muscle, Suburban-style Granger SUVs and classics like the Tornado and Mamba GT.'] },
+  { slug: 'declasse', name: 'Declasse', copyStatus: 'approved', intro: ['Declasse brings several generations of American performance and utility vehicles into GTA VI. The Impaler and Tulip families carry Impala and Chevelle influence, the Granger SUVs follow the Chevrolet Suburban, and the Vigero ZX Convertible takes after the modern Camaro. The Mamba GT adds a Shelby Daytona-shaped racer to the mix.'] },
   { slug: 'albany', name: 'Albany', copyStatus: 'approved', intro: ['Albany puts American luxury into GTA VI, drawing mainly from Cadillac and Buick. Its lineup moves from the Emperor and Manana classics to the Cavalcade XL and V-STR, covering several decades without losing that unmistakable big-car presence. From boulevard cruisers to full-size SUVs and sports sedans, Albany rarely does understated.'] },
   { slug: 'karin', name: 'Karin', copyStatus: 'approved', intro: ['Karin brings a wide slice of Japanese car culture to GTA VI, from everyday sedans and pickups to the Futo and Sultan. Toyota is the clearest influence, while Subaru, Lexus, and other Japanese cues appear across individual models. Daily drivers, tuner favorites, rally-bred shapes, and practical trucks all share the same badge.'] },
   { slug: 'bravado', name: 'Bravado', copyStatus: 'approved', intro: ['Bravado brings Dodge-inspired American performance to GTA VI, from the Viper-shaped Banshee and Charger-based Buffalo family to the Challenger-inspired Gauntlets and Durango-style Dorado. Sports cars, muscle cars, sedans, and SUVs all wear the same badge, usually with more aggression than restraint.'] },
@@ -49,8 +47,8 @@ export const manufacturerPages: TaxonomyPage[] = [
   { slug: 'grotti', name: 'Grotti', copyStatus: 'approved', intro: ['Grotti covers several eras of exotic design in GTA VI. The Cheetah ’95 brings classic Ferrari influence, the Carbonizzare adds a front-engined grand tourer, and the SF90-inspired Itali RSX joins the Furia at the modern supercar end of the lineup. Different shapes, different decades, and no real interest in blending into traffic.'] },
   { slug: 'obey', name: 'Obey', copyStatus: 'approved', intro: ['Obey applies Audi’s clean German design language across its GTA VI range. Models such as the Tailgater and Tailgater S cover executive and compact sports sedans, while the 8F Drafter draws from the RS5 coupe and the Omnis e-GT brings e-tron GT influence. From everyday four-doors to electric grand tourers, the four-ring inspiration is easy to spot.'] },
   { slug: 'pegassi', name: 'Pegassi', copyStatus: 'approved', intro: ['Pegassi puts Lamborghini-style drama at the center of its GTA VI range. Models such as the Huracán-inspired Tempesta, Urus-based Toros, and Diablo-shaped Infernus Classic cover very different sides of the badge, while the open-top Zorrusso adds another modern exotic shape. Across supercars, classics, and SUVs, sharp angles and very little restraint remain familiar themes.'] },
-  { slug: 'dundreary', name: 'Dundreary', copyStatus: 'draft-claude', intro: ['Dundreary builds big American cars with a Lincoln and Mercury feel, from the Landstalker XL SUV to the Sirius muscle car.'] },
-  { slug: 'imponte', name: 'Imponte', copyStatus: 'draft-claude', intro: ['Imponte is the GTA universe’s Pontiac, known for the Firebird-inspired Phoenix and Ruiner.'] },
+  { slug: 'dundreary', name: 'Dundreary', copyStatus: 'approved', intro: ['Dundreary covers the full-size side of American car design in GTA VI. The Landstalker XL follows the Lincoln Navigator, while the Sirius takes its long-hood shape from a 1970 Mercury Cougar. From luxury SUVs to personal-luxury coupes, the badge has never been interested in small footprints.'] },
+  { slug: 'imponte', name: 'Imponte', copyStatus: 'approved', intro: ['Imponte channels Pontiac performance into GTA VI. The Phoenix draws from the 1970s Firebird, while the Ruiner brings the sharper shape of the 1980s Trans Am. Different decades, same formula: long hoods, rear-wheel drive, and no interest in blending into traffic.'] },
   { slug: 'benefactor', name: 'Benefactor', copyStatus: 'approved', intro: ['Benefactor translates Mercedes-Benz design into GTA VI across luxury SUVs and executive sedans. Models such as the G-Class-shaped Dubsta and GL-Class-inspired XLS cover different takes on the SUV, while the Schafter V12 moves an S-Class sedan toward AMG and Brabus territory. Whatever the body style, the three-pointed-star influence is clear.'] },
   { slug: 'canis', name: 'Canis', copyStatus: 'approved', intro: ['Canis keeps Jeep-inspired 4x4 design at the center of its GTA VI range. Models such as the Wrangler-shaped Mesa, Cherokee XJ-inspired Seminole Frontier, and Crew Chief 715-based Kamacho cover several takes on the classic off-road formula. Upright bodies and trail-ready proportions make the Canis badge easy to recognize, even before the pavement ends.'] },
 ];

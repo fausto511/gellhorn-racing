@@ -35,7 +35,7 @@ const acquisitionLabels: Record<string, string> = {
         src={`${base}images/vehicles/${v.id}-640.webp`}
         srcset={`${base}images/vehicles/${v.id}-640.webp 640w, ${base}images/vehicles/${v.id}-1280.webp 1280w`}
         sizes="(max-width: 700px) 100vw, 400px"
-        alt={`${v.make} ${v.model} in GTA 6`} loading="lazy" width="640" height="360" />
+        alt="" loading="lazy" width="640" height="360" />
     ) : (
       <>
         <img class="v-photo-fallback" src={`${base}images/garage/garage-hero-placeholder.webp`} alt="" loading="lazy" width="640" height="360" />
