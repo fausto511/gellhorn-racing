@@ -11,8 +11,7 @@ const base = import.meta.env.BASE_URL;
 <div class="consent-bar" id="consent-bar" role="region" aria-label="Visitor statistics" hidden>
   <div class="wrap consent-inner">
     <p class="consent-text">
-      <strong>Help us grow Leonida Racing.</strong>
-      Allow anonymous visitor statistics with Cloudflare Web Analytics — no cookies, no tracking across sites.{' '}
+      Allow anonymous visitor statistics with Cloudflare Web Analytics? No cookies, no cross-site tracking.{' '}
       <a href={`${base}privacy/#analytics`}>Privacy Policy</a>
     </p>
     <div class="consent-actions">
@@ -79,16 +78,17 @@ const base = import.meta.env.BASE_URL;
   .consent-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; background: color-mix(in srgb, var(--gh-muted) 22%, var(--gh-bg)); border-top: 1px solid color-mix(in srgb, var(--gh-muted) 45%, transparent); box-shadow: 0 -10px 30px rgba(0,0,0,.35); transform: translateY(100%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
   .consent-bar[hidden] { display: none; }
   .consent-bar.is-in { transform: none; }
-  .consent-inner { display: flex; align-items: center; gap: 1rem 1.5rem; padding-block: .75rem; }
-  .consent-text { flex: 1; margin: 0; color: var(--gh-text); font-size: .84rem; line-height: 1.45; }
+  .consent-inner { display: flex; align-items: center; gap: .75rem 1.25rem; padding-block: .45rem; }
+  .consent-text { flex: 1; min-width: 0; margin: 0; color: var(--gh-text); font-size: .8rem; line-height: 1.35; }
   .consent-text strong { margin-right: .25rem; }
   .consent-text a { color: var(--gh-text); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
-  .consent-actions { display: flex; gap: .6rem; flex: none; }
-  .consent-btn { min-width: 7.5rem; padding: .65rem 1.2rem; border-radius: var(--gh-radius); font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .85rem; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; transition: transform .12s, filter .12s, background .12s; }
+  .consent-actions { display: flex; gap: .5rem; flex: none; }
+  .consent-btn { min-width: 6rem; padding: .38rem .9rem; border-radius: var(--gh-radius); font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .74rem; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; transition: transform .12s, filter .12s, background .12s; }
   .consent-btn:hover { transform: translateY(-1px); }
   .consent-btn:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
-  .consent-no { background: transparent; color: var(--gh-text); border: 2px solid color-mix(in srgb, var(--gh-text) 70%, transparent); }
-  .consent-no:hover { background: rgba(252,250,247,.08); }
+  /* Grey but clearly a button (white text, full contrast) -- rejecting must stay as easy as allowing */
+  .consent-no { background: #4a4a5c; color: var(--gh-text); border: 2px solid #4a4a5c; }
+  .consent-no:hover { background: #56566a; border-color: #56566a; }
   .consent-yes { background: var(--gh-red); color: #fff; border: 2px solid var(--gh-red); animation: consent-nudge 2.4s ease-in-out .8s 2; }
   .consent-yes:hover { filter: brightness(1.08); }
   @keyframes consent-nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(237,37,61,0); } 50% { box-shadow: 0 0 0 .4rem rgba(237,37,61,.25); } }
