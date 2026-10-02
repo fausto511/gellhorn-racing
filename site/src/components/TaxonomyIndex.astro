@@ -2,8 +2,7 @@
 // Overview pages /garage/classes/ and /garage/manufacturers/ (2026-10-01):
 // no dead path above the class/manufacturer pages, and a landing page for
 // "GTA 6 vehicle classes" / "GTA 6 car manufacturers" searches.
-// COPY STATUS: intro + meta description are PLACEHOLDERS by Claude
-// (draft-claude) until Codex has written and Fausto approved them.
+// COPY STATUS: intro + meta approved (Codex 2026-10-02, Fausto).
 import Base from '../layouts/Base.astro';
 import { compareGarageOrder, type VehicleOption } from '../data/vehicles';
 import type { TaxonomyPage } from '../data/garage-taxonomy';
@@ -80,7 +79,7 @@ const jsonLd = [{
 
   <nav class="wrap ti-more" aria-label="More in The Garage">
     <a href={`${base}garage/${kind === 'class' ? 'manufacturers' : 'classes'}/`}>{kind === 'class' ? 'Browse by Manufacturer' : 'Browse by Class'} →</a>
-    <a href={`${base}garage/`}>All vehicles in The Garage →</a>
+    <a href={`${base}garage/`}>All Vehicles in The Garage →</a>
   </nav>
 </Base>
 

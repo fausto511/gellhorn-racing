@@ -5,17 +5,18 @@
 // palette; clear switches. The beacon loads ONLY after "Allow".
 // Choice is stored in localStorage (technically necessary, Section 25(2) TDDDG).
 // Footer link "Privacy settings" reopens the bar.
-// COPY STATUS: Claude placeholder, to be reviewed by Codex.
+// COPY STATUS: approved (Codex 2026-10-02, Fausto). No pulse on Allow: both
+// choices equally easy (Fausto, 2026-10-02).
 const base = import.meta.env.BASE_URL;
 ---
 <div class="consent-bar" id="consent-bar" role="region" aria-label="Visitor statistics" hidden>
   <div class="wrap consent-inner">
     <p class="consent-text">
-      Allow anonymous visitor statistics with Cloudflare Web Analytics? No cookies, no cross-site tracking.{' '}
+      Allow Cloudflare Web Analytics to count visits? No cookies or cross-site tracking.{' '}
       <a href={`${base}privacy/#analytics`}>Privacy Policy</a>
     </p>
     <div class="consent-actions">
-      <button type="button" class="consent-btn consent-no" data-consent="denied">No thanks</button>
+      <button type="button" class="consent-btn consent-no" data-consent="denied">No Thanks</button>
       <button type="button" class="consent-btn consent-yes" data-consent="granted">Allow</button>
     </div>
   </div>
@@ -67,7 +68,7 @@ const base = import.meta.env.BASE_URL;
     if (v === 'granted') loadBeacon();
   });
   window.addEventListener('resize', () => { if (!bar.hidden) syncSpace(); });
-  // "Privacy settings" in the footer: ask again. A beacon that already ran
+  // "Privacy Settings" in the footer: ask again. A beacon that already ran
   // stops counting with the next page load after "No thanks".
   document.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).closest('[data-consent-open]')) { e.preventDefault(); write(null); show(); }
@@ -89,10 +90,9 @@ const base = import.meta.env.BASE_URL;
   /* Palette only (Fausto, 2026-10-02). Clearly a button (white text, full contrast) -- rejecting must stay as easy as allowing */
   .consent-no { background: var(--gh-surface); color: var(--gh-text); border: 2px solid var(--gh-muted); }
   .consent-no:hover { background: var(--gh-bg); }
-  .consent-yes { background: var(--gh-yellow); color: #1a1206; /* same as .btn-primary */ border: 2px solid var(--gh-yellow); animation: consent-nudge 2.4s ease-in-out .8s 2; }
+  .consent-yes { background: var(--gh-yellow); color: #1a1206; /* same as .btn-primary */ border: 2px solid var(--gh-yellow); }
   .consent-yes:hover { filter: brightness(1.08); }
-  @keyframes consent-nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,76,0); } 50% { box-shadow: 0 0 0 .4rem rgba(255,215,76,.3); } }
-  @media (prefers-reduced-motion: reduce) { .consent-bar { transition: none; } .consent-yes { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { .consent-bar { transition: none; } }
   @media (max-width: 640px) {
     .consent-inner { flex-direction: column; align-items: stretch; gap: .65rem; }
     .consent-text { font-size: .8rem; }

@@ -27,8 +27,8 @@ const base = import.meta.env.BASE_URL;
 
     <div id="acc-body" hidden>
       <div class="panel ev-cta">
-        <p><strong>Looking for something to drive?</strong> Races, time attack nights, car meets and cruises from the community — all in one calendar.</p>
-        <a class="btn btn-primary" href={`${base}hub/events/`}>Find events</a>
+        <p><strong>Looking for something to drive?</strong> Races, league rounds, community playlists, and car meets from across the GTA VI scene—all in one calendar.</p>
+        <a class="btn btn-primary" href={`${base}hub/events/`}>Find Events</a>
       </div>
 
       <h2 class="section-heading">Events I'm going to</h2>
@@ -37,11 +37,11 @@ const base = import.meta.env.BASE_URL;
       <div id="host-block" hidden>
         <h2 class="section-heading">My Events</h2>
         <p class="section-lede">Create and edit the events you run. Every event is public and shows up in the calendar right away — you can see who signed up in each event.</p>
-        <!-- Sign-ups overview for hosts (Fausto, 2026-10-01). Copy: Claude placeholder, Codex review pending. -->
+        <!-- Sign-ups overview for hosts (Fausto, 2026-10-01). Copy approved (Codex 2026-10-02, Fausto). -->
         <div class="panel host-signups" id="host-signups" hidden>
-          <p class="host-signups-title">Sign-ups to your upcoming events</p>
+          <p class="host-signups-title">Sign-ups for Your Upcoming Events</p>
           <div id="host-signups-list"></div>
-          <p class="host-signups-note">Players who sign up are told to join your Discord or add you on PlayStation, so make sure your invite or PSN name is set on each event.</p>
+          <p class="host-signups-note">Players who sign up will use your Discord invite or PlayStation name to reach you. Make sure each event has the right contact details.</p>
         </div>
         <HubEditor mode="events" />
       </div>

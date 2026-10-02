@@ -133,7 +133,7 @@ export const sampleEvents: HubEvent[] = [
   { event_id: 's1', title: 'Launch Night Grid Run', event_type: 'race', starts_at: '2026-11-21T19:00:00Z', ends_at: '2026-11-21T21:00:00Z', platforms: ['ps5'], host_name: 'Racer_01', location: 'Vice City Downtown', description: 'Open lobby, clean racing, stock vehicles. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-apex-syndicate'), max_participants: 16, sample_going: ['Racer_01', 'KerbHopper', 'ViceRacer', 'LateApex', 'SpeedyNomad', 'Nightshift', 'TurnInEarly'] },
   { event_id: 's2', title: 'Ocean Drive Car Meet', event_type: 'car-meet', starts_at: '2026-11-22T20:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'GhostPedal', location: 'Vice Beach', description: 'Bring your best build. Photo session at sunset. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-midnight-meet'), sample_going: ['GhostPedal', 'Nightshift', 'NeonDrift', 'CoastalRun'] },
   { event_id: 's3', title: 'Gellhorn Hotlap Session', event_type: 'time-attack', starts_at: '2026-11-25T18:00:00Z', ends_at: '2026-11-25T20:00:00Z', platforms: ['ps5'], host_name: 'SpeedyNomad', location: 'Gellhorn International Raceway', description: 'Group hotlapping, times submitted to Time Attack afterwards. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-leonida-lap-club'), max_participants: 12, sample_going: ['SpeedyNomad', 'ApexLimit', 'LateApex', 'Racer_01', 'Hillclimb', 'SolarFlare', 'MintyTires', 'ShadowLine', 'TarmacTom'] },
-  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'TurnInEarly', location: null, description: 'Qualifying plus two races. Grid is set, sign-ups closed: watch it live on stream. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, registration: 'closed', streams: [{ platform: 'twitch', url: 'https://www.twitch.tv/sample_channel' }], sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
+  { event_id: 's4', title: 'Season 1 — Round 1', event_type: 'league', starts_at: '2026-11-28T19:30:00Z', ends_at: null, platforms: ['ps5'], host_name: 'TurnInEarly', location: null, description: 'Qualifying and two races. The grid is set and sign-ups are closed—watch it live. Sample event.', join_url: null, status: 'scheduled', host: sampleHost('sample-gulf-coast-racing'), max_participants: 20, registration: 'closed', streams: [{ platform: 'twitch', url: 'https://www.twitch.tv/sample_channel' }], sample_going: ['TurnInEarly', 'RedlineRosa', 'OceanDriveOG', 'KerbHopper', 'BrakeLate99'] },
   { event_id: 's5', title: 'Everglades Sunday Cruise', event_type: 'cruise', starts_at: '2026-11-29T16:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'LatteBrake', location: 'Leonida Keys', description: 'Slow convoy, no racing. Sample event.', join_url: null, status: 'cancelled', host: sampleHost('sample-nordring-crew'), sample_going: ['LatteBrake', 'Hillclimb'] },
   { event_id: 's6', title: 'Community Drift Jam', event_type: 'other', starts_at: '2026-12-05T21:00:00Z', ends_at: null, platforms: ['ps5'], host_name: 'VelvetClutch', location: 'Port Gellhorn', description: 'Free-for-all drift session. Sample event.', join_url: null, status: 'scheduled', host: null, sample_going: ['SolarFlare', 'NeonDrift', 'VelvetClutch'] },
 ];
@@ -179,14 +179,14 @@ const iconDiscord = '<svg width="15" height="15" viewBox="0 0 24 24" fill="curre
  *  greyed-out demo link. */
 export function eventDiscordHtml(e: HubEvent, sample = false): string {
   if (e.status === 'cancelled') return '';
-  if (sample) return `<span class="ev-dc is-disabled" title="Sample event — no real Discord server">${iconDiscord}Join the host's Discord</span>`;
+  if (sample) return `<span class="ev-dc is-disabled" title="Sample event — no real Discord server">${iconDiscord}Join the Host's Discord</span>`;
   const u = eventDiscord(e);
   return u ? `<a class="ev-dc" href="${esc(u)}" target="_blank" rel="noopener" title="Opens the host's Discord server">${iconDiscord}Join the host's Discord</a>` : '';
 }
 
 /** "Watch on Twitch/YouTube/Kick" links (RS-0058). Shown even when the
  *  event is full or sign-ups are closed; sample events get a demo link.
- *  COPY STATUS: Claude placeholder, Codex review pending. */
+ *  COPY STATUS: approved (Codex 2026-10-02, Fausto). */
 export function eventStreamHtml(e: HubEvent, sample = false): string {
   if (e.status === 'cancelled' || !e.streams?.length) return '';
   const icon = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
@@ -257,7 +257,7 @@ export function crewCardHtml(c: HubCrew, roster?: string[], opts: { sample?: boo
     <span class="crew-links">
       ${joinId ? '<span class="crew-join-slot"></span>' : ''}
       ${sc ? `<a class="crew-link" href="${esc(sc)}" target="_blank" rel="noopener">Social Club</a>` : ''}
-      ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : opts.sample ? '<span class="crew-link crew-link-discord is-disabled" title="Sample crew — no real Discord server">Discord</span>' : ''}
+      ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : opts.sample ? '<span class="crew-link crew-link-discord is-disabled" title="Sample crew — no Discord server">Discord</span>' : ''}
       ${c.crew_id ? `<a class="crew-report" href="${esc(`${import.meta.env.BASE_URL}report-content/?crew=${encodeURIComponent(c.crew_id)}`)}" title="Report this crew to the moderators">Report</a>` : ''}
     </span>
   </div>

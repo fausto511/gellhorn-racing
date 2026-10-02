@@ -77,7 +77,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
     </div>
     <button type="button" id="v-own" class="v-own-btn" role="switch" aria-pressed="false" aria-checked="false" hidden>
       <span class="v-own-box" aria-hidden="true"></span>
-      <span class="v-own-label">I own this vehicle</span>
+      <span class="v-own-label">I Own This Vehicle</span>
     </button>
     <a href={`${base}garage/#compare`} id="v-compare-cta" class="garage-compare-btn">Compare Selected (0)</a>
     <p class="v-own-msg" id="v-own-msg" role="status" hidden></p>
@@ -320,7 +320,7 @@ const photo = vehicle.photo ? `${base}images/vehicles/${vehicle.id}` : null;
   function render(owned: boolean) {
     btn.setAttribute('aria-pressed', String(owned));
     btn.setAttribute('aria-checked', String(owned));
-    label.textContent = owned ? 'In my garage' : 'I own this vehicle';
+    label.textContent = owned ? 'In My Garage' : 'I Own This Vehicle';
   }
   let noteTimer: number | undefined;
   function note(html: string) {

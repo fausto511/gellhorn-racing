@@ -17,18 +17,18 @@ export function createEventRsvp(root: HTMLElement) {
 
   const isOver = (e: HubEvent) => new Date(e.ends_at ?? new Date(new Date(e.starts_at).getTime() + 3 * 3600e3).toISOString()) < new Date();
 
-  // COPY STATUS: Claude placeholders, to be reviewed by Codex.
+  // COPY STATUS: approved (Codex 2026-10-02, Fausto).
   function nextStepHtml(e: HubEvent, sample: boolean): string {
     const discord = sample ? null : eventDiscord(e);
     const psn = e.host_name ? esc(e.host_name) : '';
     const psnPart = psn ? `<span class="ev-next-psn">Host on PlayStation: <strong>${psn}</strong> <button type="button" class="ev-next-copy" data-copy="${psn}">Copy</button></span>` : '';
     if (sample) {
-      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Join the host\u2019s Discord so they can invite you. Sample event: no real Discord server.</p><span class="btn ev-next-dc is-disabled">Join the host\u2019s Discord</span></div>`;
+      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in.</strong> This is a sample event, so no real invite will be sent.</p></div>`;
     }
     if (discord) {
-      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Join the host\u2019s Discord so they can invite you to the lobby.</p><a class="btn ev-next-dc" href="${esc(discord)}" target="_blank" rel="noopener">Join the host\u2019s Discord</a>${psnPart}</div>`;
+      return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Join the host\u2019s Discord so they can send your lobby invite.</p><a class="btn ev-next-dc" href="${esc(discord)}" target="_blank" rel="noopener">Join the Host\u2019s Discord</a>${psnPart}</div>`;
     }
-    return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Add the host on PlayStation and send a message so they can invite you to the lobby.</p>${psnPart}</div>`;
+    return `<div class="ev-next"><p class="ev-next-text"><strong>You\u2019re in \u2014 one more step.</strong> Add the host on PlayStation and message them for your lobby invite.</p>${psnPart}</div>`;
   }
 
   function renderRsvps() {
@@ -48,7 +48,7 @@ export function createEventRsvp(root: HTMLElement) {
       let action = '';
       if (mine.has(id)) action = `<button type="button" class="btn btn-sm ev-rsvp-btn is-in" data-leave="${esc(id)}" title="Click to cancel">Going ✓</button>`;
       else if (closed) action = '';
-      else if (e.registration === 'closed') action = '<span class="ev-full">Sign-ups closed</span>';
+      else if (e.registration === 'closed') action = '<span class="ev-full">Sign-ups Closed</span>';
       else if (full) action = '<span class="ev-full">Full</span>';
       else action = `<button type="button" class="btn btn-sm btn-primary ev-rsvp-btn" data-join="${esc(id)}">I'm in</button>`;
       const msg = note && note.id === id ? `<span class="ev-rsvp-msg${note.err ? ' is-error' : ''}">${esc(note.text)}</span>` : '';
