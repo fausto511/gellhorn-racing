@@ -4,14 +4,13 @@
 // Copy and corrections: see data/guide.ts.
 import Base from '../../layouts/Base.astro';
 import { SITE_NAME } from '../../data/site';
-import { GUIDE_PUBLISHED, GUIDE_UPDATED, guideCoverage, guideFaq, guideMethodology, guideSections } from '../../data/guide';
+import { GUIDE_PUBLISHED, GUIDE_UPDATED, GUIDE_VEHICLES, guideCoverage, guideFaq, guideMethodology, guideSections } from '../../data/guide';
 
 const base = import.meta.env.BASE_URL;
 const title = 'The Guide — GTA VI Cars, Tuning & Racing';
 const description = 'Explore sourced information on GTA 6 cars, driving physics, car theft, customization, mod shops, garages, racing, car meets, and Gellhorn.';
 const updatedLabel = new Date(`${GUIDE_UPDATED}T12:00:00Z`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
-// No vehicle-count card for now (Fausto 2026-10-03): the Garage count is not
-// the GTA VI total, and no citable total exists yet (Codex research pending).
+// Vehicle card = approximate GTA VI total (not the Garage count); note in Methodology.
 const anchors = [
   ['vehicles', 'Vehicles'], ['driving', 'Driving'], ['ownership', 'Ownership'], ['customization', 'Customization'],
   ['racing', 'Racing'], ['car-culture', 'Car Culture'], ['faq', 'FAQ'], ['sources', 'Sources'],
@@ -49,6 +48,7 @@ const jsonLd = [
     <p class="gd-lede">The sourced guide to GTA VI cars, driving, customization, garages, racing, and car culture. See what Rockstar has confirmed, what official footage shows, and which details are still open.</p>
 
     <div class="gd-stats">
+      <a class="panel gd-stat" href="#vehicle-count"><strong>{GUIDE_VEHICLES.value}</strong><span>{GUIDE_VEHICLES.label}</span></a>
       <div class="panel gd-stat"><strong>3</strong><span>Racing Formats Shown</span></div>
       <div class="panel gd-stat"><strong>2</strong><span>Named Mod Shops</span></div>
       <div class="panel gd-stat"><strong class="gd-stat-date"><time datetime={GUIDE_UPDATED}>{updatedLabel}</time></strong><span>Updated</span></div>
@@ -101,6 +101,7 @@ const jsonLd = [
     <section class="gd-sec" id="sources" aria-labelledby="sources-h">
       <h2 class="gd-h2" id="sources-h">Methodology and Source Note</h2>
       {guideMethodology.map((p) => <p class="gd-p" set:html={p} />)}
+      <p class="gd-p" id="vehicle-count"><strong>{GUIDE_VEHICLES.value} {GUIDE_VEHICLES.label}:</strong> {GUIDE_VEHICLES.note}</p>
       <p class="gd-updated">Last updated: <time datetime={GUIDE_UPDATED}>{updatedLabel}</time></p>
       <p class="gd-indep">Leonida Racing is an independent community project and is not affiliated with Rockstar Games or Take-Two Interactive.</p>
     </section>
@@ -111,7 +112,7 @@ const jsonLd = [
   .gd-hero { padding-top: 2rem; }
   .gd-title { margin: .4rem 0 .9rem; font-size: clamp(2.6rem, 7vw, 4.5rem); }
   .gd-lede { max-width: 64ch; margin: 0; color: var(--gh-muted); font-size: 1.05rem; line-height: 1.6; }
-  .gd-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin-top: 1.75rem; }
+  .gd-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-top: 1.75rem; }
   .gd-stat { display: flex; flex-direction: column; gap: .3rem; padding: 1rem 1.1rem; color: var(--gh-text); text-decoration: none; }
   a.gd-stat:hover { border-color: var(--gh-muted); }
   .gd-stat strong { font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: 2rem; line-height: 1; color: var(--gh-yellow); }
@@ -143,6 +144,6 @@ const jsonLd = [
   .gd-updated { margin: 1.25rem 0 .3rem; font-weight: 700; }
   .gd-indep { margin: 0; color: var(--gh-muted); font-size: .85rem; }
   @media (max-width: 760px) {
-    .gd-stats { grid-template-columns: 1fr; }
+    .gd-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>
