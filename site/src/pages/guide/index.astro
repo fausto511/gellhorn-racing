@@ -101,7 +101,7 @@ const jsonLd = [
     <section class="gd-sec" id="sources" aria-labelledby="sources-h">
       <h2 class="gd-h2" id="sources-h">Methodology and Source Note</h2>
       {guideMethodology.map((p) => <p class="gd-p" set:html={p} />)}
-      <p class="gd-p" id="vehicle-count"><strong>{GUIDE_VEHICLES.value} {GUIDE_VEHICLES.label}:</strong> {GUIDE_VEHICLES.note}</p>
+      <p class="gd-p" id="vehicle-count"><strong>{GUIDE_VEHICLES.value} {GUIDE_VEHICLES.label}:</strong> <a href={GUIDE_VEHICLES.sourceUrl} target="_blank" rel="noopener">{GUIDE_VEHICLES.sourceLabel}</a> {GUIDE_VEHICLES.note}</p>
       <p class="gd-updated">Last updated: <time datetime={GUIDE_UPDATED}>{updatedLabel}</time></p>
       <p class="gd-indep">Leonida Racing is an independent community project and is not affiliated with Rockstar Games or Take-Two Interactive.</p>
     </section>

@@ -234,5 +234,13 @@ export const guideMethodology: string[] = [
   `Sources are attached to the section they support, with timestamps for videos and official titles for screenshots. The page is updated when a new source changes the known facts—not simply because another site repeats the same claim.`,
 ];
 
-/** Vehicle-count card (Codex 2026-10-03, approved by Fausto): approximate, not an official total. */
-export const GUIDE_VEHICLES = { value: '~200', label: 'Vehicles Identified', note: 'Approximate independent count across official Rockstar material, including cars, motorcycles, boats, and aircraft. Rockstar has not published an official total. Checked October 3, 2026.' };
+/** Vehicle-count card. Value = GTABase count (Fausto 2026-10-03: GTABase has very good sourcing).
+ *  Label from Codex; note adapted by Claude to name the source (Codex review pending).
+ *  Update value + checked date together. */
+export const GUIDE_VEHICLES = {
+  value: '298',
+  label: 'Vehicles Identified',
+  sourceLabel: 'GTABase',
+  sourceUrl: 'https://www.gtabase.com/gta-6/vehicles/',
+  note: 'count of vehicles shown in official Rockstar trailers, screenshots, and the Extended Look, including cars, motorcycles, boats, and aircraft. Most names are community identifications. Rockstar has not published an official total. Checked October 3, 2026.',
+};
