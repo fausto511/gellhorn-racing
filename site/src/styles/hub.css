@@ -34,7 +34,7 @@
 .crew-chips { display: flex; flex-wrap: wrap; gap: .35rem; }
 .crew-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding-top: .8rem; border-top: 1px solid var(--gh-line); }
 .crew-meta { color: var(--gh-muted); font-size: .75rem; }
-.crew-links { display: flex; gap: .5rem; }
+.crew-links { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: .4rem .5rem; }
 .crew-link { color: var(--gh-text); font-size: .75rem; font-weight: 700; text-decoration: none; padding: .35rem .6rem; border: 1px solid var(--gh-line); border-radius: var(--gh-radius); }
 .crew-link:hover { border-color: var(--gh-muted); }
 .crew-link-discord { background: #5865f2; border-color: #5865f2; color: #fff; }
@@ -199,3 +199,12 @@ a.ev-dc:hover { color: #aab2ff; text-decoration: underline; text-underline-offse
 .ev-watch { display: inline-flex; align-items: center; gap: .35rem; color: #c9a7ff; font-weight: 700; text-decoration: none; }
 .ev-watch:hover { color: #fff; text-decoration: underline; }
 .ev-watch.is-disabled { opacity: .5; cursor: default; text-decoration: none; }
+
+/* Sample crews (2026-10-02): demo links, crew membership up to 5 (DEC-0093) */
+.crew-link.is-disabled { opacity: .45; cursor: default; pointer-events: none; }
+.crew-withdraw { font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; background: none; white-space: nowrap; }
+.crew-me-count { color: var(--gh-muted); font-size: .8rem; }
+
+/* buttons inside crew cards use the link size (2026-10-02) */
+.crew-join-btn { font-size: .75rem; font-weight: 700; white-space: nowrap; }
+.crew-link { white-space: nowrap; }

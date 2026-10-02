@@ -58,6 +58,7 @@ const base = import.meta.env.BASE_URL;
               <label class="pub-toggle" data-mod-only><input type="checkbox" name="is_published" /> <span>Published</span></label>
               <span class="pub-state" data-leader-only hidden></span>
             </div>
+            <p class="track-note" id="crew-mod-note" hidden></p>
             <div class="grid">
               <label class="span2">Crew name *<input type="text" name="name" maxlength="40" required /></label>
               <label>Crew tag * <small>exactly 4 letters/digits</small><input type="text" name="tag" maxlength="4" required class="tag-input" /></label>
@@ -87,6 +88,7 @@ const base = import.meta.env.BASE_URL;
               <label>Social Club page<input type="url" name="social_club_url" placeholder="https://socialclub.rockstargames.com/…" /></label>
               <label class="check" data-mod-only><input type="checkbox" name="is_partner" /> Partner crew</label>
               <label data-mod-only>Sort order <small>lower = earlier</small><input type="number" name="sort_order" step="1" value="0" /></label>
+              <label class="span2" data-mod-only>Note to the crew leader <small>optional, e.g. why the crew is hidden or what to fix</small><textarea name="moderation_note" maxlength="300" rows="2"></textarea></label>
             </div>
             <div class="preview-wrap"><p class="preview-label">Preview</p><div class="crew-grid preview" id="crew-preview"></div></div>
             <div class="form-actions">
@@ -110,6 +112,7 @@ const base = import.meta.env.BASE_URL;
               <h2 id="event-form-title">New event</h2>
               <label class="pub-toggle" data-mod-only><input type="checkbox" name="is_published" checked /> <span>Published</span></label>
             </div>
+            <p class="track-note" id="event-mod-note" hidden></p>
             <div class="grid">
               <label class="span2">Title *<input type="text" name="title" maxlength="80" required /></label>
               <label>Event type *<select name="event_type" required>{Object.entries(eventTypeLabels).map(([k, v]) => <option value={k}>{v}</option>)}</select></label>
@@ -130,6 +133,7 @@ const base = import.meta.env.BASE_URL;
               <label>Sign-ups <small>“I'm in” on the calendar</small><select name="registration"><option value="open">Open</option><option value="closed">Closed — listed, no sign-ups</option></select></label>
               <label class="span2">Stream link <small>optional — Twitch, YouTube or Kick; shown as “Watch on …”, also when the event is full or closed</small><input type="url" name="stream_url" placeholder="https://www.twitch.tv/…" /></label>
               <label class="span2">Description <small><span id="event-desc-count">0</span>/600</small><textarea name="description" maxlength="600" rows="3"></textarea></label>
+              <label class="span2" data-mod-only>Note to the host <small>optional, e.g. why the event is hidden or what to fix</small><textarea name="moderation_note" maxlength="300" rows="2"></textarea></label>
             </div>
             <div class="preview-wrap"><p class="preview-label">Preview</p><div class="ev-list preview" id="event-preview"></div></div>
             <div class="rsvp-panel" id="rsvp-panel" hidden><p class="preview-label">Sign-ups</p><div id="rsvp-list"></div></div>
@@ -564,6 +568,7 @@ const base = import.meta.env.BASE_URL;
       is_partner: fd.get('is_partner') === 'on',
       sort_order: Math.round(Number(fd.get('sort_order') || 0)),
       is_published: fd.get('is_published') === 'on',
+      ...(isMod ? { moderation_note: blank(fd.get('moderation_note')) } : {}),
     };
   }
 
@@ -589,6 +594,18 @@ const base = import.meta.env.BASE_URL;
     $('crew-desc-count').textContent = String((cf.description.value || '').length);
   }
 
+  // Moderator note shown to the crew leader / host (2026-10-02), like tracks.
+  // unpublishedMeansHidden: events are published on creation, so unpublished
+  // = hidden by a moderator; new crews start as drafts, so not for crews.
+  function showModNote(id: string, r: any, mod: boolean, unpublishedMeansHidden = false) {
+    const el = $(id);
+    const hidden = unpublishedMeansHidden && r.is_published === false;
+    el.hidden = mod || (!r.moderation_note && !hidden);
+    el.textContent = r.moderation_note
+      ? `Moderator note: ${r.moderation_note}${hidden ? ' (currently hidden from the site)' : ''}`
+      : hidden ? 'Currently hidden from the site by a moderator.' : '';
+  }
+
   function openCrew(row: any | null) {
     selectedId = row?.crew_id ?? null;
     crewForm.reset();
@@ -602,6 +619,8 @@ const base = import.meta.env.BASE_URL;
     cf.sort_order.value = r.sort_order ?? 0;
     cf.is_partner.checked = Boolean(r.is_partner);
     cf.is_published.checked = Boolean(r.is_published);
+    cf.moderation_note.value = r.moderation_note ?? '';
+    showModNote('crew-mod-note', r, isMod);
     const ps = crewForm.querySelector<HTMLElement>('.pub-state')!;
     ps.textContent = r.is_published ? 'Live on the site' : 'Draft — a moderator publishes it';
     crewForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value) || (ACTIVE_PLATFORMS.length === 1 && i.hasAttribute('data-locked'))));
@@ -666,6 +685,7 @@ const base = import.meta.env.BASE_URL;
       max_participants: fd.get('max_participants') ? Number(fd.get('max_participants')) : null,
       registration: String(fd.get('registration') ?? 'open') === 'closed' ? 'closed' : 'open',
       is_published: isMod ? fd.get('is_published') === 'on' : true,
+      ...(isMod ? { moderation_note: blank(fd.get('moderation_note')) } : {}),
     };
   }
   // Stream link lives in hub_event_streams (RS-0058), not on the event row.
@@ -720,6 +740,8 @@ const base = import.meta.env.BASE_URL;
     ef.is_published.checked = row ? Boolean(r.is_published) : true;
     ef.max_participants.value = r.max_participants ?? '';
     ef.registration.value = r.registration ?? 'open';
+    ef.moderation_note.value = r.moderation_note ?? '';
+    showModNote('event-mod-note', r, isMod, true);
     ef.stream_url.value = [...(r.streams ?? [])].sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))[0]?.url ?? '';
     eventForm.querySelectorAll<HTMLInputElement>('input[name="platforms"]').forEach((i) => (i.checked = (r.platforms ?? []).includes(i.value) || (ACTIVE_PLATFORMS.length === 1 && i.hasAttribute('data-locked'))));
     resetDelete(eventForm, Boolean(row));

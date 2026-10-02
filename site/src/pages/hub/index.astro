@@ -7,7 +7,7 @@ import { sampleEventsUpcoming, sampleCrews, eventRowHtml, crewCardHtml } from '.
 
 const base = import.meta.env.BASE_URL;
 const nextEventsHtml = sampleEventsUpcoming().filter((e) => e.status !== 'cancelled').slice(0, 3).map((e) => eventRowHtml(e, { rsvp: true, sample: true })).join('');
-const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
+const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c, undefined, { sample: true })).join('');
 ---
 <Base
   title="The Hub — GTA VI Racing Community"
@@ -62,6 +62,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
       <span class="hub-sample-flag" id="hub-crew-flag">Sample data</span>
       <a class="hub-block-link" href={`${base}hub/crews/`}>All crews</a>
     </div>
+    <div class="crew-me" id="hub-crew-me" hidden aria-live="polite"></div>
     <div class="crew-grid" id="hub-crew-root" set:html={crewsHtml} />
   </section>
 </Base>
@@ -83,7 +84,8 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
 </style>
 
 <script>
-  import { eventRowHtml, crewCardHtml, localizeTimes, sampleEventsUpcoming } from '../../data/hub';
+  import { eventRowHtml, crewCardHtml, localizeTimes, sampleEventsUpcoming, sampleCrews } from '../../data/hub';
+  import { createCrewMembership } from '../../scripts/crew-membership';
   import { fetchLiveEvents, fetchLiveCrews } from '../../scripts/hub-live';
   import { createEventRsvp } from '../../scripts/event-rsvp';
 
@@ -103,9 +105,13 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c)).join('');
     rsvp.renderRsvps();
     await rsvp.connect();
   });
+  // Crew cards with "Request to join" + Discord, same as The Hub > Crews (2026-10-02)
+  const crewMembership = createCrewMembership(document.getElementById('hub-crew-root')!, document.getElementById('hub-crew-me')!);
+  crewMembership.setCrews(sampleCrews, false);
   fetchLiveCrews().then((live) => {
     if (!live) return;
     document.getElementById('hub-crew-root')!.innerHTML = live.slice(0, 3).map((c) => crewCardHtml(c)).join('');
     document.getElementById('hub-crew-flag')!.hidden = true;
+    crewMembership.setCrews(live, true);
   });
 </script>

@@ -229,12 +229,15 @@ const iconClock = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" s
 
 /** roster: display names of the crew's members on this site (live only,
  *  anonymised drivers are already excluded by the DB view). */
-export function crewCardHtml(c: HubCrew, roster?: string[]): string {
+/** opts.sample: sample crew -- demo "Request to join" (keyed by slug) and a
+ *  greyed-out Discord link, so the card is not a dead end (2026-10-02). */
+export function crewCardHtml(c: HubCrew, roster?: string[], opts: { sample?: boolean } = {}): string {
   const discord = safeUrl(c.discord_url);
+  const joinId = c.crew_id ?? (opts.sample ? c.slug : null);
   const sc = safeUrl(c.social_club_url);
   const langs = c.languages ?? [];
   const meta = [c.region, langs.map(languageLabel).join(', ')].filter(Boolean).map(esc).join(' · ');
-  return `<article class="crew-card"${c.crew_id ? ` data-crew-id="${esc(c.crew_id)}"` : ''} data-platforms="${esc(c.platforms.join('|'))}" data-focus="${esc(c.focus.join('|'))}" data-languages="${esc(langs.join('|'))}" data-search="${esc(`${c.name} ${c.tag}`.toLowerCase())}" style="--crew-color:${safeColor(c.color)}">
+  return `<article class="crew-card"${joinId ? ` data-crew-id="${esc(joinId)}"` : ''} data-platforms="${esc(c.platforms.join('|'))}" data-focus="${esc(c.focus.join('|'))}" data-languages="${esc(langs.join('|'))}" data-search="${esc(`${c.name} ${c.tag}`.toLowerCase())}" style="--crew-color:${safeColor(c.color)}">
   <div class="crew-card-head">
     ${crewEmblemHtml(c.color)}
     <div class="crew-card-id">
@@ -252,9 +255,9 @@ export function crewCardHtml(c: HubCrew, roster?: string[]): string {
   <div class="crew-foot">
     <span class="crew-meta">${meta}</span>
     <span class="crew-links">
-      ${c.crew_id ? '<span class="crew-join-slot"></span>' : ''}
+      ${joinId ? '<span class="crew-join-slot"></span>' : ''}
       ${sc ? `<a class="crew-link" href="${esc(sc)}" target="_blank" rel="noopener">Social Club</a>` : ''}
-      ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : ''}
+      ${discord ? `<a class="crew-link crew-link-discord" href="${esc(discord)}" target="_blank" rel="noopener">Discord</a>` : opts.sample ? '<span class="crew-link crew-link-discord is-disabled" title="Sample crew — no real Discord server">Discord</span>' : ''}
       ${c.crew_id ? `<a class="crew-report" href="${esc(`${import.meta.env.BASE_URL}report-content/?crew=${encodeURIComponent(c.crew_id)}`)}" title="Report this crew to the moderators">Report</a>` : ''}
     </span>
   </div>

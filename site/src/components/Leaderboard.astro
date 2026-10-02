@@ -251,8 +251,12 @@ const needed = vehiclesNeededHtml(sampleEntries);
     const tags = new Map<string, { tag: string; color: string }>();
     const ids = [...new Set([...live, ...liveVerified].map((r) => r.driver_id).filter(Boolean))];
     if (ids.length) {
-      const roster = await sb.from('public_crew_roster').select('driver_id, tag, color').in('driver_id', ids.slice(0, 300));
-      for (const r of (roster.data ?? []) as { driver_id: string; tag: string; color: string }[]) tags.set(r.driver_id, { tag: r.tag, color: r.color });
+      // Up to 5 crews per driver (DEC-0093): show the main crew (is_primary).
+      // select('*') keeps working with or without the is_primary column.
+      const roster = await sb.from('public_crew_roster').select('*').in('driver_id', ids.slice(0, 300));
+      for (const r of (roster.data ?? []) as { driver_id: string; tag: string; color: string; is_primary?: boolean }[]) {
+        if (!tags.has(r.driver_id) || r.is_primary) tags.set(r.driver_id, { tag: r.tag, color: r.color });
+      }
     }
     const toEntry = (r: LiveRow): LbEntry => ({
       driver: r.driver, driver_id: r.driver_id, crew: tags.get(r.driver_id) ?? null,
