@@ -6,6 +6,8 @@
 // "See All Confirmed Mod Shops" CTA removed (no target page yet).
 // PENDING (Codex): one consistent set of evidence labels (sections vs.
 // methodology) and the ownership/garage section (Kotaku demo report).
+// Internal links FROM the Guide: Claude decides (Fausto, 2026-10-03, DEC-0095).
+// Links TO the Guide on other pages: Codex proposes, Fausto approves.
 // Never add leak information here. Visible text: "GTA VI"; meta: "GTA 6".
 
 /** Date shown as "Last updated" and used as dateModified. Change on every content update. */
@@ -38,7 +40,7 @@ export const guideSections: GuideSection[] = [
     title: 'Vehicles in GTA VI',
     status: 'Confirmed & Shown',
     paragraphs: [
-      `GTA VI brings back familiar in-game manufacturers and models while adding vehicles created specifically for Leonida. Rockstar has named only part of the full lineup, so The Garage also documents vehicles identified in official trailers and screenshots. Each entry separates an official name from a visual identification.`,
+      `GTA VI brings back familiar in-game manufacturers and models while adding vehicles created specifically for Leonida. Rockstar has named only part of the full lineup, so <a href="{base}garage/">The Garage</a> also documents vehicles identified in official trailers and screenshots. Each entry separates an official name from a visual identification.`,
       `The known lineup reaches beyond cars. Official material includes motorcycles, boats, a kayak, personal watercraft, helicopters, planes, and specialist vehicles alongside sedans, muscle cars, supercars, SUVs, off-road builds, and classics. A vehicle appearing in footage confirms that it exists in the world; it does not always prove that the player can own or drive it.`,
       `Open The Garage for individual models, <a href="{base}garage/classes/">GTA classes</a>, <a href="{base}garage/manufacturers/">manufacturers</a>, first appearances, release information, and real-life inspirations. Prices and tested performance data will be added when they can be verified in the released game.`,
     ],
@@ -143,7 +145,7 @@ export const guideSections: GuideSection[] = [
     status: 'Partially Confirmed',
     paragraphs: [
       `Rockstar has shown a dedicated paved race circuit in GTA VI, complete with a grid, curbing, timing, position, and lap information. Trailer 2 separately shows Lucia wearing clothing marked <strong>Gellhorn International</strong> with a race-car graphic.`,
-      `The venue is widely known as <strong>Gellhorn International Raceway</strong>, and Leonida Racing uses that established name for its Time Attack competition. The source record remains more precise: Rockstar’s public footage shows the circuit and the Gellhorn International branding, but does not display the full venue name alongside the race. The complete layout, location, classes, and event schedule remain unannounced.`,
+      `The venue is widely known as <strong>Gellhorn International Raceway</strong>, and Leonida Racing uses that established name for its <a href="{base}time-attack/gellhorn-international-raceway/">Time Attack competition</a>. The source record remains more precise: Rockstar’s public footage shows the circuit and the Gellhorn International branding, but does not display the full venue name alongside the race. The complete layout, location, classes, and event schedule remain unannounced.`,
     ],
     cta: { label: 'Visit Gellhorn Time Attack', href: 'time-attack/gellhorn-international-raceway/' },
     sources: [
