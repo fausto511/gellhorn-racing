@@ -86,12 +86,12 @@ const base = import.meta.env.BASE_URL;
   .consent-btn { min-width: 6rem; padding: .38rem .9rem; border-radius: var(--gh-radius); font-family: var(--gh-font-display); font-style: italic; font-weight: 900; font-size: .74rem; letter-spacing: .02em; text-transform: uppercase; cursor: pointer; transition: transform .12s, filter .12s, background .12s; }
   .consent-btn:hover { transform: translateY(-1px); }
   .consent-btn:focus-visible { outline: 2px solid var(--gh-yellow); outline-offset: 2px; }
-  /* Grey but clearly a button (white text, full contrast) -- rejecting must stay as easy as allowing */
-  .consent-no { background: #4a4a5c; color: var(--gh-text); border: 2px solid #4a4a5c; }
-  .consent-no:hover { background: #56566a; border-color: #56566a; }
-  .consent-yes { background: var(--gh-red); color: #fff; border: 2px solid var(--gh-red); animation: consent-nudge 2.4s ease-in-out .8s 2; }
+  /* Palette only (Fausto, 2026-10-02). Clearly a button (white text, full contrast) -- rejecting must stay as easy as allowing */
+  .consent-no { background: var(--gh-surface); color: var(--gh-text); border: 2px solid var(--gh-muted); }
+  .consent-no:hover { background: var(--gh-bg); }
+  .consent-yes { background: var(--gh-yellow); color: #1a1206; /* same as .btn-primary */ border: 2px solid var(--gh-yellow); animation: consent-nudge 2.4s ease-in-out .8s 2; }
   .consent-yes:hover { filter: brightness(1.08); }
-  @keyframes consent-nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(237,37,61,0); } 50% { box-shadow: 0 0 0 .4rem rgba(237,37,61,.25); } }
+  @keyframes consent-nudge { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,76,0); } 50% { box-shadow: 0 0 0 .4rem rgba(255,215,76,.3); } }
   @media (prefers-reduced-motion: reduce) { .consent-bar { transition: none; } .consent-yes { animation: none; } }
   @media (max-width: 640px) {
     .consent-inner { flex-direction: column; align-items: stretch; gap: .65rem; }
