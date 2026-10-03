@@ -153,7 +153,7 @@ const vehicleIndex = [...vehicleOptions]
           <button type="button" class="mg-remove" data-remove="${esc(x.id)}" title="Remove from my garage" aria-label="Remove ${esc(x.make)} ${esc(x.model)} from my garage">✕</button>
           <div class="mg-name">${logo(x)}<span><a href="${base}garage/vehicles/${esc(x.id)}/">${esc(x.make)} ${esc(x.model)}</a><small>${esc(x.classes)}</small></span></div>
         </div>
-        <div class="mg-foot"><a href="${base}time-attack/gellhorn-international-raceway/?vehicle=${encodeURIComponent(x.id)}">Gellhorn leaderboard →</a></div>
+        <div class="mg-foot"><a rel="nofollow" href="${base}time-attack/gellhorn-international-raceway/?vehicle=${encodeURIComponent(x.id)}">Gellhorn leaderboard →</a></div>
       </article>`;
     });
     const slot = `<button type="button" class="mg-slot" id="mg-slot" aria-haspopup="dialog">
