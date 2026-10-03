@@ -21,6 +21,9 @@ export default defineConfig({
   trailingSlash: 'always',
   build: {
     format: 'directory',
+    // Inline all CSS into each page: no render-blocking stylesheet requests
+    // (PageSpeed, 2026-10-03). GitHub Pages only caches for 10 min anyway.
+    inlineStylesheets: 'always',
   },
   integrations: [
     sitemap({
