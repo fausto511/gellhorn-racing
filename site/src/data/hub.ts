@@ -31,6 +31,8 @@ export interface HubCrew {
   discord_url: string | null;
   social_club_url: string | null;
   is_partner: boolean;
+  /** set by moderators; featured crews come first on Hub overview + home (2026-10-03) */
+  is_featured?: boolean;
 }
 
 export type StreamPlatform = 'twitch' | 'youtube' | 'kick';

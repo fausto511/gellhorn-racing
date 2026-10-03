@@ -98,13 +98,14 @@ const needed = vehiclesNeededHtml(sampleEntries);
   :global(.lb-driver) { font-weight: 700; }
   :global(.lb-crew-tag) { margin-left: .45rem; vertical-align: 1px; }
   :global(.lb-vehicle) { display: inline-flex; align-items: center; gap: .5rem; }
-  :global(.lb-vehicle-link) { color: inherit; text-decoration: none; }
+  :global(.lb-link), :global(.lb-logo-link) { color: inherit; text-decoration: none; }
+  :global(.lb-link:hover), :global(.lb-link:focus-visible) { color: var(--gh-text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-red); }
   /* same spacing between make and model as the non-link rows (flex gap) */
   :global(.lb-vehicle-name) { display: inline-flex; align-items: baseline; gap: .5rem; }
-  :global(.lb-vehicle-link:hover .lb-vehicle-name), :global(.lb-vehicle-link:focus-visible .lb-vehicle-name) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
   :global(.needed-link) { color: inherit; text-decoration: none; }
   :global(.needed-link:hover strong) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--gh-muted); }
-  :global(.lb-make) { color: var(--gh-muted); font-size: .78rem; }
+  :global(.lb-make) { color: var(--gh-muted); }
+  :global(.lb-model) { color: var(--gh-text); }
   :global(.lb-num) { color: var(--gh-muted); }
   :global(.lb-time) { font-variant-numeric: tabular-nums; font-weight: 700; }
   :global(.lb-gap) { display: block; color: var(--gh-muted); font-size: .72rem; font-weight: 400; }
@@ -112,9 +113,11 @@ const needed = vehiclesNeededHtml(sampleEntries);
   :global(.check-circle) { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; flex: none; border-radius: 50%; background: var(--gh-yellow); color: #1a1206; }
   :global(.watch-btn) { display: inline-flex; align-items: center; padding: .35rem .8rem; border-radius: var(--gh-radius); background: transparent; border: 1px solid var(--gh-line); color: var(--gh-text); font-size: .76rem; font-weight: 700; text-decoration: none; }
 
-  :global(.logo-chip) { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none; border-radius: 50%; background: var(--gh-text); padding: 4px; }
-  :global(.logo-chip img) { width: 100%; height: 100%; object-fit: contain; display: block; }
-  :global(.logo-chip-lg) { width: 40px; height: 40px; padding: 5px; }
+  /* Logos in white, no circle, a bit larger (Fausto, 2026-10-03). Source
+     files are black on transparent; invert(.97) ≈ the palette text white. */
+  :global(.logo-chip) { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; flex: none; }
+  :global(.logo-chip img) { width: 100%; height: 100%; object-fit: contain; display: block; filter: invert(.97); }
+  :global(.logo-chip-lg) { width: 48px; height: 48px; }
 
   /* 6 vehicles as a fixed grid next to the heading (Fausto, 2026-09-30): 3x2 desktop, 2 cols tablet, 1 col phone */
   .needed { display: grid; grid-template-columns: minmax(12rem, 16rem) 1fr; gap: 1.5rem; align-items: start; margin-top: 1.25rem; padding: var(--gh-pad-card); }

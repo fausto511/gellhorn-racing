@@ -296,7 +296,7 @@ const jsonLd = [
 <script>
   import '../scripts/launch-countdown';
   import { backendConfigured, getSupabase } from '../scripts/supabase-client';
-  import { fetchLiveCrews, fetchLiveEvents } from '../scripts/hub-live';
+  import { fetchLiveCrews, fetchLiveEvents, pickFeaturedCrews } from '../scripts/hub-live';
   import { homeCrewCard, homeEventCard } from '../data/home';
   import { localizeTimes } from '../data/hub';
 
@@ -323,11 +323,13 @@ const jsonLd = [
 
   fetchLiveCrews().then((live) => {
     if (!live || !live.length) return;
-    document.getElementById('home-crews')!.innerHTML = live.slice(0, 4).map(homeCrewCard).join('');
+    document.getElementById('home-crews')!.innerHTML = pickFeaturedCrews(live, 4).map(homeCrewCard).join('');
     document.getElementById('home-crew-flag')!.hidden = true;
   });
   fetchLiveEvents().then((live) => {
-    const next = (live ?? []).filter((e) => e.status !== 'cancelled' && new Date(e.starts_at).getTime() > Date.now() - 3 * 3600e3).slice(0, 4);
+    // Next events by start time (Fausto, 2026-10-03); running ones stay until they end, cancelled/finished drop out
+    const endOf = (e: { starts_at: string; ends_at: string | null }) => new Date(e.ends_at ?? new Date(new Date(e.starts_at).getTime() + 3 * 3600e3).toISOString()).getTime();
+    const next = (live ?? []).filter((e) => e.status !== 'cancelled' && endOf(e) > Date.now()).sort((a, b) => a.starts_at.localeCompare(b.starts_at)).slice(0, 4);
     if (!next.length) return;
     const root = document.getElementById('home-events')!;
     root.innerHTML = next.map(homeEventCard).join('');

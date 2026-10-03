@@ -11,6 +11,7 @@
 // fictional sample crews of The Hub (data/hub.ts). Always shown with the
 // visible "Sample data" flag.
 import { vehicleOptions } from './vehicles';
+import { makeHref } from './garage-taxonomy';
 import { sampleCrews, esc } from './hub';
 
 export interface LbEntry {
@@ -145,14 +146,23 @@ const garageUrl = (id: string) => `${base}garage/vehicles/${encodeURIComponent(i
 
 function logoChip(e: { make: string; logo: string | null }, lg = false) {
   const u = logoUrl(e.logo);
-  const px = lg ? 30 : 20;
+  const px = lg ? 48 : 32;
   return u ? `<span class="logo-chip${lg ? ' logo-chip-lg' : ''}"><img src="${u}" alt="" width="${px}" height="${px}" loading="lazy" /></span>` : '';
 }
+// Make links to its manufacturer page (if there is one), model + logo to the
+// vehicle page (Fausto, 2026-10-03). Same size, make muted, model white.
 function vehicleCell(e: LbEntry) {
-  const inner = `${logoChip(e)}<span class="lb-vehicle-name"><span class="lb-make">${esc(e.make)}</span> ${esc(e.model)}</span>`;
-  return inGarage(e.vehicle_id)
-    ? `<a class="lb-vehicle lb-vehicle-link" href="${garageUrl(e.vehicle_id)}" title="${esc(vehName(e))} in The Garage">${inner}</a>`
-    : `<span class="lb-vehicle">${inner}</span>`;
+  const inG = inGarage(e.vehicle_id);
+  const mHref = e.logo ? makeHref({ logoSlug: e.logo }) : null;
+  const make = mHref
+    ? `<a class="lb-make lb-link" href="${base}${mHref}" title="${esc(e.make)} vehicles in The Garage">${esc(e.make)}</a>`
+    : `<span class="lb-make">${esc(e.make)}</span>`;
+  const model = inG
+    ? `<a class="lb-model lb-link" href="${garageUrl(e.vehicle_id)}" title="${esc(vehName(e))} in The Garage">${esc(e.model)}</a>`
+    : `<span class="lb-model">${esc(e.model)}</span>`;
+  const logo = logoChip(e);
+  const logoEl = logo && inG ? `<a class="lb-logo-link" href="${garageUrl(e.vehicle_id)}" tabindex="-1" aria-hidden="true">${logo}</a>` : logo;
+  return `<span class="lb-vehicle">${logoEl}<span class="lb-vehicle-name">${make} ${model}</span></span>`;
 }
 function crewTag(c: LbEntry['crew']) {
   if (!c || !/^#[0-9a-fA-F]{6}$/.test(c.color)) return '';

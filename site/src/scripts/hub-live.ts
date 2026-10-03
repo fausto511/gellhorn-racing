@@ -11,7 +11,7 @@ export async function fetchLiveCrews(): Promise<HubCrew[] | null> {
   try {
     const { data, error } = await getSupabase()
       .from('crews')
-      .select('crew_id,slug,name,tag,color,platforms,focus,region,languages,description,member_count,discord_url,social_club_url,is_partner')
+      .select('crew_id,slug,name,tag,color,platforms,focus,region,languages,description,member_count,discord_url,social_club_url,is_partner,is_featured')
       .eq('is_published', true)
       .order('is_partner', { ascending: false })
       .order('sort_order', { ascending: true })
@@ -21,6 +21,14 @@ export async function fetchLiveCrews(): Promise<HubCrew[] | null> {
   } catch {
     return null;
   }
+}
+
+/** Featured crews for Hub overview + home (Fausto, 2026-10-03): n crews,
+ *  featured ones first in random order; free slots filled at random with
+ *  other published crews. New pick on every page load. */
+export function pickFeaturedCrews(list: HubCrew[], n: number): HubCrew[] {
+  const shuffle = <T,>(a: T[]) => { const b = [...a]; for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  return [...shuffle(list.filter((c) => c.is_featured)), ...shuffle(list.filter((c) => !c.is_featured))].slice(0, n);
 }
 
 export async function fetchLiveEvents(): Promise<HubEvent[] | null> {

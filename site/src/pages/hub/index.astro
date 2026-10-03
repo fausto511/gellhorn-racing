@@ -58,7 +58,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c, undefined, 
     <div class="ev-list" id="hub-ev-root" set:html={nextEventsHtml} />
 
     <div class="hub-block-head">
-      <h2 class="display hub-block-title">Crews</h2>
+      <h2 class="display hub-block-title">Featured Crews</h2>
       <span class="hub-sample-flag" id="hub-crew-flag">Sample data</span>
       <a class="hub-block-link" href={`${base}hub/crews/`}>All crews</a>
     </div>
@@ -86,7 +86,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c, undefined, 
 <script>
   import { eventRowHtml, crewCardHtml, localizeTimes, sampleEventsUpcoming, sampleCrews } from '../../data/hub';
   import { createCrewMembership } from '../../scripts/crew-membership';
-  import { fetchLiveEvents, fetchLiveCrews } from '../../scripts/hub-live';
+  import { fetchLiveEvents, fetchLiveCrews, pickFeaturedCrews } from '../../scripts/hub-live';
   import { createEventRsvp } from '../../scripts/event-rsvp';
 
   // "Next Up" with the same sign-up functions as the Event Calendar (2026-10-02)
@@ -110,7 +110,7 @@ const crewsHtml = sampleCrews.slice(0, 3).map((c) => crewCardHtml(c, undefined, 
   crewMembership.setCrews(sampleCrews, false);
   fetchLiveCrews().then((live) => {
     if (!live) return;
-    document.getElementById('hub-crew-root')!.innerHTML = live.slice(0, 3).map((c) => crewCardHtml(c)).join('');
+    document.getElementById('hub-crew-root')!.innerHTML = pickFeaturedCrews(live, 3).map((c) => crewCardHtml(c)).join('');
     document.getElementById('hub-crew-flag')!.hidden = true;
     crewMembership.setCrews(live, true);
   });

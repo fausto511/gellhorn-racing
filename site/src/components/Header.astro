@@ -102,14 +102,15 @@ const globalLinks = [
   .brand-sub { color: var(--gh-red); font-size: 1.55rem; }
   /* Beta marker (Fausto, 2026-09-28): the site is still being built. */
   .brand-beta { align-self: center; margin-left: .35rem; padding: .12rem .4rem; border: 1px solid var(--gh-yellow); border-radius: 3px; color: var(--gh-yellow); font-family: var(--gh-font-body); font-style: normal; font-weight: 800; font-size: .58rem; letter-spacing: .1em; text-transform: uppercase; line-height: 1.2; }
-  .global-nav { display: flex; gap: 1.75rem; margin-left: .75rem; flex: 1; }
+  /* nav + items stretch to the full bar height, so the dropdown (top: 100%) starts exactly at the bar's bottom line (2026-10-03) */
+  .global-nav { display: flex; gap: 1.75rem; margin-left: .75rem; flex: 1; align-self: stretch; }
   .global-link { color: var(--gh-muted); text-decoration: none; font-family: var(--gh-font-display); font-style: italic; font-size: 1.05rem; font-weight: 900; letter-spacing: .01em; text-transform: uppercase; padding-block: .3rem; border-bottom: 2px solid transparent; }
   .global-link:hover { color: var(--gh-text); }
   .global-link.is-active { color: var(--gh-text); border-color: var(--gh-red); }
   .nav-item { position: relative; display: flex; align-items: center; }
   /* Dropdown looks like the header itself (Fausto, 2026-10-02): header
      background, menu font, red underline follows the hovered entry. */
-  .nav-sub { position: absolute; top: calc(100% + .55rem); left: -1rem; z-index: 50; min-width: 12rem; padding: .5rem 1rem .7rem; display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; background: rgba(20,20,26,.98); backdrop-filter: blur(10px); border: 1px solid var(--gh-line); border-top: none; border-radius: 0 0 var(--gh-radius) var(--gh-radius); box-shadow: 0 14px 28px rgba(0,0,0,.45); opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .12s, transform .12s, visibility .12s; }
+  .nav-sub { position: absolute; top: 100%; left: -1rem; z-index: 50; min-width: 12rem; padding: .5rem 1rem .7rem; display: flex; flex-direction: column; align-items: flex-start; gap: .1rem; background: rgba(20,20,26,.98); backdrop-filter: blur(10px); border: 1px solid var(--gh-line); border-top: none; border-radius: 0 0 var(--gh-radius) var(--gh-radius); box-shadow: 0 14px 28px rgba(0,0,0,.45); opacity: 0; visibility: hidden; transform: translateY(4px); transition: opacity .12s, transform .12s, visibility .12s; }
   /* invisible bridge so the menu stays open while the pointer moves down */
   .nav-sub::before { content: ''; position: absolute; left: 0; right: 0; top: -1.2rem; height: 1.2rem; }
   .nav-item:hover .nav-sub, .nav-item:focus-within .nav-sub { opacity: 1; visibility: visible; transform: none; }

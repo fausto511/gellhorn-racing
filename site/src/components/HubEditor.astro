@@ -87,6 +87,7 @@ const base = import.meta.env.BASE_URL;
               <label>Discord invite<input type="url" name="discord_url" placeholder="https://discord.gg/…" /></label>
               <label>Social Club page<input type="url" name="social_club_url" placeholder="https://socialclub.rockstargames.com/…" /></label>
               <label class="check" data-mod-only><input type="checkbox" name="is_partner" /> Partner crew</label>
+              <label class="check" data-mod-only><input type="checkbox" name="is_featured" /> Featured crew <small>shown on the home page and Hub overview</small></label>
               <label data-mod-only>Sort order <small>lower = earlier</small><input type="number" name="sort_order" step="1" value="0" /></label>
               <label class="span2" data-mod-only>Note to the crew leader <small>optional, e.g. why the crew is hidden or what to fix</small><textarea name="moderation_note" maxlength="300" rows="2"></textarea></label>
             </div>
@@ -607,6 +608,7 @@ const base = import.meta.env.BASE_URL;
       discord_url: blank(fd.get('discord_url')),
       social_club_url: blank(fd.get('social_club_url')),
       is_partner: fd.get('is_partner') === 'on',
+      is_featured: fd.get('is_featured') === 'on',
       sort_order: Math.round(Number(fd.get('sort_order') || 0)),
       is_published: fd.get('is_published') === 'on',
       ...(isMod ? { moderation_note: blank(fd.get('moderation_note')) } : {}),
@@ -659,6 +661,7 @@ const base = import.meta.env.BASE_URL;
     cf.member_count.value = r.member_count ?? '';
     cf.sort_order.value = r.sort_order ?? 0;
     cf.is_partner.checked = Boolean(r.is_partner);
+    cf.is_featured.checked = Boolean(r.is_featured);
     cf.is_published.checked = Boolean(r.is_published);
     cf.moderation_note.value = r.moderation_note ?? '';
     showModNote('crew-mod-note', r, isMod);
@@ -689,7 +692,7 @@ const base = import.meta.env.BASE_URL;
   crewForm.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const c: any = crewFromForm();
-    if (!isMod) { delete c.slug; delete c.is_partner; delete c.sort_order; delete c.is_published; }
+    if (!isMod) { delete c.slug; delete c.is_partner; delete c.is_featured; delete c.sort_order; delete c.is_published; }
     const bad = validateCrew({ ...crewFromForm(), ...(isMod ? {} : { slug: crews.find((x) => x.crew_id === selectedId)?.slug ?? 'x' }) });
     markInvalid(crewForm, bad);
     if (bad.length) { msg(crewForm, `Please fix: ${bad.map((b) => crewFieldHelp[b] ?? b).join('; ')}.`, true); return; }
