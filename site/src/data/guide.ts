@@ -15,8 +15,32 @@ export const GUIDE_UPDATED = '2026-10-03';
 export const GUIDE_PUBLISHED = '2026-10-03';
 
 export interface GuideSource { label: string; url: string; note: string }
+/** Images in public/images/guide/<key>-<width>.webp (Fausto's selection, Visual/Guide, 2026-10-03).
+ *  Cars only, no boats or aircraft (Fausto). Alt texts and captions: Claude placeholders, Codex review pending. */
+export interface GuideImage { key: string; widths: number[]; w: number; h: number; alt: string; caption: string }
+const W3 = [640, 1280, 1920];
+const RS = 'Official screenshot — Rockstar Games.';
+const img = (key: string, widths: number[], w: number, h: number, alt: string, caption: string): GuideImage => ({ key, widths, w, h, alt, caption });
+const IMG = {
+  driving: img('driving', [640, 1280], 1280, 720, 'A dark sedan kicks up tire smoke while turning on a city street in GTA VI.', 'GTA VI gameplay — Rockstar Games.'),
+  slimJim: img('slim-jim', [640, 1280], 1280, 720, 'A player stands at a parked car with on-screen prompts for Slim Jim and Smash Window in GTA VI.', 'On-screen theft options in GTA VI gameplay — Rockstar Games.'),
+  buggy: img('dominator-buggy', W3, 1920, 1080, 'The ’67 Vapid Dominator Buggy splashes through mud on a dirt trail in GTA VI.', `’67 Vapid Dominator Buggy, Ultimate Edition. ${RS}`),
+  rideout: img('rideout-customs', W3, 1920, 1080, 'Mechanics work on a yellow coupe inside Rideout Customs in GTA VI.', `Rideout Customs Mod Shop, Ultimate Edition. ${RS}`),
+  willies: img('one-eyed-willies', W3, 1920, 1080, 'A lifted green off-roader is worked on inside One-Eyed Willie’s Mod Shop in GTA VI.', `One-Eyed Willie’s Mod Shop, Ultimate Edition. ${RS}`),
+  wyman: img('classic-collection-wyman', W3, 1920, 1080, 'Collector Wyman stands in a yard full of classic cars in GTA VI.', `Wyman and the Classic Car Collection, Ultimate Edition. ${RS}`),
+  classicCar: img('classic-collection-car', W3, 1920, 1080, 'Rear view of a turquoise classic coupe from the Classic Car Collection in GTA VI.', `Classic Car Collection, Ultimate Edition. ${RS}`),
+  circuitRace: img('circuit-race', [640, 1280, 1672], 1672, 941, 'A pack of race cars on a wet, palm-lined circuit in GTA VI.', 'Circuit racing in GTA VI — Rockstar Games.'),
+  streetRace: img('street-race', [640, 1280], 1280, 720, 'A tuned car races down a dusty street at sunset with a blue exhaust flame in GTA VI.', 'Street racing in GTA VI — Rockstar Games.'),
+  circuitEmpty: img('circuit-empty', [640, 1280, 1672], 1672, 941, 'An empty, palm-lined paved race circuit with blue curbs in GTA VI.', 'The paved circuit shown in official GTA VI material — Rockstar Games.'),
+  carMeet: img('car-meet', [640, 1280, 1919], 1919, 1079, 'Drivers gather around customized cars at a parking-lot meet in GTA VI.', 'A car meet in GTA VI — Rockstar Games.'),
+  takeover: img('street-takeover', [640, 1280, 1672], 1672, 941, 'Aerial view of a street takeover with a car doing burnouts surrounded by a crowd in GTA VI.', 'A street takeover in GTA VI — Rockstar Games.'),
+};
+export const guideHeroImage = img('hero-cheetah', W3, 1920, 1080, 'A white Grotti Cheetah ’95 parked at dusk in GTA VI.', `Grotti Cheetah ’95, Ultimate Edition. ${RS}`);
+
 export interface GuideSection {
   id: string;
+  /** 1–2 images, shown after the first paragraph */
+  images?: GuideImage[];
   title: string;
   status?: string;
   paragraphs: string[]; // trusted HTML (<strong>, internal <a href="{base}…">)
@@ -54,6 +78,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'driving',
+    images: [IMG.driving],
     title: 'Driving and Vehicle Physics',
     status: 'Rockstar Interview',
     paragraphs: [
@@ -67,6 +92,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'theft',
+    images: [IMG.slimJim],
     title: 'Stealing, Scanning, Selling, and Registering Cars',
     status: 'Rockstar Interview',
     paragraphs: [
@@ -81,6 +107,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'ownership',
+    images: [IMG.buggy],
     title: 'Vehicle Ownership, Garages, and Safehouse Vehicles',
     status: 'Rockstar Interview',
     paragraphs: [
@@ -98,6 +125,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'customization',
+    images: [IMG.rideout, IMG.willies],
     title: 'Car Customization and Mod Shops',
     status: 'Confirmed by Rockstar',
     paragraphs: [
@@ -114,6 +142,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'classics',
+    images: [IMG.wyman, IMG.classicCar],
     title: 'Classic Cars, Restoration, and Special Builds',
     status: 'Confirmed by Rockstar',
     paragraphs: [
@@ -128,6 +157,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'racing',
+    images: [IMG.circuitRace, IMG.streetRace],
     title: 'Racing in GTA VI',
     status: 'Shown by Rockstar',
     paragraphs: [
@@ -144,6 +174,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'gellhorn',
+    images: [IMG.circuitEmpty],
     title: 'Gellhorn and the Circuit',
     status: 'Shown by Rockstar',
     paragraphs: [
@@ -158,6 +189,7 @@ export const guideSections: GuideSection[] = [
   },
   {
     id: 'car-culture',
+    images: [IMG.carMeet, IMG.takeover],
     title: 'Car Meets, Street Takeovers, and Car Culture',
     status: 'Shown by Rockstar',
     paragraphs: [
