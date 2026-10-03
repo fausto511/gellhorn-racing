@@ -4,7 +4,7 @@
 // COPY STATUS: approved Codex copy (Freigegebene Website-Texte, 2026-10-01).
 import { LAUNCH_DATE, LAUNCH_AT, LAUNCH_LABEL } from '../data/launch';
 
-interface Props { area: 'garage' | 'time-attack' | 'hub' | 'tracks' }
+interface Props { area: 'garage' | 'time-attack' | 'hub' | 'tracks' | 'guide' }
 const { area } = Astro.props;
 const base = import.meta.env.BASE_URL;
 
@@ -13,6 +13,8 @@ const lines: Record<Props['area'], string> = {
   garage: 'All GTA VI cars will be added after launch.',
   hub: 'Create your crew or plan an event now.',
   tracks: 'Community jobs open when creation tools are available.',
+  // Claude placeholder (2026-10-03), Codex review pending
+  guide: 'This guide is updated as Rockstar reveals more.',
 };
 const countdown = area !== 'tracks';
 ---

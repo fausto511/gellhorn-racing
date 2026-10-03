@@ -9,8 +9,8 @@
 import LaunchStatus from './LaunchStatus.astro';
 interface Props {
   /** Pre-release status card on the right (RS-0050). */
-  status?: 'garage' | 'time-attack' | 'hub' | 'tracks';
-  image: 'hub' | 'hub-events' | 'hub-crews' | 'hub-tracks' | 'gellhorn';
+  status?: 'garage' | 'time-attack' | 'hub' | 'tracks' | 'guide';
+  image: 'hub' | 'hub-events' | 'hub-crews' | 'hub-tracks' | 'gellhorn' | 'guide';
   eyebrow: string;
   title: string;
   lede: string;
@@ -26,6 +26,8 @@ const images = {
   'hub-tracks': { path: `${base}images/hub/hub-tracks`, w: 1672, h: 941, pos: '50% 60%', posMobile: '62% 70%' }, // Racing/hotlap-gir-3 (1).png
   // same image as the Gellhorn track page hero
   gellhorn: { path: `${base}images/gellhorn-raceway`, w: 1672, h: 941, pos: '50% 50%', posMobile: '50% 50%' },
+  // The Guide (2026-10-03): Visual/Guide/ULTIMATE_EDITION_GROTTI_CHEETAH_02 (chosen by Fausto)
+  guide: { path: `${base}images/guide/guide-hero`, w: 1672, h: 940, pos: '70% 55%', posMobile: '72% 60%' },
 };
 const img = images[image];
 ---
